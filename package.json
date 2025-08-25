@@ -1,0 +1,16 @@
+{
+  "name": "onigiri",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter onigiri-jpkr dev",
+    "build": "pnpm --filter onigiri-jpkr build",
+    "start": "pnpm --filter onigiri-jpkr start"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@rsuite/icons": "^1.3.2"
+  }
+}
