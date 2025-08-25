@@ -124,6 +124,20 @@
   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
+.study-btn {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 16px 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+
 .analyze-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
@@ -362,6 +376,11 @@
     font-size: 14px;
   }
   
+  .study-btn {
+    padding: 14px 30px;
+    font-size: 14px;
+  }
+
   .highlighted-text {
     font-size: 16px;
     padding: 16px;

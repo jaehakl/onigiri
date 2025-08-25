@@ -6,10 +6,7 @@ from pydantic import BaseModel
 from service.words_crud import create_words_batch, read_words_batch, update_words_batch, delete_words_batch, get_all_words, search_words_by_word
 from service.examples_crud import create_examples_batch, read_examples_batch, update_examples_batch, delete_examples_batch, get_all_examples, search_examples_by_text, get_examples_by_word_id
 from service.analysis_text import analyze_text
-
-# Add this import for the actor service
-
-#from service.github_service import GitHubService, get_files_from_public_repo, get_file_content_from_public_repo
+#from service.quiz_records import save_quiz_record, get_quiz_records, get_quiz_statistics
 
 app = server()
 
@@ -45,6 +42,15 @@ class ExampleUpdateData(BaseModel):
     tags: Optional[str] = None
     jp_text: Optional[str] = None
     kr_meaning: Optional[str] = None
+
+class QuizRecordData(BaseModel):
+    word_id: int
+    type: str
+    is_correct: bool
+    time_spent: float
+    user_answer: str
+    correct_answer: str
+    timestamp: Optional[str] = None
 
 # Words CRUD API endpoints
 @app.post("/words/create/batch")
@@ -93,6 +99,14 @@ async def get_words(data: Dict[str, Any]):
 async def search_word(search_term: str):
     try:
         return search_words_by_word(search_term)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/words/random/{count}")
+async def get_random_words(count: int = 50):
+    try:
+        from service.words_crud import get_random_words
+        return get_random_words(count)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -158,3 +172,28 @@ async def get_examples_by_word(word_id: int):
 async def analyze_text_endpoint(request: TextAnalysisRequest):
     result = analyze_text(request.text)
     return result
+
+# Quiz Records API endpoints
+#@app.post("/quiz/record")
+#async def save_quiz_record_endpoint(quiz_record: QuizRecordData):
+#    try:
+#        result = save_quiz_record(quiz_record.dict())
+#        return result
+#    except Exception as e:
+#        raise HTTPException(status_code=500, detail=str(e))
+#
+#@app.post("/quiz/records")
+#async def get_quiz_records_endpoint(filters: Dict[str, Any] = None):
+#    try:
+#        result = get_quiz_records(filters)
+#        return result
+#    except Exception as e:
+#        raise HTTPException(status_code=500, detail=str(e))
+#
+#@app.post("/quiz/statistics")
+#async def get_quiz_statistics_endpoint(filters: Dict[str, Any] = None):
+#    try:
+#        result = get_quiz_statistics(filters)
+#        return result
+#    except Exception as e:
+#        raise HTTPException(status_code=500, detail=str(e))

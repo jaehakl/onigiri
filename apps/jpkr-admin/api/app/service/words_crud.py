@@ -290,3 +290,63 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None) -> 
         
     finally:
         db.close()
+
+
+def get_random_words(count: int = 50) -> List[Dict[str, Any]]:
+    """
+    무작위로 지정된 개수의 단어를 조회합니다.
+    
+    Args:
+        count: 조회할 단어 수 (기본값: 50)
+    
+    Returns:
+        무작위로 선택된 단어들의 데이터 리스트
+    """
+    db = SessionLocal()
+    try:
+        import random
+        
+        # 전체 단어 수 조회
+        total_count = db.query(Words).count()
+        
+        if total_count == 0:
+            return []
+        
+        # 무작위로 단어 ID 선택
+        all_word_ids = [word.id for word in db.query(Words.id).all()]
+        selected_ids = random.sample(all_word_ids, min(count, total_count))
+        
+        # 선택된 ID로 단어 조회
+        words = db.query(Words).filter(Words.id.in_(selected_ids)).all()
+        
+        result = []
+        for word in words:
+            # 예문 정보도 함께 가져오기
+            examples_list = []
+            for example in word.examples:
+                examples_list.append({
+                    "id": example.id,
+                    "word_info": example.word.word,
+                    "tags": example.tags,
+                    "jp_text": example.jp_text,
+                    "kr_meaning": example.kr_meaning,
+                    "updated_at": example.updated_at
+                })
+            
+            result.append({
+                "word_id": word.id,
+                "word": word.word,
+                "surface": word.word,  # 퀴즈에서 사용하는 surface 필드
+                "jp_pronunciation": word.jp_pronunciation,
+                "kr_pronunciation": word.kr_pronunciation,
+                "kr_meaning": word.kr_meaning,
+                "level": word.level,
+                "examples": examples_list,
+                "num_examples": len(examples_list),
+                "updated_at": word.updated_at
+            })
+        
+        return result
+        
+    finally:
+        db.close()

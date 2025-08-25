@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { analyzeText } from '../api/api';
 import EditableTable from '../components/EditableTable';
 import './WordAnalysis.css';
@@ -36,11 +37,25 @@ const columns = [
 
 
 const WordAnalysis = () => {
+  const navigate = useNavigate();
   const [inputText, setInputText] = useState('');
-  const [words, setWords] = useState([]);
+  const [words, setWords] = useState({});
+  const [words_set, setWordsSet] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [message, setMessage] = useState('');
   const [tooltip, setTooltip] = useState({ show: false, data: null, position: { x: 0, y: 0 } });
+
+  useEffect(() => {
+    let words_set = {};
+    for (let i_line in words) {
+      for (let i_word in words[i_line]) {
+        if (words[i_line][i_word].word_id) {
+          words_set[words[i_line][i_word].word_id] = words[i_line][i_word];
+        }
+      }
+    }
+    setWordsSet(words_set);
+  }, [words]);
 
   // 실제 단어 분석 API 호출
   const analyzeMorphology = async (text) => {
@@ -62,11 +77,11 @@ const WordAnalysis = () => {
 
     setIsAnalyzing(true);
     setMessage('');
-    setWords([]);
+    setWords({});
 
     try {
       const result = await analyzeMorphology(inputText);
-      setWords(result);
+      setWords(result);      
       setMessage('단어 분석이 완료되었습니다.');
     } catch (error) {
       console.error('단어 분석 오류:', error);
@@ -79,8 +94,24 @@ const WordAnalysis = () => {
   // 텍스트 초기화
   const handleClear = () => {
     setInputText('');
-    setWords([]);
+    setWords({});
     setMessage('');
+  };
+
+  // 단어 공부하기 버튼 클릭 핸들러
+  const handleStudy = () => {
+    if (Object.keys(words_set).length === 0) {
+      setMessage('분석된 단어가 없습니다. 먼저 텍스트를 분석해주세요.');
+      return;
+    }
+    
+    // 퀴즈 페이지로 이동하면서 단어 데이터 전달
+    navigate('/quiz', { 
+      state: { 
+        words: Object.values(words_set),
+        sourceText: inputText 
+      } 
+    });
   };
 
   // 툴팁 표시
@@ -104,87 +135,36 @@ const WordAnalysis = () => {
   // 강조 표시된 텍스트 렌더링
   const renderHighlightedText = () => {
     if (!words || !inputText) return null;
-
-    // 모든 단어의 위치를 찾아서 정렬
-    const wordPositions = [];
-    words.forEach((word, wordIndex) => {
-      let searchIndex = 0;
-      while (true) {
-        const foundIndex = inputText.indexOf(word.surface, searchIndex);
-        if (foundIndex === -1) break;
-        
-        wordPositions.push({
-          start: foundIndex,
-          end: foundIndex + word.surface.length,
-          word: word,
-          wordIndex: wordIndex
-        });
-        
-        searchIndex = foundIndex + 1;
-      }
-    });
-    // 위치 순서대로 정렬
-    wordPositions.sort((a, b) => a.start - b.start);
-
     const elements = [];
-    let lastIndex = 0;
-
-    wordPositions.forEach((position, index) => {
-      // 단어 이전 텍스트 추가
-      if (position.start > lastIndex) {
-        let s_total = inputText.slice(lastIndex, position.start);
-        let s_list = s_total.split("\n");
-        s_list.forEach((s, i) => {
-          elements.push(
-            <span key={`text-${index}-${i}`}>
-              {s}
-            </span>
-          );
-          if (i < s_list.length - 1) {
-            elements.push(
-              <span key={`text-${index}-${i}-br`}>
-                <br />
-              </span>
-            );
-          }
-        });
-      }
-
-      // 단어 강조 표시
-      elements.push(
-        <span
-          key={`morpheme-${index}`}
-          className={`morpheme morpheme-${position.word.level}`}
-          onMouseEnter={(e) => handleMouseEnter(position.word, e)}
-          onMouseLeave={handleMouseLeave}
-        >
-          {position.word.surface}
-        </span>
-      );
-
-      lastIndex = position.end;
-    });
-
-    // 마지막 단어 이후 텍스트 추가
-    if (lastIndex < inputText.length) {
-      let s_total = inputText.slice(lastIndex);
-      let s_list = s_total.split("\n");
-      s_list.forEach((s, i) => {
+    for (let i_line in words) {
+      for (let i_word in words[i_line]) {
+        if (words[i_line][i_word].word_id) {
         elements.push(
-          <span key={`text-end-${i}`}>
-            {s}
+          <span
+            key={`morpheme-${i_line}-${i_word}`}
+            className={`morpheme morpheme-${words[i_line][i_word].level}`}
+            onMouseEnter={(e) => handleMouseEnter(words[i_line][i_word], e)}
+            onMouseLeave={handleMouseLeave}
+          >
+            {words[i_line][i_word].surface}
           </span>
         );
-        if (i < s_list.length - 1) {
+        } else {
           elements.push(
-            <span key={`text-end-${i}-br`}>
-              <br />
+            <span
+              key={`morpheme-${i_line}-${i_word}`}
+            >
+              {words[i_line][i_word].surface}
             </span>
           );
         }
-      });
+      }
+      elements.push(
+        <span key={`text-${i_line}-br`}>
+          <br />
+        </span>
+      );
     }
-
     return elements;
   };
 
@@ -227,6 +207,13 @@ const WordAnalysis = () => {
             className="analyze-btn"
           >
             {isAnalyzing ? '분석 중...' : '단어 분석'}
+          </button>
+          <button
+            onClick={handleStudy}
+            disabled={Object.keys(words_set).length === 0}
+            className="study-btn"
+          >
+            단어 공부하기
           </button>
         </div>
 
@@ -297,23 +284,13 @@ const WordAnalysis = () => {
             </div>
           </div>
         )}
-        {/*
-        <EditableTable
-          columns={columns}
-          data={words}          
-          showAddRow={false}
-          showPasteButton={false}
-          showCopyButton={true}
-          showDeleteButton={false}
-        />
-        */}
 
         {/* 단어별 예문 섹션 */}
-        {words.length > 0 && (
+        {Object.keys(words_set).length > 0 && (
           <div className="examples-section">
             <h2>단어별 예문</h2>
             <div className="examples-container">
-              {words.map((word, wordIndex) => (
+              {Object.values(words_set).map((word, wordIndex) => (
                 word.examples && (
                   <div key={`word-${wordIndex}`} className="word-examples">
                     <div className="word-header">

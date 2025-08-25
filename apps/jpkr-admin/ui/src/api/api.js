@@ -8,6 +8,7 @@ export const updateWordsBatch = (wordsData) => axios.post(`${API_URL}/words/upda
 export const deleteWordsBatch = (wordIds) => axios.post(`${API_URL}/words/delete/batch`, wordIds);
 export const getAllWords = (limit = null, offset = null) => axios.post(`${API_URL}/words/all`, { limit, offset });
 export const searchWordsByWord = (searchTerm) => axios.get(`${API_URL}/words/search/${encodeURIComponent(searchTerm)}`);
+export const getRandomWords = (count = 50) => axios.get(`${API_URL}/words/random/${count}`);
 
 // === Examples CRUD ===
 export const createExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/create/batch`, examplesData);
@@ -20,4 +21,9 @@ export const getExamplesByWordId = (wordId) => axios.get(`${API_URL}/examples/wo
 
 // === Text Analysis ===
 export const analyzeText = (text) => axios.post(`${API_URL}/text/analyze`, { text });
+
+// === Quiz Records ===
+//export const saveQuizRecord = (quizRecord) => axios.post(`${API_URL}/quiz/record`, quizRecord);
+//export const getQuizRecords = (filters = {}) => axios.post(`${API_URL}/quiz/records`, filters);
+//export const getQuizStatistics = (filters = {}) => axios.post(`${API_URL}/quiz/statistics`, filters);
 

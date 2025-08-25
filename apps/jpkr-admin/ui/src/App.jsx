@@ -7,6 +7,7 @@ import WordsSearch from './pages/words-search';
 import WordAnalysis from './pages/word-analysis';
 import ExamplesRegister from './pages/examples-register';
 import ExamplesTable from './pages/examples-table';
+import Quiz from './pages/quiz';
 
 import 'rsuite/dist/rsuite.min.css';
 
@@ -67,7 +68,7 @@ function App() {
       <Container style={{ marginTop: '20px' }}>
         <Sidebar width={250} style={{ background: '#f8f9fa' }}>
           <div style={{ padding: '20px' }}>
-            <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50' }}>일본어 관리자</h3>
+            <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50' }}>Onigiri Admin</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {menuItems.map(item => (
                 <Button
@@ -96,6 +97,7 @@ function App() {
             <Route path="/examples-register" element={<ExamplesRegister />} />
             <Route path="/examples-table" element={<ExamplesTable />} />
             <Route path="/word-analysis" element={<WordAnalysis />} />
+            <Route path="/quiz" element={<Quiz />} />
           </Routes>
         </Content>
       </Container>
