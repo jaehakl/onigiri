@@ -32,3 +32,36 @@ class Words(Base):
     level = Column(String)
     #embedding = Column(Vector(768))
     updated_at = Column(DateTime, default=datetime.now)
+    examples = relationship("Examples", back_populates="word")
+    images = relationship("WordImages", back_populates="word")
+
+class Examples(Base):
+    __tablename__ = "examples"
+    id = Column(Integer, primary_key=True)
+    word_id = Column(Integer, ForeignKey("words.id"))
+    tags = Column(String)
+    jp_text = Column(String)
+    kr_meaning = Column(String)
+    #embedding = Column(Vector(768))
+    updated_at = Column(DateTime, default=datetime.now)
+    word = relationship("Words", back_populates="examples")
+    audio = relationship("ExampleAudio", back_populates="example")
+
+class WordImages(Base):
+    __tablename__ = "word_images"
+    id = Column(Integer, primary_key=True)
+    word_id = Column(Integer, ForeignKey("words.id"))
+    tags = Column(String)
+    image_url = Column(String)
+    updated_at = Column(DateTime, default=datetime.now)
+    word = relationship("Words", back_populates="images")
+
+class ExampleAudio(Base):
+    __tablename__ = "example_audio"
+    id = Column(Integer, primary_key=True)
+    example_id = Column(Integer, ForeignKey("examples.id"))
+    tags = Column(String)
+    audio_url = Column(String)
+    updated_at = Column(DateTime, default=datetime.now)
+    example = relationship("Examples", back_populates="audio")
+

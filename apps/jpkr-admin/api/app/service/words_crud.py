@@ -102,6 +102,7 @@ def read_words_batch(word_ids: List[int]) -> Dict[int, Dict[str, Any]]:
                 "kr_pronunciation": word.kr_pronunciation,
                 "kr_meaning": word.kr_meaning,
                 "level": word.level,
+                "num_examples": str(len(word.examples)),
                 "updated_at": word.updated_at
             }
         
@@ -231,6 +232,7 @@ def search_words_by_word(search_term: str) -> List[Dict[str, Any]]:
                 "kr_pronunciation": word.kr_pronunciation,
                 "kr_meaning": word.kr_meaning,
                 "level": word.level,
+                "num_examples": str(len(word.examples)),
                 "updated_at": word.updated_at
             })
         
@@ -275,6 +277,7 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None) -> 
                 "kr_pronunciation": word.kr_pronunciation,
                 "kr_meaning": word.kr_meaning,
                 "level": word.level,
+                "num_examples": str(len(word.examples)),
                 "updated_at": word.updated_at
             })
         

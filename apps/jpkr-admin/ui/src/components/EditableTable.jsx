@@ -4,18 +4,60 @@ import './EditableTable.css';
 const EditableTable = ({ 
   columns, 
   data, 
-  onDataChange, 
+  onDataChange,
   addRowText = "행 추가",
   deleteRowText = "삭제",
   onUpdate,
   onDelete,
+  onAction,
+  actionText = "처리",
   showAddRow = true,
   showPasteButton = true,
-  showCopyButton = false
+  showCopyButton = false,
+  showDeleteButton = true,
 }) => {
   const [editingCell, setEditingCell] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [editedRows, setEditedRows] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  // 정렬된 데이터 계산
+  const getSortedData = () => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortConfig.key] || '';
+      const bValue = b[sortConfig.key] || '';
+      
+      // 숫자 정렬
+      if (!isNaN(aValue) && !isNaN(bValue)) {
+        return sortConfig.direction === 'asc' 
+          ? parseFloat(aValue) - parseFloat(bValue)
+          : parseFloat(bValue) - parseFloat(aValue);
+      }
+      
+      // 문자열 정렬
+      const comparison = aValue.toString().localeCompare(bValue.toString(), 'ko');
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  // 정렬 처리
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // 정렬 방향 표시 아이콘
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return '↕️';
+    }
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  };
 
   const handleCellEdit = (rowIndex, columnKey, value) => {
     const newData = [...data];
@@ -54,6 +96,18 @@ const EditableTable = ({
       const selectedIds = data.filter((_, index) => selectedRows.includes(index))
         .map(row => row.id);
       onDelete(selectedIds);
+    }
+  };
+
+  const handleAction = () => {
+    if (onAction && selectedRows.length > 0) {
+      if (selectedRows.length === 0) {
+        alert(actionText + '할 수 있는 ID가 없습니다.');
+        return;
+      }
+      const selectedIds = data.filter((_, index) => selectedRows.includes(index))
+        .map(row => row.id);
+      onAction(selectedIds);
     }
   };
 
@@ -191,19 +245,19 @@ const EditableTable = ({
         )}
         {showPasteButton && (
           <button onClick={handlePasteClick} className="paste-btn">
-            TSV 붙여넣기
+            클립보드에서 붙여넣기 (탭으로 분리)
           </button>
         )}
         {showCopyButton && (
           <button onClick={handleCopyTSV} className="copy-btn">
-            TSV 복사
+            클립보드에 복사 (탭으로 분리)
           </button>
         )}
         {onUpdate && (
           <button 
             onClick={handleUpdate} 
             className="update-selected-btn"
-            disabled={selectedRows.length === 0}
+            disabled={editedRows.length === 0}
           >
             변경사항 저장
           </button>
@@ -215,6 +269,15 @@ const EditableTable = ({
             disabled={selectedRows.length === 0}
           >
             선택된 {selectedRows.length}개 삭제
+          </button>
+        )}
+        {onAction && selectedRows.length > 0 && (
+          <button 
+            onClick={handleAction} 
+            className="action-selected-btn"
+            disabled={selectedRows.length === 0}
+          >
+            {actionText} {selectedRows.length}개
           </button>
         )}
       </div>
@@ -238,18 +301,20 @@ const EditableTable = ({
                         allIndices.forEach(index => handleRowSelect(index));
                       }
                     }
-                  }}
+                  }}                  
                 />
               </th>
             )}
             {columns.map((col) => (
-              <th key={col.key}>{col.label}</th>
+              <th key={col.key} onClick={() => handleSort(col.key)}>
+                {col.label} {getSortIcon(col.key)}
+              </th>
             ))}
-            <th>작업</th>
+            {showDeleteButton && <th>작업</th>}
           </tr>
         </thead>
         <tbody>
-          {data.map((row, rowIndex) => (
+          {getSortedData().map((row, rowIndex) => (
             <tr key={rowIndex} className={selectedRows.includes(rowIndex) ? 'selected-row' : ''}>
               {onDelete && (
                 <td className="select-column">
@@ -262,7 +327,7 @@ const EditableTable = ({
               )}
               {columns.map((col) => (
                 <td key={col.key}>
-                  {editingCell?.rowIndex === rowIndex && editingCell?.columnKey === col.key ? (
+                  {onUpdate && editingCell?.rowIndex === rowIndex && editingCell?.columnKey === col.key ? (
                     <input
                       type="text"
                       value={row[col.key] || ''}
@@ -277,11 +342,12 @@ const EditableTable = ({
                       className="cell-content"
                       onClick={() => handleCellClick(rowIndex, col.key)}
                     >
-                      {row[col.key] || ''}
+                      {row[col.key]}
                     </div>
                   )}
                 </td>
               ))}
+              {showDeleteButton && (
               <td>
                 <button
                   onClick={() => handleDeleteRow(rowIndex)}
@@ -291,6 +357,7 @@ const EditableTable = ({
                   {deleteRowText}
                 </button>
               </td>
+              )}
             </tr>
           ))}
         </tbody>

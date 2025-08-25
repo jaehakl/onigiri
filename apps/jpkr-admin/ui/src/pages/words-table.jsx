@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import EditableTable from '../components/EditableTable';
 import Pagination from '../components/Pagination';
 import { getAllWords, updateWordsBatch, deleteWordsBatch } from '../api/api';
 import './WordsTable.css';
 
+
 const WordsTable = () => {
+  const navigate = useNavigate();
   const [words, setWords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,6 +24,7 @@ const WordsTable = () => {
     { key: 'kr_pronunciation', label: '한글 발음', editable: true },
     { key: 'kr_meaning', label: '한글 의미', editable: true },
     { key: 'level', label: '레벨', editable: true },
+    { key: 'num_examples', label: '예문 수', editable: false },
     { key: 'updated_at', label: '수정일', editable: false }
   ];
 
@@ -116,16 +120,38 @@ const WordsTable = () => {
     );
   }
 
+  const handleBatchAddExamples = async (wordIds) => {
+    if (!wordIds || wordIds.length === 0) {
+      alert('예문을 추가할 단어를 선택해주세요.');
+      return;
+    }
+    
+    // 선택된 단어들의 정보를 가져오기
+    const selectedWords = words.filter(word => wordIds.includes(word.id));
+    
+    // 선택된 단어 ID들과 단어 정보를 쿼리 파라미터로 전달
+    const queryParams = new URLSearchParams();
+    wordIds.forEach(id => queryParams.append('wordIds', id));
+    
+    // 단어 정보를 JSON으로 인코딩하여 전달
+    const wordsInfo = selectedWords.map(word => ({
+      id: word.id,
+      word: word.word,
+      jp_pronunciation: word.jp_pronunciation,
+      kr_pronunciation: word.kr_pronunciation,
+      kr_meaning: word.kr_meaning,
+      level: word.level
+    }));
+    queryParams.append('wordsInfo', JSON.stringify(wordsInfo));
+    
+    navigate(`/examples-register?${queryParams.toString()}`);
+  };
+
   return (
     <div className="words-table-page">
       <div className="page-header">
         <h1>단어 관리</h1>
-        <div className="page-info">
-          <span>페이지 {currentPage} / {totalPages || 1}</span>
-          <span>총 {totalWords}개의 단어</span>
-        </div>
       </div>
-
       <div className="pagination-section">
         <Pagination 
           currentPage={currentPage}
@@ -133,6 +159,8 @@ const WordsTable = () => {
           onPageChange={handlePageChange}
         />
       </div>
+      <span>페이지 {currentPage} / {totalPages || 1}</span>
+      <span>총 {totalWords}개의 단어</span>
 
       <div className="table-section">
         <EditableTable
@@ -141,6 +169,8 @@ const WordsTable = () => {
           onDataChange={handleDataChange}
           onUpdate={handleBatchUpdate}
           onDelete={handleBatchDelete}
+          onAction={handleBatchAddExamples}
+          actionText="예문 추가"
           showAddRow={false}
           showPasteButton={false}
           showCopyButton={true}

@@ -3,6 +3,10 @@ import { Container, Content, Sidebar, Button, Form, Input } from 'rsuite';
 import { useLocation, matchPath, useNavigate, Routes, Route } from 'react-router-dom';
 import WordsRegister from './pages/words-register';
 import WordsTable from './pages/words-table';
+import WordsSearch from './pages/words-search';
+import WordAnalysis from './pages/word-analysis';
+import ExamplesRegister from './pages/examples-register';
+import ExamplesTable from './pages/examples-table';
 
 import 'rsuite/dist/rsuite.min.css';
 
@@ -17,9 +21,29 @@ function App() {
       path: '/words-register'
     },
     {
+      key: 'words-search',
+      label: '단어 검색',
+      path: '/words-search'
+    },
+    {
       key: 'words-table',
       label: '단어 관리',
       path: '/words-table'
+    },
+    {
+      key: 'examples-register',
+      label: '예문 등록',
+      path: '/examples-register'
+    },
+    {
+      key: 'examples-table',
+      label: '예문 관리',
+      path: '/examples-table'
+    },
+    {
+      key: 'word-analysis',
+      label: '단어 분석',
+      path: '/word-analysis'
     }
   ];
 
@@ -67,7 +91,11 @@ function App() {
           <Routes>
             <Route path="/" element={<WordsRegister />} />
             <Route path="/words-register" element={<WordsRegister />} />
+            <Route path="/words-search" element={<WordsSearch />} />
             <Route path="/words-table" element={<WordsTable />} />
+            <Route path="/examples-register" element={<ExamplesRegister />} />
+            <Route path="/examples-table" element={<ExamplesTable />} />
+            <Route path="/word-analysis" element={<WordAnalysis />} />
           </Routes>
         </Content>
       </Container>
