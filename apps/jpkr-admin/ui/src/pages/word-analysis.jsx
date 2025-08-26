@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analyzeText } from '../api/api';
-import EditableTable from '../components/EditableTable';
 import './WordAnalysis.css';
+import WordsHighlighter from '../components/WordsHighlighter';
 
 const columns = [
     {
@@ -43,8 +43,7 @@ const WordAnalysis = () => {
   const [words_set, setWordsSet] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [message, setMessage] = useState('');
-  const [tooltip, setTooltip] = useState({ show: false, data: null, position: { x: 0, y: 0 } });
-
+  
   useEffect(() => {
     let words_set = {};
     for (let i_line in words) {
@@ -114,59 +113,7 @@ const WordAnalysis = () => {
     });
   };
 
-  // 툴팁 표시
-  const handleMouseEnter = (word, event) => {
-    const rect = event.target.getBoundingClientRect();
-    setTooltip({
-      show: true,
-      data: word,
-      position: {
-        x: rect.left + rect.width / 2,
-        y: rect.top - 150
-      }
-    });
-  };
 
-  // 툴팁 숨김
-  const handleMouseLeave = () => {
-    setTooltip({ show: false, data: null, position: { x: 0, y: 0 } });
-  };
-
-  // 강조 표시된 텍스트 렌더링
-  const renderHighlightedText = () => {
-    if (!words || !inputText) return null;
-    const elements = [];
-    for (let i_line in words) {
-      for (let i_word in words[i_line]) {
-        if (words[i_line][i_word].word_id) {
-        elements.push(
-          <span
-            key={`morpheme-${i_line}-${i_word}`}
-            className={`morpheme morpheme-${words[i_line][i_word].level}`}
-            onMouseEnter={(e) => handleMouseEnter(words[i_line][i_word], e)}
-            onMouseLeave={handleMouseLeave}
-          >
-            {words[i_line][i_word].surface}
-          </span>
-        );
-        } else {
-          elements.push(
-            <span
-              key={`morpheme-${i_line}-${i_word}`}
-            >
-              {words[i_line][i_word].surface}
-            </span>
-          );
-        }
-      }
-      elements.push(
-        <span key={`text-${i_line}-br`}>
-          <br />
-        </span>
-      );
-    }
-    return elements;
-  };
 
   return (
     <div className="morphological-analysis-container">
@@ -223,9 +170,7 @@ const WordAnalysis = () => {
            </div>
          )}
        </div>
-        <div className="highlighted-text">
-            {renderHighlightedText()}
-        </div>
+       <WordsHighlighter words={words} />
         
         {words.length > 0 && (
           <div className="level-legend">
@@ -254,36 +199,7 @@ const WordAnalysis = () => {
           </div>
         )}
         
-        {/* 커스텀 툴팁 */}
-        {tooltip.show && tooltip.data && (
-          <div 
-            className="custom-tooltip"
-            style={{
-              left: tooltip.position.x,
-              top: tooltip.position.y,
-              transform: 'translateX(-50%)'
-            }}
-          >
-            <div className="tooltip-header">
-              <span className="tooltip-surface">{tooltip.data.word}</span>
-              <span className="tooltip-level">{tooltip.data.level}</span>
-            </div>
-            <div className="tooltip-content">
-              <div className="tooltip-row">
-                <span className="tooltip-label">일본어 발음:</span>
-                <span className="tooltip-value">{tooltip.data.jp_pronunciation || '-'}</span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">한국어 발음:</span>
-                <span className="tooltip-value">{tooltip.data.kr_pronunciation || '-'}</span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">한국어 뜻:</span>
-                <span className="tooltip-value">{tooltip.data.kr_meaning || '-'}</span>
-              </div>
-            </div>
-          </div>
-        )}
+       
 
         {/* 단어별 예문 섹션 */}
         {Object.keys(words_set).length > 0 && (

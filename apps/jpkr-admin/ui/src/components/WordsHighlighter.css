@@ -730,6 +730,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -783,11 +784,35 @@
   border-radius: 8px;
 }
 
-.temp-words-section h2 {
-  margin-top: 0;
+.temp-words-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+}
+
+.temp-words-section h2 {
+  margin: 0;
   color: #333;
   font-size: 18px;
+}
+
+.send-words-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.send-words-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
 .temp-words-container {

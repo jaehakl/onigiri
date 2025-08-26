@@ -71,6 +71,7 @@ class TimestampMixin:
 class Word(TimestampMixin, Base):
     __tablename__ = "words"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
+    __table_args__ = (Index("idx_words_id", id, unique=True),)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     word: Mapped[str] = mapped_column(Text, nullable=False)
     jp_pronunciation: Mapped[str] = mapped_column(Text, nullable=False)
@@ -81,12 +82,13 @@ class Word(TimestampMixin, Base):
     examples: Mapped[List["Example"]] = relationship("Example", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     images: Mapped[List["WordImage"]] = relationship("WordImage", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
-    user: Mapped["User"] = relationship(back_populates="words", lazy="selectin")
+    user: Mapped["User"] = relationship("User", back_populates="words", lazy="selectin")
 
 
 class Example(TimestampMixin, Base):
     __tablename__ = "examples"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
+    __table_args__ = (Index("idx_examples_id", id, unique=True),)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
     tags: Mapped[str] = mapped_column(Text, nullable=False)

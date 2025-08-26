@@ -16,13 +16,14 @@ def get_db():
     finally:
         db.close()
 
-def create_words_batch(words_data: List[WordData], user_id:str = None) -> Dict[str, WordData]:
+def create_words_batch(words_data: List[WordData], db: Session=None, user_id:str = None) -> Dict[str, WordData]:
     """
     여러 단어를 한 번에 생성합니다.
     Args: words_data: 단어 데이터 리스트 [WordData]
     Returns: 중복 단어들의 ID와 데이터를 포함한 딕셔너리 {id: {단어데이터}}
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
     try:
         #get user_id from session
         
@@ -68,7 +69,7 @@ def create_words_batch(words_data: List[WordData], user_id:str = None) -> Dict[s
         db.close()
 
 
-def update_words_batch(words_data: List[Dict[str, Any]], user_id:str = None) -> Dict[int, Dict[str, Any]]:
+def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     """
     여러 단어를 한 번에 업데이트합니다.
     
@@ -78,7 +79,8 @@ def update_words_batch(words_data: List[Dict[str, Any]], user_id:str = None) -> 
     Returns:
         업데이트된 단어들의 ID와 데이터를 포함한 딕셔너리 {id: {단어데이터}}
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
     try:
         result = {}        
         for word_data in words_data:
@@ -114,7 +116,7 @@ def update_words_batch(words_data: List[Dict[str, Any]], user_id:str = None) -> 
         db.close()
 
 
-def delete_words_batch(word_ids: List[int], user_id:str = None) -> Dict[int, str]:
+def delete_words_batch(word_ids: List[int], db: Session=None, user_id:str = None) -> Dict[int, str]:
     """
     여러 단어를 ID로 삭제합니다.
     
@@ -124,7 +126,8 @@ def delete_words_batch(word_ids: List[int], user_id:str = None) -> Dict[int, str
     Returns:
         삭제 결과를 포함한 딕셔너리 {id: "삭제결과메시지"}
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
     try:
         result = {}
         
@@ -147,7 +150,7 @@ def delete_words_batch(word_ids: List[int], user_id:str = None) -> Dict[int, str
         db.close()
 
 
-def search_words_by_word(search_term: str, user_id:str = None) -> List[Dict[str, Any]]:
+def search_words_by_word(search_term: str, db: Session=None, user_id:str = None) -> List[Dict[str, Any]]:
     """
     검색어와 일치하는 단어들을 찾습니다 (LIKE 검색).
     
@@ -157,7 +160,8 @@ def search_words_by_word(search_term: str, user_id:str = None) -> List[Dict[str,
     Returns:
         검색된 단어들의 데이터 리스트
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
     try:
         # word, jp_pronunciation, kr_pronunciation, kr_meaning 중 하나라도 일치하는 경우 검색
         search_pattern = f"%{search_term}%"
@@ -192,7 +196,7 @@ def search_words_by_word(search_term: str, user_id:str = None) -> List[Dict[str,
         db.close()
 
 
-def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, user_id:str = None) -> Dict[str, Any]:
+def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, db: Session=None, user_id:str = None) -> Dict[str, Any]:
     """
     모든 단어를 조회합니다 (페이지네이션 지원).
     
@@ -203,7 +207,8 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, use
     Returns:
         전체 단어 수와 페이지네이션된 단어 데이터를 포함한 딕셔너리
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
     try:
         # 전체 단어 수 조회
         total_count = db.query(Word).count()
@@ -217,7 +222,6 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, use
             query = query.limit(limit)
         
         words = query.all()
-        
         result_words = []
         for word in words:
             result_words.append({
@@ -251,7 +255,8 @@ def get_random_words(count: int = 50, user_id:str = None) -> List[Dict[str, Any]
     Returns:
         무작위로 선택된 단어들의 데이터 리스트
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
     try:
         import random
         
