@@ -95,7 +95,7 @@ const ExamplesRegister = () => {
     // word_id를 숫자로 변환하고 word_info 필드 제거
     const processedExamples = validExamples.map(example => {
       return {
-        word_id: parseInt(example.word_id, 10),
+        word_id: example.word_id,
         tags: example.tags,
         jp_text: example.jp_text,
         kr_meaning: example.kr_meaning,

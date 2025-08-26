@@ -15,8 +15,6 @@ const ExamplesTable = () => {
 
   // 컬럼 정의
   const columns = [
-    { key: 'id', label: 'ID', editable: false },
-    { key: 'word_id', label: '단어 ID', editable: true },
     { key: 'word_info', label: '단어 정보', editable: false },
     { key: 'tags', label: '태그', editable: true },
     { key: 'jp_text', label: '일본어 예문', editable: true },
@@ -96,6 +94,7 @@ const ExamplesTable = () => {
 
   // 선택된 행들 일괄 삭제
   const handleBatchDelete = async (exampleIds) => {
+    console.log(exampleIds);
     if (!exampleIds || exampleIds.length === 0) {
       alert('삭제할 예문이 없습니다.');
       return;

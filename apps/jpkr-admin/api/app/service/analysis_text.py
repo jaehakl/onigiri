@@ -1,10 +1,14 @@
 import re
 from typing import List, Dict, Any
 from fugashi import Tagger
-from db import SessionLocal, Words, Examples
-
+from collections import defaultdict
+from db import SessionLocal, Word, Example
+from sqlalchemy.orm import selectinload
+from sqlalchemy import or_, select
 
 def analyze_text(text: str) -> Dict[str, Any]:
+
+    print(1)
     tagger = Tagger()  # unidic-lite 자동 사용    
     rows = []
     word_list = []    
@@ -34,49 +38,77 @@ def analyze_text(text: str) -> Dict[str, Any]:
                 })
                 word_list.append(word.surface)
 
+    print(2)
 
-    words_result = {}
+
+
+
     db = SessionLocal()
-    for row in rows:
-        if row["i_line"] not in words_result:
-            words_result[row["i_line"]] = []
 
-        word = db.query(Words).filter(Words.word == row["lemma"]).first()
-        if not word:
-            word = db.query(Words).filter(Words.jp_pronunciation == row["surface"]).first()
-        if word:            
-            examples = db.query(Examples).filter(Examples.word_id == word.id).all()
+    # rows 에서 필요한 키들 수집 (중복 제거)
+    lemmas = [r["lemma"] for r in rows]
+    surfaces = [r["surface"] for r in rows]
+
+    stmt = (
+        select(Word)
+        .options(selectinload(Word.examples))
+        .where(
+            or_(
+                Word.word.in_(lemmas) if lemmas else False,
+                Word.jp_pronunciation.in_(surfaces) if surfaces else False,
+            )
+        )
+    )
+    words = db.execute(stmt).scalars().all()
+    # 이후는 words 를 바탕으로 같은 방식으로 매칭
+
+
+    # 2) 빠른 조회를 위한 맵 구성
+    by_lemma = {}
+    by_surface = {}
+    for w in words:
+        if w.word and w.word not in by_lemma:
+            by_lemma[w.word] = w
+        if w.jp_pronunciation and w.jp_pronunciation not in by_surface:
+            by_surface[w.jp_pronunciation] = w
+
+    # 4) 원래 rows 순서를 유지하며 결과 구성 (lemma 우선, 없으면 surface)
+    words_result = defaultdict(list)
+    for r in rows:
+        w = by_lemma.get(r.get("lemma"))
+        if not w:
+            w = by_surface.get(r.get("surface"))
+        if w:
             examples_list = []
-            for example in examples:
+            for example in w.examples:
                 examples_list.append({
                     "id": example.id,
                     "word_info": example.word.word,
                     "tags": example.tags,
                     "jp_text": example.jp_text,
                     "kr_meaning": example.kr_meaning,
-                    "updated_at": example.updated_at
                 })
-            words_result[row["i_line"]].append({
-                "word_id": word.id,
-                "word": word.word,
-                "surface": row["surface"],
-                "jp_pronunciation": word.jp_pronunciation,
-                "kr_pronunciation": word.kr_pronunciation,
-                "kr_meaning": word.kr_meaning,
-                "level": word.level,
+            words_result[r["i_line"]].append({
+                "word_id": w.id,
+                "word": w.word,
+                "surface": r["surface"],
+                "jp_pronunciation": w.jp_pronunciation,
+                "kr_pronunciation": w.kr_pronunciation,
+                "kr_meaning": w.kr_meaning,
+                "level": w.level,
                 "examples": examples_list,
                 "num_examples": len(examples_list),
-                "updated_at": word.updated_at
             })
-        elif row["lemma"] != "":
-            words_result[row["i_line"]].append({
+        elif r["lemma"] != "":
+            words_result[r["i_line"]].append({
                 "word_id": None,
-                "word": row["lemma"],
-                "surface": row["surface"],
+                "word": r["lemma"],
+                "surface": r["surface"],
                 "jp_pronunciation": "",
                 "kr_pronunciation": "",
                 "kr_meaning": "",
                 "level": "N/A",
-                "updated_at": ""
+                "examples": [],
+                "num_examples": 0,
             })
     return words_result

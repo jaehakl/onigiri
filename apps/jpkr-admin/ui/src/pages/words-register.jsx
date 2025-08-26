@@ -122,6 +122,7 @@ const WordsRegister = () => {
           data={words}
           onDataChange={handleDataChange}
           addRowText="단어 추가"
+          onUpdate={() => {}}          
           showCopyButton={true}
         />
 

@@ -8,6 +8,7 @@ import WordAnalysis from './pages/word-analysis';
 import ExamplesRegister from './pages/examples-register';
 import ExamplesTable from './pages/examples-table';
 import Quiz from './pages/quiz';
+import Auth from './components/Auth';
 
 import 'rsuite/dist/rsuite.min.css';
 
@@ -69,6 +70,7 @@ function App() {
         <Sidebar width={250} style={{ background: '#f8f9fa' }}>
           <div style={{ padding: '20px' }}>
             <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50' }}>Onigiri Admin</h3>
+            <Auth />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {menuItems.map(item => (
                 <Button

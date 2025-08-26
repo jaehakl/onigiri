@@ -18,14 +18,12 @@ const WordsTable = () => {
 
   // 컬럼 정의
   const columns = [
-    { key: 'id', label: 'ID', editable: false },
     { key: 'word', label: '단어', editable: true },
     { key: 'jp_pronunciation', label: '일본어 발음', editable: true },
     { key: 'kr_pronunciation', label: '한글 발음', editable: true },
     { key: 'kr_meaning', label: '한글 의미', editable: true },
     { key: 'level', label: '레벨', editable: true },
     { key: 'num_examples', label: '예문 수', editable: false },
-    { key: 'updated_at', label: '수정일', editable: false }
   ];
 
   // Words 데이터 불러오기

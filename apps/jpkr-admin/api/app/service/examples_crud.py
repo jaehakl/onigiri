@@ -1,9 +1,10 @@
 # examples_crud.py
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from typing import List, Dict, Any, Optional
-from db import SessionLocal, Examples
-from datetime import datetime
+from db import SessionLocal, Example
+from models import ExampleData
 
 
 def get_db():
@@ -15,43 +16,26 @@ def get_db():
         db.close()
 
 
-def create_examples_batch(examples_data: List[Dict[str, Any]]) -> Dict[int, Dict[str, Any]]:
+def create_examples_batch(examples_data: List[ExampleData], user_id:str = None):
     """
     여러 예문을 한 번에 생성합니다.
-    
     Args:
-        examples_data: 예문 데이터 리스트 [{"word_id": 1, "tags": "태그", "jp_text": "일본어텍스트", "kr_meaning": "한국어의미"}]
-    
-    Returns:
-        생성된 예문들의 ID와 데이터를 포함한 딕셔너리 {id: {예문데이터}}
+        examples_data: 예문 데이터 리스트 [ExampleData]    
     """
     db = SessionLocal()
     try:
-        result = {}
-        
         for example_data in examples_data:
-            # 새 예문 생성
-            new_example = Examples(
-                word_id=example_data.get("word_id"),
-                tags=example_data.get("tags"),
-                jp_text=example_data.get("jp_text"),
-                kr_meaning=example_data.get("kr_meaning"),
-                updated_at=datetime.now()
-            )
-            
+            new_example = Example(
+                word_id=example_data.word_id,
+                tags=example_data.tags,
+                jp_text=example_data.jp_text,
+                kr_meaning=example_data.kr_meaning,
+                user_id=user_id
+            )            
             db.add(new_example)
-            db.flush()  # ID 생성을 위해 flush
-            
-            result[new_example.id] = {
-                "word_id": new_example.word_id,
-                "tags": new_example.tags,
-                "jp_text": new_example.jp_text,
-                "kr_meaning": new_example.kr_meaning,
-                "updated_at": new_example.updated_at
-            }
-        
+            db.flush()  # ID 생성을 위해 flush                
         db.commit()
-        return result
+        return
         
     except Exception as e:
         db.rollback()
@@ -60,79 +44,29 @@ def create_examples_batch(examples_data: List[Dict[str, Any]]) -> Dict[int, Dict
         db.close()
 
 
-def read_examples_batch(example_ids: List[int]) -> Dict[int, Dict[str, Any]]:
-    """
-    여러 예문을 ID로 조회합니다.
-    
-    Args:
-        example_ids: 조회할 예문 ID 리스트 [1, 2, 3, ...]
-    
-    Returns:
-        조회된 예문들의 ID와 데이터를 포함한 딕셔너리 {id: {예문데이터}}
-    """
-    db = SessionLocal()
-    try:
-        examples = db.query(Examples).filter(Examples.id.in_(example_ids)).all()
-        
-        result = {}
-        for example in examples:
-            result[example.id] = {
-                "word_id": example.word_id,
-                "word_info": example.word.word,
-                "tags": example.tags,
-                "jp_text": example.jp_text,
-                "kr_meaning": example.kr_meaning,
-                "updated_at": example.updated_at
-            }
-        
-        return result
-        
-    finally:
-        db.close()
-
-
-def update_examples_batch(examples_data: Dict[int, Dict[str, Any]]) -> Dict[int, Dict[str, Any]]:
+def update_examples_batch(examples_data: List[ExampleData], user_id:str = None):
     """
     여러 예문을 한 번에 업데이트합니다.
     
     Args:
-        examples_data: 업데이트할 예문 데이터 {id: {예문데이터}}
-    
-    Returns:
-        업데이트된 예문들의 ID와 데이터를 포함한 딕셔너리 {id: {예문데이터}}
+        examples_data: 업데이트할 예문 데이터 [ExampleData]
     """
     db = SessionLocal()
     try:
-        result = {}
-        
         for example_data in examples_data:
-            example_id = example_data["id"]
-            example = db.query(Examples).filter(Examples.id == example_id).first()
-            
+            example = db.query(Example).filter(Example.id == example_data.id).first()            
             if example:
                 # 예문 데이터 업데이트
-                if "tags" in example_data:
-                    example.tags = example_data["tags"]
-                if "jp_text" in example_data:
-                    example.jp_text = example_data["jp_text"]
-                if "kr_meaning" in example_data:
-                    example.kr_meaning = example_data["kr_meaning"]
-                
-                example.updated_at = datetime.now()
-                
-                result[example_id] = {
-                    "word_id": example.word_id,
-                    "tags": example.tags,
-                    "jp_text": example.jp_text,
-                    "kr_meaning": example.kr_meaning,
-                    "updated_at": example.updated_at
-                }
+                example.word_id = example_data.word_id
+                example.tags = example_data.tags
+                example.jp_text = example_data.jp_text
+                example.kr_meaning = example_data.kr_meaning
+                example.user_id = user_id
             else:
                 # 해당 ID의 예문이 없는 경우
-                result[example_id] = {"error": "Example not found"}
-        
+                raise Exception("Example not found")        
         db.commit()
-        return result
+        return
         
     except Exception as e:
         db.rollback()
@@ -140,8 +74,7 @@ def update_examples_batch(examples_data: Dict[int, Dict[str, Any]]) -> Dict[int,
     finally:
         db.close()
 
-
-def delete_examples_batch(example_ids: List[int]) -> Dict[int, str]:
+def delete_examples_batch(example_ids: List[int], user_id:str = None):
     """
     여러 예문을 ID로 삭제합니다.
     
@@ -153,19 +86,16 @@ def delete_examples_batch(example_ids: List[int]) -> Dict[int, str]:
     """
     db = SessionLocal()
     try:
-        result = {}
-        
         for example_id in example_ids:
-            example = db.query(Examples).filter(Examples.id == example_id).first()
+            example = db.query(Example).filter(Example.id == example_id).first()
             
             if example:
                 db.delete(example)
-                result[example_id] = "deleted"
+                example.user_id = user_id
             else:
-                result[example_id] = "not found"
-        
+                raise Exception("Example not found")        
         db.commit()
-        return result
+        return
         
     except Exception as e:
         db.rollback()
@@ -174,7 +104,7 @@ def delete_examples_batch(example_ids: List[int]) -> Dict[int, str]:
         db.close()
 
 
-def search_examples_by_text(search_term: str) -> List[Dict[str, Any]]:
+def search_examples_by_text(search_term: str, user_id:str = None) -> List[Dict[str, Any]]:
     """
     검색어와 일치하는 예문들을 찾습니다 (LIKE 검색).
     
@@ -189,11 +119,11 @@ def search_examples_by_text(search_term: str) -> List[Dict[str, Any]]:
         # jp_text, kr_meaning, tags 중 하나라도 일치하는 경우 검색
         search_pattern = f"%{search_term}%"
         
-        found_examples = db.query(Examples).filter(
+        found_examples = db.query(Example).filter(
             or_(
-                Examples.jp_text.like(search_pattern),
-                Examples.kr_meaning.like(search_pattern),
-                Examples.tags.like(search_pattern)
+                Example.jp_text.like(search_pattern),
+                Example.kr_meaning.like(search_pattern),
+                Example.tags.like(search_pattern)
             )
         ).all()
         
@@ -206,7 +136,6 @@ def search_examples_by_text(search_term: str) -> List[Dict[str, Any]]:
                 "tags": example.tags,
                 "jp_text": example.jp_text,
                 "kr_meaning": example.kr_meaning,
-                "updated_at": example.updated_at
             })
         
         return result
@@ -215,7 +144,7 @@ def search_examples_by_text(search_term: str) -> List[Dict[str, Any]]:
         db.close()
 
 
-def get_examples_by_word_id(word_id: int) -> List[Dict[str, Any]]:
+def get_examples_by_word_id(word_id: int, user_id:str = None) -> List[Dict[str, Any]]:
     """
     특정 단어 ID에 해당하는 모든 예문을 조회합니다.
     
@@ -227,7 +156,7 @@ def get_examples_by_word_id(word_id: int) -> List[Dict[str, Any]]:
     """
     db = SessionLocal()
     try:
-        examples = db.query(Examples).filter(Examples.word_id == word_id).all()
+        examples = db.query(Example).filter(Example.word_id == word_id).all()
         
         result = []
         for example in examples:
@@ -238,7 +167,6 @@ def get_examples_by_word_id(word_id: int) -> List[Dict[str, Any]]:
                 "tags": example.tags,
                 "jp_text": example.jp_text,
                 "kr_meaning": example.kr_meaning,
-                "updated_at": example.updated_at
             })
         
         return result
@@ -247,7 +175,7 @@ def get_examples_by_word_id(word_id: int) -> List[Dict[str, Any]]:
         db.close()
 
 
-def get_all_examples(limit: Optional[int] = None, offset: Optional[int] = None) -> Dict[str, Any]:
+def get_all_examples(limit: Optional[int] = None, offset: Optional[int] = None, user_id:str = None) -> Dict[str, Any]:
     """
     모든 예문을 조회합니다 (페이지네이션 지원).
     
@@ -261,10 +189,10 @@ def get_all_examples(limit: Optional[int] = None, offset: Optional[int] = None) 
     db = SessionLocal()
     try:
         # 전체 예문 수 조회
-        total_count = db.query(Examples).count()
+        total_count = db.query(Example).count()
         
         # 페이지네이션된 예문 조회
-        query = db.query(Examples)
+        query = db.query(Example)
         
         if offset:
             query = query.offset(offset)
@@ -282,7 +210,6 @@ def get_all_examples(limit: Optional[int] = None, offset: Optional[int] = None) 
                 "tags": example.tags,
                 "jp_text": example.jp_text,
                 "kr_meaning": example.kr_meaning,
-                "updated_at": example.updated_at
             })
         
         return {
