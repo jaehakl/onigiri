@@ -71,9 +71,9 @@ class TimestampMixin:
 class Word(TimestampMixin, Base):
     __tablename__ = "words"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    __table_args__ = (Index("idx_words_id", id, unique=True),)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    word: Mapped[str] = mapped_column(Text, nullable=False)
+    root_word_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False),ForeignKey("words.id", ondelete="SET NULL"),nullable=True)
+    word: Mapped[str] = mapped_column(Text, nullable=False)    
     jp_pronunciation: Mapped[str] = mapped_column(Text, nullable=False)
     kr_pronunciation: Mapped[str] = mapped_column(Text, nullable=False)
     kr_meaning: Mapped[str] = mapped_column(Text, nullable=False)
@@ -83,7 +83,8 @@ class Word(TimestampMixin, Base):
     images: Mapped[List["WordImage"]] = relationship("WordImage", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="words", lazy="selectin")
-
+    root_word: Mapped[Optional["Word"]] = relationship("Word",back_populates="branch_words",foreign_keys=[root_word_id],remote_side=[id],lazy="selectin")
+    branch_words: Mapped[List["Word"]] = relationship("Word",back_populates="root_word",lazy="selectin",)
 
 class Example(TimestampMixin, Base):
     __tablename__ = "examples"
@@ -140,8 +141,12 @@ class UserText(TimestampMixin, Base):
     __tablename__ = "user_texts"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     tags: Mapped[str] = mapped_column(Text, nullable=False)
+    embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
+    youtube_url: Mapped[str] = mapped_column(Text, nullable=True)
+    audio_url: Mapped[str] = mapped_column(Text, nullable=True)
     user: Mapped["User"] = relationship("User", back_populates="user_texts", lazy="selectin")
 
 # ---------------------------------------------------------------------

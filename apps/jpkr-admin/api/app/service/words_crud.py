@@ -1,306 +1,130 @@
 # words_crud.py
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
-from typing import List, Dict, Any, Optional
+from sqlalchemy import and_, or_, select, delete
+from typing import List, Dict, Any, Optional, Sequence
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from models import WordData
 from db import SessionLocal, Word
 from datetime import datetime
 
 
-def get_db():
-    """데이터베이스 세션을 반환합니다."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def row_to_dict(obj) -> dict:
+    # ORM 객체를 dict로 안전하게 변환
+    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
-def create_words_batch(words_data: List[WordData], db: Session=None, user_id:str = None) -> Dict[str, WordData]:
-    """
-    여러 단어를 한 번에 생성합니다.
-    Args: words_data: 단어 데이터 리스트 [WordData]
-    Returns: 중복 단어들의 ID와 데이터를 포함한 딕셔너리 {id: {단어데이터}}
-    """
-    if db is None:
-        db = SessionLocal()
-    try:
-        #get user_id from session
-        
-        result = {}
-        
-        for word_data in words_data:
-            # 중복 단어 검사 (word 필드 기준)
-            existing_word = db.query(Word).filter(
-                Word.word == word_data.word
-            ).first()
-            
-            if existing_word:
-                # 중복 단어는 기존 데이터 반환
-                result[existing_word.id] = {
-                    "word": existing_word.word,
-                    "jp_pronunciation": existing_word.jp_pronunciation,
-                    "kr_pronunciation": existing_word.kr_pronunciation,
-                    "kr_meaning": existing_word.kr_meaning,
-                    "level": existing_word.level,
-                    "updated_at": existing_word.updated_at,
-                    "is_duplicate": True
-                }
-            else:
-                # 새 단어 생성
-                new_word = Word(
-                    word=word_data.word,
-                    jp_pronunciation=word_data.jp_pronunciation,
-                    kr_pronunciation=word_data.kr_pronunciation,
-                    kr_meaning=word_data.kr_meaning,
-                    level=word_data.level,
-                    user_id=user_id
-                )
-                
-                db.add(new_word)
-                db.flush()  # ID 생성을 위해 flush                        
-        db.commit()
-        return result
-        
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
+def create_words_batch(words_data: List[WordData], db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
+    if not words_data:
+        return {}
+    # 유저별 유니크라면 (user_id, word) 키가 실질 키
+    word_keys = list({(user_id, wd.word) for wd in words_data if wd.word is not None})
+    stmt_exist = select(Word).where(
+        (Word.user_id == user_id) & (Word.word.in_([w for _, w in word_keys]))
+    )
+    existing_rows = db.execute(stmt_exist).scalars().all()
+    existing_map = {(w.user_id, w.word): w for w in existing_rows}
+    # 3) 새로 넣어야 할 목록 구성(ORM → dict)
+    rows_to_insert = []
+    for wd in words_data:
+        if wd.word is None:
+            continue
+        key = wd.word if user_id is None else (user_id, wd.word)
+        if key in existing_map:
+            continue
+        payload = {k: v for k, v in wd.model_dump().items() if v is not None}
+        if user_id is not None:
+            payload['user_id'] = user_id
+        rows_to_insert.append(payload)
+    result_map: Dict[str, dict] = {}
+    # 4) 중복은 유지(또는 업데이트), 신규만 일괄 insert
+    if rows_to_insert:
+        ins = pg_insert(Word).values(rows_to_insert)
+        db.execute(ins)
+    # 5) 결과 구성: 기존 + (옵션) 신규
+    for w in existing_rows:
+        result_map[w.word] = row_to_dict(w)
+    db.commit()
+    return result_map
 
 
 def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
-    """
-    여러 단어를 한 번에 업데이트합니다.
-    
-    Args:
-        words_data: 업데이트할 단어 데이터 {id: {단어데이터}}
-    
-    Returns:
-        업데이트된 단어들의 ID와 데이터를 포함한 딕셔너리 {id: {단어데이터}}
-    """
-    if db is None:
-        db = SessionLocal()
-    try:
-        result = {}        
-        for word_data in words_data:
-            word = db.query(Word).filter(Word.id == word_data.id).first()
+    result = {}        
+    for word_data in words_data:
+        word = db.query(Word).filter(Word.id == word_data.id).first()
+        
+        if word:
+            # 단어 데이터 업데이트
+            word.word = word_data.word
+            word.jp_pronunciation = word_data.jp_pronunciation
+            word.kr_pronunciation = word_data.kr_pronunciation
+            word.kr_meaning = word_data.kr_meaning
+            word.level = word_data.level
+            word.user_id = user_id
             
-            if word:
-                # 단어 데이터 업데이트
-                word.word = word_data.word
-                word.jp_pronunciation = word_data.jp_pronunciation
-                word.kr_pronunciation = word_data.kr_pronunciation
-                word.kr_meaning = word_data.kr_meaning
-                word.level = word_data.level
-                word.user_id = user_id
-                
-                result[word_data.id] = {
-                    "word": word.word,  
-                    "jp_pronunciation": word.jp_pronunciation,
-                    "kr_pronunciation": word.kr_pronunciation,
-                    "kr_meaning": word.kr_meaning,
-                    "level": word.level
-                }
-            else:
-                # 해당 ID의 단어가 없는 경우
-                result[word_data.id] = {"error": "Word not found"}
+            result[word_data.id] = row_to_dict(word)            
+        else:
+            # 해당 ID의 단어가 없는 경우
+            result[word_data.id] = {"error": "Word not found"}    
+    db.commit()
+    return result
         
-        db.commit()
-        return result
-        
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
 
-
-def delete_words_batch(word_ids: List[int], db: Session=None, user_id:str = None) -> Dict[int, str]:
-    """
-    여러 단어를 ID로 삭제합니다.
-    
-    Args:
-        word_ids: 삭제할 단어 ID 리스트 [1, 2, 3, ...]
-    
-    Returns:
-        삭제 결과를 포함한 딕셔너리 {id: "삭제결과메시지"}
-    """
-    if db is None:
-        db = SessionLocal()
-    try:
-        result = {}
-        
-        for word_id in word_ids:
-            word = db.query(Word).filter(Word.id == word_id).first()
-            
-            if word:
-                db.delete(word)
-                result[word_id] = "deleted"
-            else:
-                result[word_id] = "not found"
-        
-        db.commit()
-        return result
-        
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
+def delete_words_batch(word_ids: Sequence[str], db: Session, user_id: str) -> Dict[int, str]:
+    if not word_ids:
+        return {}
+    ids = set(str(wid) for wid in word_ids)
+    stmt = (
+        delete(Word)
+        .where(Word.id.in_(ids), Word.user_id == user_id)
+        .returning(Word.id)
+    )
+    deleted_ids = set(db.execute(stmt).scalars().all())
+    db.commit()
+    return {wid: ("deleted" if wid in deleted_ids else "not found") for wid in word_ids}
 
 
 def search_words_by_word(search_term: str, db: Session=None, user_id:str = None) -> List[Dict[str, Any]]:
-    """
-    검색어와 일치하는 단어들을 찾습니다 (LIKE 검색).
+    search_terms = search_term.split(',')
+    hangul_pattern = f"%{search_terms[0]}%"
+    hiragana_pattern = f"%{search_terms[1]}%"
     
-    Args:
-        search_term: 검색할 단어 또는 문구
+    found_words = db.query(Word).filter(
+        or_(
+            Word.word.like(hiragana_pattern),
+            Word.jp_pronunciation.like(hiragana_pattern),
+            Word.kr_pronunciation.like(hangul_pattern),
+            Word.kr_meaning.like(hangul_pattern),
+        )
+    ).all()
     
-    Returns:
-        검색된 단어들의 데이터 리스트
-    """
-    if db is None:
-        db = SessionLocal()
-    try:
-        # word, jp_pronunciation, kr_pronunciation, kr_meaning 중 하나라도 일치하는 경우 검색
-        search_pattern = f"%{search_term}%"
+    result = []
+    for word in found_words:
+        word_data = row_to_dict(word)
+        word_data["num_examples"] = str(len(word.examples))
+        result.append(word_data)
+    return result
         
-        found_words = db.query(Word).filter(
-            or_(
-                Word.word.like(search_pattern),
-                Word.jp_pronunciation.like(search_pattern),
-                Word.kr_pronunciation.like(search_pattern),
-                Word.kr_meaning.like(search_pattern),
-                Word.level.like(search_pattern)
-            )
-        ).all()
-        
-        result = []
-        for word in found_words:
-            result.append({
-                "id": word.id,
-                "word": word.word,
-                "jp_pronunciation": word.jp_pronunciation,
-                "kr_pronunciation": word.kr_pronunciation,
-                "kr_meaning": word.kr_meaning,
-                "level": word.level,
-                "num_examples": str(len(word.examples)),
-                "updated_at": word.updated_at
-            })
-        
-        
-        return result
-        
-    finally:
-        db.close()
-
 
 def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, db: Session=None, user_id:str = None) -> Dict[str, Any]:
-    """
-    모든 단어를 조회합니다 (페이지네이션 지원).
-    
-    Args:
-        limit: 조회할 단어 수 제한
-        offset: 건너뛸 단어 수
-    
-    Returns:
-        전체 단어 수와 페이지네이션된 단어 데이터를 포함한 딕셔너리
-    """
-    if db is None:
-        db = SessionLocal()
-    try:
-        # 전체 단어 수 조회
-        total_count = db.query(Word).count()
-        
-        # 페이지네이션된 단어 조회
-        query = db.query(Word)
-        
-        if offset:
-            query = query.offset(offset)
-        if limit:
-            query = query.limit(limit)
-        
-        words = query.all()
-        result_words = []
-        for word in words:
-            result_words.append({
-                "id": word.id,
-                "word": word.word,
-                "jp_pronunciation": word.jp_pronunciation,
-                "kr_pronunciation": word.kr_pronunciation,
-                "kr_meaning": word.kr_meaning,
-                "level": word.level,
-                "num_examples": str(len(word.examples)),
-            })
-        
-        return {
-            "total_count": total_count,
-            "words": result_words,
-            "limit": limit,
-            "offset": offset
-        }
-        
-    finally:
-        db.close()
+    total_count = db.query(Word).count()    
 
-
-def get_random_words(count: int = 50, user_id:str = None) -> List[Dict[str, Any]]:
-    """
-    무작위로 지정된 개수의 단어를 조회합니다.
+    # 페이지네이션된 단어 조회
+    query = db.query(Word)    
+    if offset:
+        query = query.offset(offset)
+    if limit:
+        query = query.limit(limit)
     
-    Args:
-        count: 조회할 단어 수 (기본값: 50)
+    words = query.all()
+    result_words = []
+    for word in words:
+        word_data = row_to_dict(word)
+        word_data["num_examples"] = str(len(word.examples))
+        result_words.append(word_data)
+    return {
+        "total_count": total_count,
+        "words": result_words,
+        "limit": limit,
+        "offset": offset
+    }
     
-    Returns:
-        무작위로 선택된 단어들의 데이터 리스트
-    """
-    if db is None:
-        db = SessionLocal()
-    try:
-        import random
-        
-        # 전체 단어 수 조회
-        total_count = db.query(Word).count()
-        
-        if total_count == 0:
-            return []
-        
-        # 무작위로 단어 ID 선택
-        all_word_ids = [word.id for word in db.query(Word.id).all()]
-        selected_ids = random.sample(all_word_ids, min(count, total_count))
-        
-        # 선택된 ID로 단어 조회
-        words = db.query(Word).filter(Word.id.in_(selected_ids)).all()
-        
-        result = []
-        for word in words:
-            # 예문 정보도 함께 가져오기
-            examples_list = []
-            for example in word.examples:
-                examples_list.append({
-                    "id": example.id,
-                    "word_info": example.word.word,
-                    "tags": example.tags,
-                    "jp_text": example.jp_text,
-                    "kr_meaning": example.kr_meaning,
-                    "updated_at": example.updated_at
-                })
-            
-            result.append({
-                "word_id": word.id,
-                "word": word.word,
-                "surface": word.word,  # 퀴즈에서 사용하는 surface 필드
-                "jp_pronunciation": word.jp_pronunciation,
-                "kr_pronunciation": word.kr_pronunciation,
-                "kr_meaning": word.kr_meaning,
-                "level": word.level,
-                "examples": examples_list,
-                "num_examples": len(examples_list),
-                "updated_at": word.updated_at
-            })
-        
-        return result
-        
-    finally:
-        db.close()

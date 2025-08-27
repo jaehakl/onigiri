@@ -8,6 +8,7 @@ import WordAnalysis from './pages/word-analysis';
 import ExamplesRegister from './pages/examples-register';
 import ExamplesTable from './pages/examples-table';
 import Quiz from './pages/quiz';
+import UserManagement from './pages/user-management';
 import Auth from './components/Auth';
 
 import 'rsuite/dist/rsuite.min.css';
@@ -46,6 +47,11 @@ function App() {
       key: 'word-analysis',
       label: '단어 분석',
       path: '/word-analysis'
+    },
+    {
+      key: 'user-management',
+      label: '사용자 관리',
+      path: '/user-management'
     }
   ];
 
@@ -99,6 +105,7 @@ function App() {
             <Route path="/examples-register" element={<ExamplesRegister />} />
             <Route path="/examples-table" element={<ExamplesTable />} />
             <Route path="/word-analysis" element={<WordAnalysis />} />
+            <Route path="/user-management" element={<UserManagement />} />
             <Route path="/quiz" element={<Quiz />} />
           </Routes>
         </Content>

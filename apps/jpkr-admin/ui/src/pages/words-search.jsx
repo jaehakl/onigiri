@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
 import { searchWordsByWord } from '../api/api';
+import { to_hiragana } from '../service/hangul-to-hiragana';
 import './WordsSearch.css';
 
 const WordsSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchTermHiragana, setSearchTermHiragana] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSearch = async () => {
-    if (!searchTerm.trim()) {
+    if (!searchTermHiragana.trim()) {
       setError('검색어를 입력해주세요.');
       return;
     }
-
+    
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await searchWordsByWord(searchTerm);
+      const response = await searchWordsByWord(searchTerm+','+searchTermHiragana);
       setSearchResults(response.data);
     } catch (err) {
       console.error('검색 중 오류 발생:', err);
@@ -29,10 +31,12 @@ const WordsSearch = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleChange = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
+    setSearchTerm(e.target.value);
+    setSearchTermHiragana(to_hiragana(e.target.value));
   };
 
   const clearSearch = () => {
@@ -47,17 +51,16 @@ const WordsSearch = () => {
         <h1>단어 검색</h1>
         <p>일본어 단어, 발음, 의미로 검색할 수 있습니다.</p>
       </div>
-
       <div className="search-section">
-        <div className="search-input-group">
+        <div className="search-input-group">        
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onChange={handleChange}
             placeholder="검색어를 입력하세요 (일본어, 발음, 의미)"
             className="search-input"
           />
+          {searchTermHiragana}
           <div className="search-buttons">
             <button 
               onClick={handleSearch} 

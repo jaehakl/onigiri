@@ -25,7 +25,6 @@ export const updateWordsBatch = (wordsData) => axios.post(`${API_URL}/words/upda
 export const deleteWordsBatch = (wordIds) => axios.post(`${API_URL}/words/delete/batch`, wordIds);
 export const getAllWords = (limit = null, offset = null) => axios.post(`${API_URL}/words/all`, { limit, offset });
 export const searchWordsByWord = (searchTerm) => axios.get(`${API_URL}/words/search/${encodeURIComponent(searchTerm)}`);
-export const getRandomWords = (count = 50) => axios.get(`${API_URL}/words/random/${count}`);
 export const createWordsPersonal = (data) => axios.post(`${API_URL}/words/create/personal`, data);
 
 // === Examples CRUD ===
@@ -40,12 +39,19 @@ export const getExamplesByWordId = (wordId) => axios.get(`${API_URL}/examples/wo
 // === Text Analysis ===
 export const analyzeText = (text) => axios.post(`${API_URL}/text/analyze`, { text });
 
-// === User Word Skill CRUD ===
-export const createUserWordSkillBatch = (userWordSkillData) => axios.post(`${API_URL}/user_word_skill/create/batch`, userWordSkillData);
-export const updateUserWordSkillBatch = (userWordSkillData) => axios.post(`${API_URL}/user_word_skill/update/batch`, userWordSkillData);
-export const deleteUserWordSkillBatch = (userWordSkillIds) => axios.post(`${API_URL}/user_word_skill/delete/batch`, userWordSkillIds);
-export const getAllUserWordSkills = (limit = null, offset = null) => axios.post(`${API_URL}/user_word_skill/all`, { limit, offset });
-export const getUserWordSkillsByWordIds = (wordIds) => axios.get(`${API_URL}/user_word_skill/word/${wordIds}`);
+// === User Text CRUD ===
+export const createUserText = (userTextData) => axios.post(`${API_URL}/user_text/create`, userTextData);
+export const getUserText = (userTextId) => axios.get(`${API_URL}/user_text/get/${userTextId}`);
+export const getUserTextList = (limit = null, offset = null) => axios.get(`${API_URL}/user_text/all`, { params: { limit, offset } });
+export const updateUserText = (userTextData) => axios.post(`${API_URL}/user_text/update`, userTextData);
+export const deleteUserText = (userTextId) => axios.get(`${API_URL}/user_text/delete/${userTextId}`);
+
+// === User Data CRUD ===
+export const getAllUsersAdmin = (limit = null, offset = null) => axios.get(`${API_URL}/user_admin/get_all_users/${encodeURIComponent(limit)}/${encodeURIComponent(offset)}`);
+export const getUserSummaryAdmin = (userId) => axios.get(`${API_URL}/user_data/summary/admin/${userId}`);
+export const getAllUserDataAdmin = (userId) => axios.get(`${API_URL}/user_data/all/admin/${userId}`);
+export const getUserSummaryUser = () => axios.get(`${API_URL}/user_data/summary/user`);
+export const getAllUserDataUser = () => axios.get(`${API_URL}/user_data/all/user`);
 
 // === Quiz Records ===
 //export const saveQuizRecord = (quizRecord) => axios.post(`${API_URL}/quiz/record`, quizRecord);

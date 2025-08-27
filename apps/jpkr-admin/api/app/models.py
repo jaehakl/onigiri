@@ -41,6 +41,16 @@ class UserWordSkillData(BaseModel):
     skill_sentence_listening: Optional[int] = None
     is_favorite: Optional[bool] = None
 
+class UserTextData(BaseModel):
+    id: Optional[str] = None
+    user_id: Optional[str] = None
+    title: str
+    text: Optional[str] = None
+    tags: Optional[str] = None
+    embedding: Optional[List[float]] = None
+    youtube_url: Optional[str] = None
+    audio_url: Optional[str] = None
+
 class TextData(BaseModel):
     text: str
 

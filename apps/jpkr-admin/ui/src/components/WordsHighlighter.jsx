@@ -31,20 +31,18 @@ const WordsHighlighter = ({words}) => {
   // 모달 열기
   const handleWordClick = (word) => {
     setSelectedWord(word);
-    setWordForm({
+    const formData = {
       word: word.word || '',
       jp_pronunciation: word.jp_pronunciation || word.surface,
       kr_pronunciation: word.kr_pronunciation || '',
       kr_meaning: word.kr_meaning || '',
       level: word.level || 'N5',
-      skill_kanji: word.user_word_skills[0].skill_kanji || 0,
-      skill_word_reading: word.user_word_skills[0].skill_word_reading || 0,
-      skill_word_speaking: word.user_word_skills[0].skill_word_speaking || 0,
-      skill_sentence_reading: word.user_word_skills[0].skill_sentence_reading || 0,
-      skill_sentence_speaking: word.user_word_skills[0].skill_sentence_speaking || 0,
-      skill_sentence_listening: word.user_word_skills[0].skill_sentence_listening || 0,
-      is_favorite: word.user_word_skills[0].is_favorite || false
-    });
+    }
+    if (word.user_word_skills.length > 0) {
+      formData.skill_kanji = word.user_word_skills[0].skill_kanji || 0;
+      formData.skill_word_reading = word.user_word_skills[0].skill_word_reading || 0;
+    }
+    setWordForm(formData);    
     setShowModal(true);
   };
 
@@ -120,7 +118,7 @@ const WordsHighlighter = ({words}) => {
 
   // 임시 단어 편집
   const handleEditTempWord = (word) => {
-    setSelectedWord(word);
+    setSelectedWord(word);    
     setWordForm({
       word: word.word || '',
       jp_pronunciation: word.jp_pronunciation || '',
@@ -139,7 +137,6 @@ const WordsHighlighter = ({words}) => {
       alert('전송할 단어가 없습니다.');
       return;
     }
-    console.log(tempWords)
     try {
         
       const response = await createWordsPersonal(tempWords);

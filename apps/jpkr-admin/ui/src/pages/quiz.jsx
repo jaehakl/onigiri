@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveQuizRecordToLocal, getQuizRecordsFromLocal, getQuizStatisticsFromLocal, clearQuizRecords, exportQuizRecords, importQuizRecords } from '../api/quizRecords';
-import { getRandomWords } from '../api/api';
+
 import './Quiz.css';
 
 
@@ -220,7 +220,8 @@ const Quiz = () => {
   const fetchRandomWords = async () => {
     setIsLoadingRandomWords(true);
     try {
-      const response = await getRandomWords(50);
+      //const response = await getRandomWords(50);
+      const response = {}
       if (response.data && response.data.length > 0) {
         // location.state를 업데이트하여 새로운 단어들로 설정
         navigate('/quiz', { 

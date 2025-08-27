@@ -5,6 +5,7 @@ import './WordsRegister.css';
 
 const WordsRegister = () => {
   const [words, setWords] = useState([]);
+  const [overlappedWords, setOverlappedWords] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -62,8 +63,17 @@ const WordsRegister = () => {
       const response = await createWordsBatch(validWords);
       
       if (response.status === 200 || response.status === 201) {
-        setMessage(`${validWords.length}개의 단어가 성공적으로 등록되었습니다.`);
-        setWords([]); // 테이블 초기화
+
+        if (Object.keys(response.data).length > 0) {
+          setOverlappedWords(Object.values(response.data))
+          setMessage(`중복되는 단어 ${Object.keys(response.data).length}개를 제외하고 성공적으로 등록되었습니다.`);
+        } else {
+          setOverlappedWords([])
+          setMessage(`${validWords.length}개의 단어가 성공적으로 등록되었습니다.`);
+        }
+        const newWords = validWords.filter(word => response.data[word.word])
+        console.log(newWords)
+        setWords(newWords); // 중복단어만 남기고 테이블 초기화
       } else {
         setMessage('단어 등록에 실패했습니다. 다시 시도해주세요.');
       }
@@ -135,12 +145,20 @@ const WordsRegister = () => {
             {isSubmitting ? '등록 중...' : '단어 등록'}
           </button>
         </div>
-
         {message && (
           <div className={`message ${message.includes('성공') ? 'success' : 'error'}`}>
             {message}
           </div>
         )}
+        <EditableTable
+                  columns={columns}
+                  data={overlappedWords}
+                  showCopyButton={false}
+                  showAddRow={false}
+                  showPasteButton={false}
+                  showDeleteButton={false}
+                />
+
       </div>
 
       <div className="instructions">
