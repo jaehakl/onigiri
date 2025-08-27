@@ -21,8 +21,11 @@ const LoadTextModal = ({ isOpen, onClose, onLoadText }) => {
       const response = await getUserTextList();
       setTexts(response.data.user_texts || []);
     } catch (err) {
-      console.error('텍스트 목록 로드 오류:', err);
-      setError('텍스트 목록을 불러오는 중 오류가 발생했습니다.');
+      if (err.response.status === 401) {
+        setError('로그인 후 이용해주세요.');
+      } else {
+        setError('텍스트 목록을 불러오는 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoading(false);
     }

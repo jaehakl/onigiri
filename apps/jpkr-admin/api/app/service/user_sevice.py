@@ -1,8 +1,7 @@
 from typing import Optional, Dict, Any, List
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from db import User
-
+from sqlalchemy.orm import Session, load_only
+from sqlalchemy import select, func
+from db import User, Word, Example, WordImage, UserText, UserWordSkill, UserRole
 
 class UserService:
     """사용자와 연관된 모든 데이터를 가져오는 서비스"""
@@ -101,6 +100,7 @@ class UserService:
                     {
                         "id": example.id,
                         "word_id": example.word_id,
+                        "word": example.word.word,
                         "tags": example.tags,
                         "jp_text": example.jp_text,
                         "kr_meaning": example.kr_meaning,
@@ -113,6 +113,7 @@ class UserService:
                     {
                         "id": image.id,
                         "word_id": image.word_id,
+                        "word": image.word.word,
                         "tags": image.tags,
                         "image_url": image.image_url,
                         "created_at": image.created_at,
@@ -124,6 +125,7 @@ class UserService:
                     {
                         "id": skill.id,
                         "word_id": skill.word_id,
+                        "word": skill.word.word,
                         "skill_kanji": skill.skill_kanji,
                         "skill_word_reading": skill.skill_word_reading,
                         "skill_word_speaking": skill.skill_word_speaking,
@@ -157,45 +159,78 @@ class UserService:
             # 로깅을 위해 예외 정보를 포함
             print(f"Error fetching user data: {str(e)}")
             return None
-    
-    @staticmethod
+
     def get_user_summary(who: str, db: Session, user_id: str) -> Optional[Dict[str, Any]]:
-        if who == "me":
-            id_to_get = user_id
-        else:
-            id_to_get = who
-        """
-        사용자 ID를 받아서 해당 사용자의 요약 정보만 가져옵니다.
-        
-        Args:
-            db: 데이터베이스 세션
-            user_id: 사용자 ID (UUID 문자열)
-            
-        Returns:
-            사용자 요약 정보를 포함한 딕셔너리 또는 None
-        """
-        try:
-            stmt = select(User).where(User.id == id_to_get)
-            user = db.execute(stmt).scalar_one_or_none()
-            
-            if not user:
-                return None
-            
-            return {
-                "user_id": user.id,
-                "email": user.email,
-                "display_name": user.display_name,
-                "is_active": user.is_active,
-                "created_at": user.created_at,
-                "stats": {
-                    "total_words": len(user.words),
-                    "total_examples": len(user.examples),
-                    "total_images": len(user.images),
-                    "total_texts": len(user.user_texts),
-                    "favorite_words": len([skill for skill in user.user_word_skills if skill.is_favorite])
-                }
-            }
-            
-        except Exception as e:
-            print(f"Error fetching user summary: {str(e)}")
+        id_to_get = user_id if who == "me" else who
+
+        # 각 통계값을 상관 서브쿼리로 정의 (fan-out 없이 안전, 1 round-trip)
+        total_words = (
+            select(func.count(Word.id))
+            .where(Word.user_id == User.id)
+            .correlate(User)
+            .scalar_subquery()
+        )
+        total_examples = (
+            select(func.count(Example.id))
+            .where(Example.user_id == User.id)
+            .correlate(User)
+            .scalar_subquery()
+        )
+        total_images = (
+            select(func.count(WordImage.id))
+            .where(WordImage.user_id == User.id)
+            .correlate(User)
+            .scalar_subquery()
+        )
+        total_texts = (
+            select(func.count(UserText.id))
+            .where(UserText.user_id == User.id)
+            .correlate(User)
+            .scalar_subquery()
+        )
+        favorite_words = (
+            select(func.count(UserWordSkill.id))
+            .where(
+                (UserWordSkill.user_id == User.id) &
+                (UserWordSkill.is_favorite.is_(True))
+            )
+            .correlate(User)
+            .scalar_subquery()
+        )
+
+        stmt = (
+            select(
+                User.id,
+                User.email,
+                User.display_name,
+                User.is_active,
+                User.created_at,
+                total_words.label("total_words"),
+                total_examples.label("total_examples"),
+                total_images.label("total_images"),
+                total_texts.label("total_texts"),
+                favorite_words.label("favorite_words"),
+            )
+            .where(User.id == id_to_get)
+            # 불필요한 컬럼 pre-load 방지 (혹시 ORM 객체로 바꿀 때 대비)
+            # .options(load_only(User.id, User.email, User.display_name, User.is_active, User.created_at))
+        )
+
+        row = db.execute(stmt).first()
+        if not row:
             return None
+
+        return {
+            "user_id": row.id,
+            "email": row.email,
+            "display_name": row.display_name,
+            "is_active": row.is_active,
+            "created_at": row.created_at,
+            "stats": {
+                "total_words": row.total_words,
+                "total_examples": row.total_examples,
+                "total_images": row.total_images,
+                "total_texts": row.total_texts,
+                "favorite_words": row.favorite_words,
+            },
+        }

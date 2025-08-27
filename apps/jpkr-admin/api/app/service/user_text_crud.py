@@ -16,10 +16,13 @@ def row_to_dict(obj) -> dict:
 def create_user_text(user_text_data: UserTextData, db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
     if not user_text_data:
         return {}
-    print(user_text_data)
-    user_text = UserText(**user_text_data.model_dump())
-    print(user_text)
-    user_text.user_id = user_id
+    user_text = UserText(
+        title=user_text_data.title,
+        text=user_text_data.text,
+        tags=user_text_data.tags,
+        youtube_url=user_text_data.youtube_url,
+        user_id=user_id,
+    )
     db.add(user_text)
     db.commit()
     return row_to_dict(user_text)

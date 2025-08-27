@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './SaveTextModal.css';
+import { createUserText, updateUserText } from '../api/api';
 
 const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
   const [id, setId] = useState('');
@@ -7,6 +8,7 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
   const [tags, setTags] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [audioUrl, setAudioUrl] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (defaultTextData) {
@@ -18,7 +20,7 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
     }
   }, [defaultTextData]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
       alert('제목을 입력해주세요.');
@@ -34,7 +36,23 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
       audio_url: audioUrl.trim(),
     };
 
-    onSave(textData);
+    try {      
+      if (textData.id) {
+        const response = await updateUserText(textData);
+        textData.id = response.data.id;
+      } else {
+        const response = await createUserText(textData);
+        textData.id = response.data.id;
+      }
+      setMessage('텍스트가 성공적으로 저장되었습니다.');
+      onSave(textData);
+    } catch (error) {
+      if (error.response.status === 401) {
+        setMessage('로그인 후 이용해주세요.');
+      } else {
+        setMessage('텍스트 저장 중 오류가 발생했습니다.');
+      }
+    }
     
     // 폼 초기화
     setTitle('');
@@ -87,18 +105,11 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
               placeholder="https://www.youtube.com/watch?v=..."
             />
           </div>
-
-          <div className="form-group">
-            <label htmlFor="audioUrl">오디오 URL</label>
-            <input
-              type="url"
-              id="audioUrl"
-              value={audioUrl}
-              onChange={(e) => setAudioUrl(e.target.value)}
-              placeholder="https://example.com/audio.mp3"
-            />
+          {message && (
+          <div className={`message ${message.includes('완료') ? 'success' : 'error'}`}>
+            {message}
           </div>
-
+        )}
           <div className="modal-actions">
             <button type="button" onClick={onClose} className="cancel-btn">
               취소

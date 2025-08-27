@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveQuizRecordToLocal, getQuizRecordsFromLocal, getQuizStatisticsFromLocal, clearQuizRecords, exportQuizRecords, importQuizRecords } from '../api/quizRecords';
-
+import { getRandomWordsToLearn } from '../api/api';
+import { to_hiragana } from '../service/hangul-to-hiragana';
 import './Quiz.css';
 
 
@@ -12,6 +13,7 @@ const Quiz = () => {
 
   const [currentQuiz, setCurrentQuiz] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
+  const [userHangulType, setUserHangulType] = useState('');
   const [isCorrect, setIsCorrect] = useState(null);
   const [feedback, setFeedback] = useState('');
   const [startTime, setStartTime] = useState(null);
@@ -24,7 +26,9 @@ const Quiz = () => {
   const [quizStatistics, setQuizStatistics] = useState(null);
   const [isLoadingRandomWords, setIsLoadingRandomWords] = useState(false);
 
-
+  useEffect(() => {
+    setUserAnswer(to_hiragana(userHangulType));
+  }, [userHangulType]);
 
   // 퀴즈 유형 정의
   const quizTypes = [
@@ -61,7 +65,7 @@ const Quiz = () => {
     return {
       type: 'word-meaning',
       question: isWordToMeaning ? word.word : word.kr_meaning,
-      correctAnswer: isWordToMeaning ? word.kr_meaning : word.kr_pronunciation,
+      correctAnswer: isWordToMeaning ? word.kr_meaning : word.jp_pronunciation,
       options: isWordToMeaning ? shuffledOptions : null,
       explanation: `${word.word} (${word.jp_pronunciation}) - ${word.kr_meaning}`,
       wordId: word.word_id
@@ -219,11 +223,11 @@ const Quiz = () => {
   // 무작위 단어 가져오기
   const fetchRandomWords = async () => {
     setIsLoadingRandomWords(true);
-    try {
-      //const response = await getRandomWords(50);
-      const response = {}
+    try { 
+      const response = await getRandomWordsToLearn(50);
       if (response.data && response.data.length > 0) {
         // location.state를 업데이트하여 새로운 단어들로 설정
+        console.log(response.data, 'response.data');
         navigate('/quiz', { 
           state: { 
             words: response.data, 
@@ -487,10 +491,11 @@ const Quiz = () => {
             
             {!currentQuiz.options && (
               <div className="answer-input">
+                <h4>{userAnswer}</h4><br/>
                 <input
                   type="text"
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
+                  value={userHangulType}
+                  onChange={(e) => setUserHangulType(e.target.value)}
                   placeholder="답을 입력하세요..."
                   className="answer-field"
                   onKeyPress={(e) => e.key === 'Enter' && submitAnswer()}

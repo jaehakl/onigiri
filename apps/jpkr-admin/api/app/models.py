@@ -60,3 +60,15 @@ class UserData(BaseModel):
     display_name: str
     picture_url: str
     roles: List[str]
+
+
+class UserSummaryData(BaseModel):
+    id: str
+    email: str
+    display_name: str
+    picture_url: str
+    roles: List[str]
+    num_texts: int
+    num_words: int
+    num_examples: int
+    num_images: int

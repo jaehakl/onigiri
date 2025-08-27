@@ -26,6 +26,7 @@ export const deleteWordsBatch = (wordIds) => axios.post(`${API_URL}/words/delete
 export const getAllWords = (limit = null, offset = null) => axios.post(`${API_URL}/words/all`, { limit, offset });
 export const searchWordsByWord = (searchTerm) => axios.get(`${API_URL}/words/search/${encodeURIComponent(searchTerm)}`);
 export const createWordsPersonal = (data) => axios.post(`${API_URL}/words/create/personal`, data);
+export const getRandomWordsToLearn = (limit) => axios.get(`${API_URL}/words/personal/random/${limit}`);
 
 // === Examples CRUD ===
 export const createExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/create/batch`, examplesData);

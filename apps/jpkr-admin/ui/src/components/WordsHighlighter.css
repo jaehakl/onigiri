@@ -5,170 +5,6 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 30px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
-}
-
-.page-header h1 {
-  margin: 0 0 16px 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.page-header p {
-  margin: 0;
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-.input-section {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.input-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.input-header h2 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.5rem;
-}
-
-.input-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.clear-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-  background: #6c757d;
-  color: white;
-}
-
-.clear-btn:hover:not(:disabled) {
-  background: #5a6268;
-}
-
-.clear-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.text-input-container {
-  margin-bottom: 24px;
-}
-
-.text-input {
-  width: 100%;
-  padding: 16px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 16px;
-  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.6;
-  resize: vertical;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-}
-
-.text-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.text-input:disabled {
-  background-color: #f8f9fa;
-  cursor: not-allowed;
-}
-
-.analyze-section {
-  text-align: center;
-  margin-top: 30px;
-  padding-top: 30px;
-  border-top: 1px solid #e9ecef;
-}
-
-.analyze-btn {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  border: none;
-  padding: 16px 40px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-}
-
-.study-btn {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-  color: white;
-  border: none;
-  padding: 16px 40px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
-}
-
-
-.analyze-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
-}
-
-.analyze-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.message {
-  margin-top: 20px;
-  padding: 16px 20px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.message.success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.message.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
 .highlighted-text {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
@@ -213,11 +49,13 @@
   color: #1565c0;
   border: 1px solid #bbdefb;
 }
+
 .morpheme-N2 {
   background: #f3e5f5;
   color: #7b1fa2;
   border: 1px solid #e1bee7;
 }
+
 .morpheme-N1 {
   background: #ffebee;
   color: #c62828;
@@ -350,37 +188,6 @@
     padding: 16px;
   }
   
-  .page-header {
-    padding: 20px 0;
-  }
-  
-  .page-header h1 {
-    font-size: 2rem;
-  }
-  
-  .page-header p {
-    font-size: 1rem;
-  }
-  
-  .input-section {
-    padding: 20px;
-  }
-  
-  .input-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .analyze-btn {
-    padding: 14px 30px;
-    font-size: 14px;
-  }
-  
-  .study-btn {
-    padding: 14px 30px;
-    font-size: 14px;
-  }
-
   .highlighted-text {
     font-size: 16px;
     padding: 16px;
@@ -407,19 +214,6 @@
 }
 
 @media (max-width: 480px) {
-  .page-header h1 {
-    font-size: 1.8rem;
-  }
-  
-  .input-section {
-    padding: 16px;
-  }
-  
-  .clear-btn {
-    padding: 8px 16px;
-    font-size: 12px;
-  }
-  
   .highlighted-text {
     font-size: 14px;
     padding: 12px;
@@ -445,212 +239,96 @@
   }
 }
 
-/* 예문 섹션 스타일 */
-.examples-section {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+/* 임시 단어 목록 스타일 */
+.temp-words-section {
   margin-top: 30px;
-}
-
-.examples-section h2 {
-  margin: 0 0 24px 0;
-  color: #2c3e50;
-  font-size: 1.8rem;
-  font-weight: 600;
-  text-align: center;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.examples-container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.word-examples {
-  border: 1px solid #e9ecef;
+  padding: 20px;
+  background-color: #f8f9fa;
   border-radius: 8px;
-  overflow: hidden;
-  background: #f8f9fa;
 }
 
-.word-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 16px 20px;
+.temp-words-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.word-title {
+.temp-words-section h2 {
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.2rem;
-  font-weight: 600;
+  color: #333;
+  font-size: 18px;
 }
 
-.word-surface {
-  font-family: 'Noto Sans JP', sans-serif;
-}
-
-.word-level {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+.send-words-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
   font-weight: 500;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
-.word-meaning {
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 500;
+.send-words-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
-.examples-list {
-  padding: 20px;
+.temp-words-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
-.example-item {
-  background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.2s;
-}
-
-.example-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
-}
-
-.example-japanese {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  line-height: 1.6;
-}
-
-.example-korean {
-  font-size: 1rem;
-  color: #6c757d;
-  line-height: 1.5;
-  margin-bottom: 8px;
-}
-
-.example-tags {
+.temp-word-item {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.tag {
-  background: #e3f2fd;
-  color: #1565c0;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border: 1px solid #bbdefb;
+.temp-word-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-/* 예문 섹션 반응형 디자인 */
-@media (max-width: 768px) {
-  .examples-section {
-    padding: 20px;
-  }
-  
-  .examples-section h2 {
-    font-size: 1.5rem;
-  }
-  
-  .word-header {
-    padding: 12px 16px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .word-title {
-    font-size: 1.1rem;
-  }
-  
-  .examples-list {
-    padding: 16px;
-  }
-  
-  .example-item {
-    padding: 12px;
-  }
-  
-  .example-japanese {
-    font-size: 1rem;
-  }
-  
-  .example-korean {
-    font-size: 0.9rem;
-  }
+.temp-word-surface {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
 }
 
-@media (max-width: 480px) {
-  .examples-section {
-    padding: 16px;
-  }
-  
-  .examples-section h2 {
-    font-size: 1.3rem;
-  }
-  
-  .word-header {
-    padding: 10px 12px;
-  }
-  
-  .word-title {
-    font-size: 1rem;
-  }
-  
-  .word-level {
-    font-size: 0.8rem;
-    padding: 3px 6px;
-  }
-  
-  .word-meaning {
-    font-size: 0.9rem;
-  }
-  
-  .examples-list {
-    padding: 12px;
-  }
-  
-  .example-item {
-    padding: 10px;
-  }
-  
-  .example-japanese {
-    font-size: 0.95rem;
-  }
-  
-  .example-korean {
-    font-size: 0.85rem;
-  }
-  
-  .tag {
-    font-size: 0.75rem;
-    padding: 3px 6px;
-  }
+.temp-word-level {
+  color: #666;
+  font-size: 14px;
+}
+
+.temp-word-meaning {
+  color: #666;
+  font-size: 14px;
+}
+
+.remove-temp-word-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove-temp-word-btn:hover {
+  background-color: #c82333;
 }
 
 /* 모달 스타일 */
@@ -774,96 +452,4 @@
 
 .modal-add-btn:hover {
   background-color: #0056b3;
-}
-
-/* 임시 단어 목록 스타일 */
-.temp-words-section {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.temp-words-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.temp-words-section h2 {
-  margin: 0;
-  color: #333;
-  font-size: 18px;
-}
-
-.send-words-btn {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-}
-
-.send-words-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-}
-
-.temp-words-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.temp-word-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background-color: white;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.temp-word-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.temp-word-surface {
-  font-weight: 600;
-  color: #333;
-  font-size: 16px;
-}
-
-.temp-word-level {
-  color: #666;
-  font-size: 14px;
-}
-
-.temp-word-meaning {
-  color: #666;
-  font-size: 14px;
-}
-
-.remove-temp-word-btn {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.remove-temp-word-btn:hover {
-  background-color: #c82333;
 }

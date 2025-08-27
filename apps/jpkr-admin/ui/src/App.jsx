@@ -9,24 +9,25 @@ import ExamplesRegister from './pages/examples-register';
 import ExamplesTable from './pages/examples-table';
 import Quiz from './pages/quiz';
 import UserManagement from './pages/user-management';
-import Auth from './components/Auth';
+import UserDetail from './pages/user-detail';
+import AuthUserProfile from './components/AuthUserProfile';
+import './App.css';
 
 import 'rsuite/dist/rsuite.min.css';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [me, setMe] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isUser, setIsUser] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const menuItems = [
+  const menuItemsAdmin = [
     {
       key: 'words-register',
       label: '단어 등록',
-      path: '/words-register'
-    },
-    {
-      key: 'words-search',
-      label: '단어 검색',
-      path: '/words-search'
+      path: '/words-register',
     },
     {
       key: 'words-table',
@@ -44,21 +45,35 @@ function App() {
       path: '/examples-table'
     },
     {
-      key: 'word-analysis',
-      label: '단어 분석',
-      path: '/word-analysis'
-    },
-    {
       key: 'user-management',
       label: '사용자 관리',
       path: '/user-management'
     }
   ];
+  
+  const menuItemsUser = [
+    {
+      key: 'words-search',
+      label: '단어 검색',
+      path: '/words-search'
+    }
+  ];
+
+  const menuItemsPublic = [
+    {
+      key: 'word-analysis',
+      label: '단어 분석',
+      path: '/'
+    }
+  ];
+
+  const menuItems = [...menuItemsAdmin, ...menuItemsUser, ...menuItemsPublic];
 
   const handleMenuSelect = (key) => {
     const menuItem = menuItems.find(item => item.key === key);
     if (menuItem) {
       navigate(menuItem.path);
+      setIsMobileMenuOpen(false); // 모바일 메뉴 선택 시 닫기
     }
   };
 
@@ -70,42 +85,116 @@ function App() {
     return activeItem ? activeItem.key : 'words-register';
   };
 
+  const renderMenuButtons = () => (
+    <div className="menu-container">
+      {isAdmin && menuItemsAdmin.map(item => (
+        <Button
+          key={item.key}
+          appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
+          block
+          onClick={() => handleMenuSelect(item.key)}
+          className="menu-button"
+        >
+          {item.label}
+        </Button>
+      ))}
+      {isUser && menuItemsUser.map(item => (
+        <Button
+          key={item.key}
+          appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
+          block
+          onClick={() => handleMenuSelect(item.key)}
+          className="menu-button"
+        >
+          {item.label}
+        </Button>
+      ))}
+      {menuItemsPublic.map(item => (
+        <Button
+          key={item.key}
+          appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
+          block
+          onClick={() => handleMenuSelect(item.key)}
+          className="menu-button"
+        >
+          {item.label}
+        </Button>
+      ))}
+    </div>
+  );
+
   return (
     <>
-      <Container style={{ marginTop: '20px' }}>
-        <Sidebar width={250} style={{ background: '#f8f9fa' }}>
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50' }}>Onigiri Admin</h3>
-            <Auth />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {menuItems.map(item => (
-                <Button
-                  key={item.key}
-                  appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
-                  block
-                  onClick={() => handleMenuSelect(item.key)}
-                  style={{ 
-                    textAlign: 'left',
-                    justifyContent: 'flex-start',
-                    padding: '12px 16px'
-                  }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </div>
+      {/* 모바일 헤더 */}
+      <div className="mobile">
+        <div className="mobile-header">
+          <img 
+            src="/onigiri.jpg" 
+            alt="Onigiri" 
+            className="mobile-logo" 
+            onClick={() => navigate('/')}
+          />
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            ☰
+          </button>
+        </div>
+
+        {/* 모바일 메뉴 오버레이 */}
+        <div 
+          className={`mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* 모바일 메뉴 패널 */}
+        <div className={`mobile-menu-panel ${isMobileMenuOpen ? 'open' : ''}`}>
+          <div className="mobile-menu-header">
+            <img 
+              src="/onigiri.jpg" 
+              alt="Onigiri" 
+              className="mobile-logo" 
+              onClick={() => navigate('/')}
+            />
+            <button 
+              className="mobile-menu-close"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="sidebar-content">
+            <AuthUserProfile onFetchMe={(data) => {if (data.roles.includes('admin')) {setIsAdmin(true)}; 
+                                                   if (data.roles.includes('user')) {setIsUser(true)}} } />
+            {renderMenuButtons()}
+          </div>
+        </div>
+        </div>
+
+      <Container className="app-container">
+        <Sidebar className="sidebar">
+          <div className="sidebar-content">
+            <img 
+              src="/onigiri.jpg" 
+              alt="Onigiri" 
+              className="logo-image" 
+              onClick={() => navigate('/')}
+            />
+            <AuthUserProfile onFetchMe={(data) => {setMe(data); if (data.roles.includes('admin')) {setIsAdmin(true)}}} />
+            {renderMenuButtons()}
           </div>
         </Sidebar>
-        <Content style={{ padding: '0 20px' }}>
+        <Content className="content-area">
           <Routes>
-            <Route path="/" element={<WordsRegister />} />
+            <Route path="/" element={<WordAnalysis />} />
+            <Route path="/words-search" element={<WordsSearch />} />              
             <Route path="/words-register" element={<WordsRegister />} />
-            <Route path="/words-search" element={<WordsSearch />} />
             <Route path="/words-table" element={<WordsTable />} />
             <Route path="/examples-register" element={<ExamplesRegister />} />
             <Route path="/examples-table" element={<ExamplesTable />} />
-            <Route path="/word-analysis" element={<WordAnalysis />} />
             <Route path="/user-management" element={<UserManagement />} />
+            <Route path="/user-detail/:userId" element={<UserDetail />} />
             <Route path="/quiz" element={<Quiz />} />
           </Routes>
         </Content>

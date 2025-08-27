@@ -9,7 +9,7 @@ from service.words_crud import create_words_batch, update_words_batch, delete_wo
 from service.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, get_all_examples, search_examples_by_text, get_examples_by_word_id
 from service.analysis_text import analyze_text
 from service.user_word_skill import create_user_word_skill_batch, update_user_word_skill_batch, delete_user_word_skill_batch, get_user_word_skills_by_word_ids, get_all_user_word_skills
-from service.words_personal import create_words_personal
+from service.words_personal import create_words_personal, get_random_words_to_learn
 from service.user_text_crud import create_user_text, update_user_text, delete_user_text, get_user_text, get_user_text_list
 from service.user_sevice import UserService
 from db import SessionLocal
@@ -21,25 +21,40 @@ app = server()
 
 
 
-def auth_service(request: Request, allowed_roles: List[str], db,  func, *args, **kwargs):
-    if db is None:
-        db = SessionLocal()
-    try:
-        if '*' in allowed_roles:
+def auth_service(request: Request, allowed_roles: List[str], db,  func, *args, **kwargs):    
+    if '*' in allowed_roles:
+        try:
             return func(*args, **kwargs, db=db)
-        else:
+        except Exception as e:
+            db.rollback()
+            print("Error: ", e)
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
+    else:
+        if db is None:
+            db = SessionLocal()
+
+        try:
             user = check_user(request, db)
-            if set(user.roles) & set(allowed_roles):
-                return func(*args, **kwargs, db=db, user_id=user.id)
+        except Exception as e:
+            print("Error: ", e)
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+
+        try:
+            if '*' in allowed_roles:
+                return func(*args, **kwargs, db=db)
             else:
-                print("Forbidden")
-                raise HTTPException(status_code=403, detail="Forbidden")
-    except Exception as e:
-        db.rollback()
-        print("Error: ", e)
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
+                if set(user.roles) & set(allowed_roles):
+                    return func(*args, **kwargs, db=db, user_id=user.id)
+                else:
+                    print("Forbidden")
+                    raise HTTPException(status_code=403, detail="Forbidden")
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
 
 
 
@@ -64,12 +79,16 @@ async def api_get_words(request: Request, data: Dict[str, Any], db: Session = De
 
 @app.get("/words/search/{search_term}")
 async def api_search_word(request: Request, search_term: str, db: Session = Depends(get_db)):
-    return auth_service(request, ["admin"], db, search_words_by_word, search_term)
+    return auth_service(request, ["admin", "user"], db, search_words_by_word, search_term)
 
+# Words Personal API endpoints
 @app.post("/words/create/personal")
 async def api_create_words_personal(request: Request, data: List[Dict[str, Any]], db: Session = Depends(get_db)):
     return auth_service(request, ["admin", "user"], db, create_words_personal, data)
 
+@app.get("/words/personal/random/{limit}")
+async def api_get_random_words_to_learn(request: Request, limit: int, db: Session = Depends(get_db)):
+    return auth_service(request, ["admin", "user"], db, get_random_words_to_learn, limit)
 
 
 
