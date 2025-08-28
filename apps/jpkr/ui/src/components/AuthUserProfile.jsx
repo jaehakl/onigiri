@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { API_URL, fetchMe, startGoogleLogin, logout, getUserSummaryUser } from "../api/api";
 import './AuthUserProfile.css';
+import { useUser } from '../contexts/UserContext';
 import { useNavigate } from "react-router-dom";
 
-function AuthUserProfile({onFetchMe=null}) {
-  const [me, setMe] = useState(null);
+function AuthUserProfile() {
+  const { user, setUser } = useUser();
   const [userSummary, setUserSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -14,11 +15,8 @@ function AuthUserProfile({onFetchMe=null}) {
   useEffect(() => {
     (async () => {
       const data = await fetchMe();
-      setMe(data);
+      setUser(data);
       setLoading(false);
-      if (onFetchMe) {
-        onFetchMe(data);
-      }      
       // 사용자 정보가 있으면 상세 정보도 가져오기
       if (data) {
         fetchUserSummary();
@@ -48,10 +46,10 @@ function AuthUserProfile({onFetchMe=null}) {
 
   return (
     <div className="sidebar-user-profile">
-      {!me ? (
+      {!user ? (
         <div className="login-section">
           <p className="login-text">로그인이 필요합니다</p>
-          <button className="login-button" onClick={startGoogleLogin}>
+          <button className="action-button primary" onClick={startGoogleLogin}>
             Google로 로그인
           </button>
         </div>
@@ -61,11 +59,11 @@ function AuthUserProfile({onFetchMe=null}) {
           <div className="user-profile-compact">
             <div className="user-header">
               <div className="user-avatar-small">
-                {me.display_name ? me.display_name.charAt(0).toUpperCase() : 'U'}
+                {user.display_name ? user.display_name.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="user-details">
-                <h4 className="user-name">{me.display_name || '이름 없음'}</h4>
-                <p className="user-email-compact">{me.email || '이메일 없음'}</p>
+                <h4 className="user-name">{user.display_name || '이름 없음'}</h4>
+                <p className="user-email-compact">{user.email || '이메일 없음'}</p>
               </div>
             </div>
 
@@ -103,7 +101,7 @@ function AuthUserProfile({onFetchMe=null}) {
                 className="action-button secondary"
                 onClick={async () => { 
                   await logout(); 
-                  setMe(null); 
+                  setUser(null); 
                   setUserSummary(null); 
                 }}
               >

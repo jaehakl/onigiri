@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { to_hiragana } from '../service/hangul-to-hiragana';
 import './WordInputModal.css';
+import { useUser } from '../contexts/UserContext';
 
-const WordInputModal = ({ word, isOpen, onClose, onSubmit }) => {
+const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
+  const { user } = useUser();
   const [wordForm, setWordForm] = useState({
     word: '',
     jp_pronunciation: '',
@@ -101,6 +103,14 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit }) => {
     handleClose();
   };
 
+  // 삭제 처리
+  const handleDelete = () => {
+    if (window.confirm('정말로 이 단어를 삭제하시겠습니까?')) {
+      onDelete(word.id);
+      handleClose();
+    }
+  };
+
   // 모달 닫기
   const handleClose = () => {
     setWordForm({
@@ -118,104 +128,115 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit }) => {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h3>단어 정보 입력</h3>
-          <button onClick={handleClose} className="modal-close-btn">×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-group">
-            <label>단어:</label>
-            <input
-              type="text"
-              name="word"
-              value={wordForm.word}
-              onChange={handleFormChange}
-              placeholder="단어를 입력하세요"
-            />
+  return (    
+    <div className="word-input-modal-overlay">
+      <div className="word-input-modal-content">
+        <div className="word-input-modal-body">
+          <div className="word-input-modal-form-row">
+            <div className="word-input-modal-form-group">
+              <h2 className="word-input-modal-word">{wordForm.word}</h2>
+            </div>
+            <div className="word-input-modal-form-group">
+              <label>일본어 발음:</label>
+              <input
+                type="text"
+                name="jp_pronunciation"
+                value={wordForm.jp_pronunciation}
+                onChange={handleFormChange}
+                placeholder="일본어 발음을 입력하세요"
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label>일본어 발음:</label>
-            <input
-              type="text"
-              name="jp_pronunciation"
-              value={wordForm.jp_pronunciation}
-              onChange={handleFormChange}
-              placeholder="일본어 발음을 입력하세요"
-            />
+          <div className="word-input-modal-form-row">
+          <div className="word-input-modal-form-group">
+             <label>한국어 뜻:</label>
+              <input
+                type="text"
+                name="kr_meaning"
+                value={wordForm.kr_meaning}
+                onChange={handleFormChange}
+                placeholder="한국어 뜻을 입력하세요"
+              />
+            </div>
+
+            <div className="word-input-modal-form-group">
+              <label>한국어 발음:</label>
+              <input
+                type="text"
+                name="kr_pronunciation"
+                value={wordForm.kr_pronunciation}
+                onChange={handleFormChange}
+                placeholder="한국어 발음을 입력하세요"
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label>한국어 발음:</label>
-            <input
-              type="text"
-              name="kr_pronunciation"
-              value={wordForm.kr_pronunciation}
-              onChange={handleFormChange}
-              placeholder="한국어 발음을 입력하세요"
-            />
-          </div>
-          <div className="form-group">
-            <label>한국어 뜻:</label>
-            <input
-              type="text"
-              name="kr_meaning"
-              value={wordForm.kr_meaning}
-              onChange={handleFormChange}
-              placeholder="한국어 뜻을 입력하세요"
-            />
-          </div>
-          <div className="form-group">
-            <label>난이도:</label>
-            <select
-              name="level"
-              value={wordForm.level}
-              onChange={handleFormChange}                  
-            >
-              <option value="N/A">(N/A) 아주 쉬움</option>
-              <option value="N5">(N5) 초급</option>
-              <option value="N4">(N4) 초중급</option>
-              <option value="N3">(N3) 중급</option>
-              <option value="N2">(N2) 중고급</option>
-              <option value="N1">(N1) 고급</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label>이미지 파일:</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileChange}
-              placeholder="이미지 파일을 선택하세요"
-            />
-          </div>
+          <div className="word-input-modal-form-row">
+
+            <div className="word-input-modal-form-group">
+              <label>난이도:</label>
+              <select
+                name="level"
+                value={wordForm.level}
+                onChange={handleFormChange}                  
+              >
+                <option value="N/A">(N/A) 아주 쉬움</option>
+                <option value="N5">(N5) 초급</option>
+                <option value="N4">(N4) 초중급</option>
+                <option value="N3">(N3) 중급</option>
+                <option value="N2">(N2) 중고급</option>
+                <option value="N1">(N1) 고급</option>
+              </select>
+            </div>
+            <div className="word-input-modal-form-group">
+              <label>이미지 파일:</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+                placeholder="이미지 파일을 선택하세요"
+              />
+            </div>
+            </div>
           {selectedFiles.length > 0 && (
-            <div className="form-group">
+            <div className="word-input-modal-form-group">
               <label>파일별 태그:</label>
               {selectedFiles.map((file, index) => (
-                <div key={index} className="file-tag-item">
-                  <span className="file-name">{file.name}</span>
+                <div key={index} className="word-input-modal-file-tag-item">
+                  <span className="word-input-modal-file-name">{file.name}</span>
                   <input
                     type="text"
                     value={fileTags[index]?.tags || ''}
                     onChange={(e) => handleFileTagChange(index, e.target.value)}
                     placeholder="태그를 입력하세요"
-                    className="file-tag-input"
+                    className="word-input-modal-file-tag-input"
                   />
                 </div>
               ))}
             </div>
           )}
         </div>
-        <div className="modal-footer">
-          <button onClick={handleClose} className="modal-cancel-btn">
-            취소
-          </button>
-          <button onClick={handleSubmit} className="modal-add-btn">
-            {word?.id ? '수정' : '추가'}
-          </button>
+        <div className="word-input-modal-footer">
+          <div className="word-input-modal-footer-left">
+            {word?.user_id === user?.id && (
+              <button onClick={handleDelete} className="word-input-modal-delete-btn">
+                삭제
+              </button>
+            )}
+            {!(user && user.roles.includes('user')) && (
+              <h5>로그인 후 저장 가능합니다.</h5>
+            )}
+          </div>
+          <div className="word-input-modal-footer-right">
+            <button onClick={handleClose} className="word-input-modal-cancel-btn">
+              취소
+            </button>
+            {user && user.roles.includes('user') && (
+            <button onClick={handleSubmit} className="word-input-modal-add-btn">
+              {word?.user_id === user?.id ? '수정' : '추가'}
+            </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

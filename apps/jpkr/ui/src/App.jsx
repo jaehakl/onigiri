@@ -11,16 +11,14 @@ import Quiz from './pages/quiz';
 import UserManagement from './pages/user-management';
 import UserDetail from './pages/user-detail';
 import AuthUserProfile from './components/AuthUserProfile';
+import { useUser } from './contexts/UserContext';
 import './App.css';
-
 import 'rsuite/dist/rsuite.min.css';
 
 function App() {
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
-  const [me, setMe] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isUser, setIsUser] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItemsAdmin = [
@@ -98,7 +96,7 @@ function App() {
           {item.label}
         </Button>
       ))}
-      {isUser && menuItemsUser.map(item => (
+      {user && (user.roles.includes('user') || user.roles.includes('admin')) && menuItemsUser.map(item => (
         <Button
           key={item.key}
           appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
@@ -109,7 +107,7 @@ function App() {
           {item.label}
         </Button>
       ))}
-      {isAdmin && menuItemsAdmin.map(item => (
+      {user && (user.roles.includes('admin')) && menuItemsAdmin.map(item => (
         <Button
           key={item.key}
           appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
@@ -167,8 +165,7 @@ function App() {
             </button>
           </div>
           <div className="sidebar-content">
-            <AuthUserProfile onFetchMe={(data) => {if (data.roles.includes('admin')) {setIsAdmin(true)}; 
-                                                   if (data.roles.includes('user')) {setIsUser(true)}} } />
+            <AuthUserProfile />
             {renderMenuButtons()}
           </div>
         </div>
@@ -183,7 +180,7 @@ function App() {
               className="logo-image" 
               onClick={() => navigate('/')}
             />
-            <AuthUserProfile onFetchMe={(data) => {setMe(data); if (data.roles.includes('admin')) {setIsAdmin(true)}}} />
+            <AuthUserProfile />
             {renderMenuButtons()}
           </div>
         </Sidebar>

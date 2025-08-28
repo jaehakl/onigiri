@@ -29,11 +29,11 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
 
     const textData = {
       id: id,
-      title: title.trim(),
+      title: title?title.trim():'',
       text: text,
-      tags: tags.trim(),
-      youtube_url: youtubeUrl.trim(),
-      audio_url: audioUrl.trim(),
+      tags: tags?tags.trim():'',
+      youtube_url: youtubeUrl?youtubeUrl.trim():'',
+      audio_url: audioUrl?audioUrl.trim():'',
     };
 
     try {      
@@ -44,7 +44,6 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
         const response = await createUserText(textData);
         textData.id = response.data.id;
       }
-      setMessage('텍스트가 성공적으로 저장되었습니다.');
       onSave(textData);
     } catch (error) {
       if (error.response.status === 401) {
@@ -53,12 +52,6 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
         setMessage('텍스트 저장 중 오류가 발생했습니다.');
       }
     }
-    
-    // 폼 초기화
-    setTitle('');
-    setTags('');
-    setYoutubeUrl('');
-    setAudioUrl('');
   };
 
   if (!isOpen) return null;

@@ -30,6 +30,7 @@ const WordsHighlighter = ({words}) => {
   // 모달 열기
   const handleWordClick = (word) => {
     setSelectedWord(word);
+    setTooltip({ show: false, data: null, position: { x: 0, y: 0 } });
     setShowModal(true);
   };
 
@@ -43,9 +44,6 @@ const WordsHighlighter = ({words}) => {
   const handleAddWord = async (formData) => {
     try {
       // FormData에서 데이터 추출
-      const dataJson = formData.get("data_json");
-      const fileMetaJson = formData.get("file_meta_json");
-      const files = formData.getAll("files");
       const response = await createWordsPersonal(formData);      
     } catch (error) {
       console.error('FormData 파싱 오류:', error);

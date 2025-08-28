@@ -18,7 +18,6 @@ const WordAnalysis = () => {
   const [words_set, setWordsSet] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [message, setMessage] = useState('');
-  const [sampleIndex, setSampleIndex] = useState(0);
   
   // 모달 상태
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -161,13 +160,10 @@ const WordAnalysis = () => {
                     setInputText(clipboardText);
                     navigator.clipboard.writeText('');
                   } else {
-                    setInputText(sample_text(sampleIndex));
-                    setSampleIndex(sampleIndex + 1);
+                    setInputText(sample_text(0));
                   }
                 } catch (error) {
                   console.error('클립보드 읽기 오류:', error);
-                  setInputText(sample_text(sampleIndex));
-                  setSampleIndex(sampleIndex + 1);
                 }
               }}
               className="clear-btn"
@@ -193,7 +189,7 @@ const WordAnalysis = () => {
               setInputText(to_hiragana(inputText)); // 한글로 변환
             }
           }}
-          placeholder={sample_text(sampleIndex)}
+          placeholder={sample_text(0)}
           className="text-input"
           rows={8}
           disabled={isAnalyzing}

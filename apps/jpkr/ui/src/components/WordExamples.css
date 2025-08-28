@@ -14,7 +14,7 @@
 }
 
 .copy-button {
-  background: #3498db;
+  background: #999999;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -27,7 +27,7 @@
 }
 
 .copy-button:hover {
-  background: #2980b9;
+  background: #525252;
 }
 
 .examples-container {
