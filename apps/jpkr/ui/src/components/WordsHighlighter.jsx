@@ -8,7 +8,6 @@ const WordsHighlighter = ({words}) => {
   const [tooltip, setTooltip] = useState({ show: false, data: null, position: { x: 0, y: 0 } });  
   const [showModal, setShowModal] = useState(false);
   const [selectedWord, setSelectedWord] = useState(null);
-  console.log(words);
 
   // 툴팁 표시
   const handleMouseEnter = (word, event) => {
@@ -30,7 +29,6 @@ const WordsHighlighter = ({words}) => {
 
   // 모달 열기
   const handleWordClick = (word) => {
-    console.log(word);
     setSelectedWord(word);
     setShowModal(true);
   };

@@ -20,11 +20,14 @@ app = server()
 
 # new auth_service (2025-08-28)
 def auth_service(request: Request, allowed_roles: List[str], db, user, func, *args, **kwargs):    
+    user_id = None
     if user is None:
         if '*' not in allowed_roles:
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    else:
+        user_id = user.id
     try:
-        return func(*args, **kwargs, db=db, user_id=user.id)        
+        return func(*args, **kwargs, db=db, user_id=user_id)        
     except Exception as e:
         print("Error: ", e)
         db.rollback()
