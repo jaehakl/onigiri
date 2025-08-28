@@ -10,7 +10,7 @@ from google.auth.transport import requests as google_requests
 
 from models import UserData
 from settings import settings
-from auth_utils import random_urlsafe, pkce_challenge, hash_token, set_session_cookie, clear_session_cookie, set_return_to_cookie, pop_return_to_cookie
+from utils.auth_utils import random_urlsafe, pkce_challenge, hash_token, set_session_cookie, clear_session_cookie, set_return_to_cookie, pop_return_to_cookie
 from db import SessionLocal, User, Identity, Session as DbSession, OAuthState, UserRole  # 기존 db.py 모델 임포트
 
 router = APIRouter(prefix="/auth", tags=["auth"])

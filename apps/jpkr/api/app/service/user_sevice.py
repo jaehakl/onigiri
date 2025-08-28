@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session, load_only
 from sqlalchemy import select, func
 from db import User, Word, Example, WordImage, UserText, UserWordSkill, UserRole
+from utils.aws_s3 import presign_get_url
 
 class UserService:
     """사용자와 연관된 모든 데이터를 가져오는 서비스"""
@@ -115,7 +116,7 @@ class UserService:
                         "word_id": image.word_id,
                         "word": image.word.word,
                         "tags": image.tags,
-                        "image_url": image.image_url,
+                        "image_url": presign_get_url(image.object_key, expires=600),
                         "created_at": image.created_at,
                         "updated_at": image.updated_at
                     }

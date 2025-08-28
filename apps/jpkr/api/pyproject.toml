@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "onigiri-jpkr"
 version = "0.0.1"
-description = "Onigiri Japanese-Korean App Backend API"
+description = "Onigiri Japanese-Korean App API"
 authors = ["Jaehak Lee <leejaehak87@gmail.com>"]
 package-mode = false
 
@@ -15,9 +15,14 @@ dotenv = "^0.9.9"
 asyncpg = "^0.30.0"
 python-multipart = "^0.0.20"
 python-dotenv = "^1.1.1"
-requests = "^2.32.5"
-
-[tool.poetry.group.dev.dependencies]
+requests = ">=2.32"
+fugashi = {extras = ["unidic-lite"], version = "^1.5.1"}
+psycopg = {extras = ["binary"], version = "^3.2.9"}
+google-auth = ">=2.30"
+google-auth-oauthlib = ">=1.2"
+psycopg2-binary = "^2.9.10"
+boto3 = "^1.40.19"
+pydantic-settings = "^2.10.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -16,4 +16,12 @@ class Settings(BaseModel):
     session_cookie_secure: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
     session_max_age: int = int(os.getenv("SESSION_MAX_AGE_SECONDS", "1209600"))  # 14d
 
+    # AWS
+    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    AWS_REGION: str = os.getenv("AWS_REGION", "ap-northeast-2")
+    S3_BUCKET: str = os.getenv("S3_BUCKET", "")
+    S3_ENDPOINT_URL: str = os.getenv("S3_ENDPOINT_URL", "")
+    MAX_IMAGE_SIZE_MB: int = 1
+
 settings = Settings()

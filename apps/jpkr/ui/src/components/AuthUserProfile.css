@@ -145,21 +145,21 @@
 }
 
 .action-button.primary {
-  background: #667eea;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
 }
 
 .action-button.primary:hover {
-  background: #5a6fd8;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
 }
 
 .action-button.secondary {
-  background: #6c757d;
+  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
   color: white;
 }
 
 .action-button.secondary:hover {
-  background: #5a6268;
+  box-shadow: 0 4px 15px rgba(73, 80, 87, 0.3);
 }
 
 /* 반응형 디자인 */

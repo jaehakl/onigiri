@@ -61,7 +61,6 @@ class UserData(BaseModel):
     picture_url: str
     roles: List[str]
 
-
 class UserSummaryData(BaseModel):
     id: str
     email: str
@@ -72,3 +71,11 @@ class UserSummaryData(BaseModel):
     num_words: int
     num_examples: int
     num_images: int
+
+class WordImageOut(BaseModel):
+    id: str
+    word_id: str
+    tags: str
+    image_url: str  # (권장) 뷰 API에서 presigned GET으로 채워주기
+    class Config:
+        from_attributes = True

@@ -6,7 +6,6 @@ const WordExamples = ({ wordsSet }) => {
     return null;
   }
 
-
   const copyToClipboard = () => {
     try {
       // TSV 헤더 생성
@@ -39,25 +38,35 @@ const WordExamples = ({ wordsSet }) => {
     }
   };
 
-
-
-
   return (
     <div className="examples-section">
       <h2>단어별 예문</h2>
-      <button onClick={copyToClipboard}>클립보드에 복사</button>
+      <button onClick={copyToClipboard} className="copy-button">클립보드에 복사</button>
       <div className="examples-container">
         {Object.values(wordsSet).map((word, wordIndex) => (
           word.examples && (
-            <div key={`word-${wordIndex}`} className="word-examples">
+            <div 
+              key={`word-${wordIndex}`} 
+              className="word-examples"
+              style={word.images && word.images.length > 0 ? {
+                backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${word.images[0]})`,
+                backgroundSize: 'contain', // 'cover', 'contain', '100% 100%', 'auto' 중 선택
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              } : {}}
+            >
               <div className="word-header">
-                <h3 className="word-title">
-                  <span className="word-lemma">{word.word}</span>
-                  <span className="word-level">({word.level})</span>
-                </h3>
-                <span className="word-pronunciation">{word.jp_pronunciation}</span>
-                <span className="word-pronunciation">{word.kr_pronunciation}</span>
-                <span className="word-meaning">{word.kr_meaning}</span>
+                <div className="word-info">
+                  <h3 className="word-title">
+                    <span className="word-lemma">{word.word}</span>
+                    <span className="word-level">({word.level})</span>
+                  </h3>
+                  <div className="word-details">
+                    <span className="word-pronunciation">{word.jp_pronunciation}</span>
+                    <span className="word-pronunciation">{word.kr_pronunciation}</span>
+                    <span className="word-meaning">{word.kr_meaning}</span>
+                  </div>
+                </div>
               </div>
               <div className="examples-list">
                 {word.examples.map((example, exampleIndex) => (

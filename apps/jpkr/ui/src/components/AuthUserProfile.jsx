@@ -97,7 +97,7 @@ function AuthUserProfile({onFetchMe=null}) {
                 className="action-button primary"
                 onClick={() => navigate(`/user-detail/me`)}
               >
-                프로필 수정
+                ステータス
               </button>
               <button 
                 className="action-button secondary"
@@ -107,7 +107,7 @@ function AuthUserProfile({onFetchMe=null}) {
                   setUserSummary(null); 
                 }}
               >
-                로그아웃
+                ログアウト
               </button>
             </div>
           </div>
