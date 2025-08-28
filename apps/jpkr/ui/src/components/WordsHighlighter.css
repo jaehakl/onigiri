@@ -1,7 +1,7 @@
-.morphological-analysis-container {
+.words-highlighter-container {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: 10px auto;
+  padding: 0px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
@@ -228,7 +228,6 @@
 
 @media (max-width: 480px) {
   .highlighted-text {
-    font-size: 14px;
     padding: 12px;
   }
   

@@ -8,41 +8,7 @@ import LoadTextModal from '../components/LoadTextModal';
 import YouTubeEmbed from '../components/YouTubeEmbed';
 import WordExamples from '../components/WordExamples';
 import { to_hiragana } from '../service/hangul-to-hiragana';
-
-const SAMPLE_TEXT = `吾輩《わがはい》は猫である。名前はまだ無い。
-  　どこで生れたかとんと見当《けんとう》がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。吾輩はここで始めて人間というものを見た。しかもあとで聞くとそれは書生という人間中で一番｜獰悪《どうあく》な種族であったそうだ。この書生というのは時々我々を捕《つかま》えて煮《に》て食うという話である。しかしその当時は何という考もなかったから別段恐しいとも思わなかった。ただ彼の掌《てのひら》に載せられてスーと持ち上げられた時何だかフワフワした感じがあったばかりである。掌の上で少し落ちついて書生の顔を見たのがいわゆる人間というものの見始《みはじめ》であろう。この時妙なものだと思った感じが今でも残っている。第一毛をもって装飾されべきはずの顔がつるつるしてまるで薬缶《やかん》だ。その後《ご》猫にもだいぶ逢《あ》ったがこんな片輪《かたわ》には一度も出会《でく》わした事がない。のみならず顔の真中があまりに突起している。そうしてその穴の中から時々ぷうぷうと煙《けむり》を吹く。どうも咽《む》せぽくて実に弱った。これが人間の飲む煙草《たばこ》というものである事はようやくこの頃知った。'
-  `
-
-const columns = [
-    {
-      key: 'surface',
-      label: '단어'
-    },  
-    {
-      key: 'word',
-      label: '기본형'
-    },
-    {
-      key: 'jp_pronunciation',
-      label: '일본어 발음'
-    },
-    {
-      key: 'kr_pronunciation',
-      label: '한국어 발음'
-    },
-    {
-      key: 'kr_meaning',
-      label: '한국어 뜻'
-    },
-    {
-      key: 'level',
-      label: '레벨'
-    },
-    {
-      key: 'num_examples',
-      label: '예문 수'
-    }
-  ];
+import { sample_text } from '../service/sample-text';
 
 const WordAnalysis = () => {
   const navigate = useNavigate();
@@ -52,6 +18,7 @@ const WordAnalysis = () => {
   const [words_set, setWordsSet] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [message, setMessage] = useState('');
+  const [sampleIndex, setSampleIndex] = useState(0);
   
   // 모달 상태
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -187,6 +154,27 @@ const WordAnalysis = () => {
               초기화
             </button>
             <button 
+              onClick={async () => {
+                try {
+                  const clipboardText = await navigator.clipboard.readText();
+                  if (clipboardText && clipboardText.trim()) {
+                    setInputText(clipboardText);
+                    navigator.clipboard.writeText('');
+                  } else {
+                    setInputText(sample_text(sampleIndex));
+                    setSampleIndex(sampleIndex + 1);
+                  }
+                } catch (error) {
+                  console.error('클립보드 읽기 오류:', error);
+                  setInputText(sample_text(sampleIndex));
+                  setSampleIndex(sampleIndex + 1);
+                }
+              }}
+              className="clear-btn"
+            >
+              붙여넣기
+            </button>
+            <button 
               onClick={()=>setInputText(to_hiragana(inputText))} 
               className="clear-btn"
               disabled={!inputText.trim()}
@@ -205,7 +193,7 @@ const WordAnalysis = () => {
               setInputText(to_hiragana(inputText)); // 한글로 변환
             }
           }}
-          placeholder={SAMPLE_TEXT}
+          placeholder={sample_text(sampleIndex)}
           className="text-input"
           rows={8}
           disabled={isAnalyzing}

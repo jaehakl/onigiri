@@ -95,7 +95,7 @@ const WordsHighlighter = ({words}) => {
   };
 
   return (
-    <div className="morphological-analysis-container">
+    <div className="words-highlighter-container">
         <div className="highlighted-text">
             {renderHighlightedText()}
         </div>
