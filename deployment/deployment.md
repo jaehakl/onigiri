@@ -123,9 +123,9 @@ limit_req_zone $binary_remote_addr zone=req_per_ip:20m rate=17r/s;
 limit_conn_zone $binary_remote_addr zone=conn_per_ip:20m;
 ```
 
-(~/app.conf 가 있다고 가정)
+(~/deployment/app.conf 가 있다고 가정)
 ```
-sudo cp ~/app.conf /etc/nginx/sites-available/app.conf
+sudo cp ~/deployment/app.conf /etc/nginx/sites-available/app.conf
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
@@ -137,4 +137,9 @@ sudo certbot --nginx -d onigiri.kr -d www.onigiri.kr
 
 # 자동 갱신 크론/타이머 함께 설정됨. 점검:
 sudo certbot renew --dry-run
+```
+
+# 8) 코드 업데이트(자동화)
+```
+bash ~/deployment/update.sh
 ```
