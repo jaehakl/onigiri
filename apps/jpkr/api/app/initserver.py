@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 from settings import settings
 from routers.routes_auth import router as auth_router
-from routers.word_images import router as word_images_router
 
 
 def server():
@@ -38,7 +37,6 @@ def server():
 
     async def start():
         app.state.progress = 0
-        # 확장(있으면 생성, 없으면 무시)
         with engine.begin() as conn:
             try:
                 conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS citext;")
@@ -46,10 +44,7 @@ def server():
             except Exception:
                 pass
         Base.metadata.create_all(bind=engine)        
-        #async with engine.begin() as conn:
-        #    await conn.run_sync(Base.metadata.create_all)
         app.include_router(auth_router)
-        #app.include_router(word_images_router)
 
         print("service is started.")
 

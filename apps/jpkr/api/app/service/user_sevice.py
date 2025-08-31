@@ -39,6 +39,28 @@ class UserService:
             return []
     
     @staticmethod
+    def delete_user(id: str, db: Session, user_id: str) -> bool:
+        try:
+            # 사용자 존재 여부 확인
+            user = db.query(User).filter(User.id == id).first()
+            if not user:
+                print(f"User not found: {id}")
+                return False
+            
+            # 사용자 삭제 (CASCADE 설정으로 인해 연관된 모든 데이터가 자동 삭제됨)
+            db.delete(user)
+            db.commit()
+            
+            print(f"User and all related data deleted successfully: {id}")
+            return True
+            
+        except Exception as e:
+            db.rollback()
+            print(f"Error deleting user: {str(e)}")
+            return False
+
+
+    @staticmethod
     def get_user_with_all_data(who: str, db: Session, user_id: str) -> Optional[Dict[str, Any]]:
         """
         사용자 ID를 받아서 해당 사용자와 연관된 모든 데이터를 가져옵니다.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllUsersAdmin } from '../api/api';
+import { getAllUsersAdmin, deleteUserAdmin } from '../api/api';
 import './UserManagement.css';
 
 const UserManagement = () => {
@@ -11,6 +11,7 @@ const UserManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [deletingUsers, setDeletingUsers] = useState(new Set());
   const usersPerPage = 20;
 
   useEffect(() => {
@@ -52,6 +53,35 @@ const UserManagement = () => {
 
   const handleViewFullDetail = (userId) => {
     navigate(`/user-detail/${userId}`);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('정말로 이 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
+
+    try {
+      setDeletingUsers(prev => new Set(prev).add(userId));
+      
+      const response = await deleteUserAdmin(userId);
+      
+      if (response.data && response.data === true) {
+        // 삭제된 사용자를 목록에서 제거
+        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+        alert('사용자가 성공적으로 삭제되었습니다.');
+      } else {
+        alert('사용자 삭제에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('사용자 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeletingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+    }
   };
 
   const formatDate = (dateString) => {
@@ -125,6 +155,13 @@ const UserManagement = () => {
                         onClick={() => handleViewFullDetail(user.id)}
                       >
                         전체보기
+                      </button>
+                      <button 
+                        className="delete-user-button"
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={deletingUsers.has(user.id)}
+                      >
+                        {deletingUsers.has(user.id) ? '삭제 중...' : '삭제'}
                       </button>
                     </td>
                   </tr>

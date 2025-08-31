@@ -11,7 +11,7 @@ from google.auth.transport import requests as google_requests
 from models import UserData
 from settings import settings
 from utils.auth_utils import random_urlsafe, pkce_challenge, hash_token, set_session_cookie, clear_session_cookie, set_return_to_cookie, pop_return_to_cookie
-from db import SessionLocal, User, Identity, Session as DbSession, OAuthState, UserRole  # 기존 db.py 모델 임포트
+from db import SessionLocal, User, Identity, Session as DbSession, OAuthState, UserRole, Role  # 기존 db.py 모델 임포트
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -127,6 +127,17 @@ def google_callback(request: Request, state: str = "", code: str = "", db: Sessi
             )
             db.add(user)
             db.flush()  # user.id 확보
+
+        # 기본 "user" 역할 추가
+        user_role = db.scalar(select(Role).where(Role.name == "user"))
+        if not user_role:
+            # "user" 역할이 없으면 생성
+            user_role = Role(name="user")
+            db.add(user_role)
+            db.flush()  # role.id 확보
+        
+        user_role_entry = UserRole(user_id=user.id, role_id=user_role.id)
+        db.add(user_role_entry)
 
         ident = Identity(
             user_id=user.id,

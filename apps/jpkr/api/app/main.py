@@ -18,16 +18,22 @@ from utils.auth import get_current_user, CurrentUser
 
 app = server()
 
-# new auth_service (2025-08-28)
+
 def auth_service(request: Request, allowed_roles: List[str], db, user, func, *args, **kwargs):    
-    user_id = None
-    if user is None:
-        if '*' not in allowed_roles:
-            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
-    else:
+    if user:
+        user_roles = [ur for ur in user.roles]
         user_id = user.id
+    else:
+        user_roles = []
+        user_id = None
+
+    matched_roles = [ur for ur in user_roles if ur in allowed_roles]
+
+    if len(matched_roles) == 0 and '*' not in allowed_roles:
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    
     try:
-        return func(*args, **kwargs, db=db, user_id=user_id)        
+        return func(*args, **kwargs, db=db, user_id=user_id)
     except Exception as e:
         print("Error: ", e)
         db.rollback()
@@ -36,11 +42,20 @@ def auth_service(request: Request, allowed_roles: List[str], db, user, func, *ar
         db.close()
 
 async def auth_service_async(request: Request, allowed_roles: List[str], db, user, func, *args, **kwargs):    
-    if user is None:
-        if '*' not in allowed_roles:
-            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    if user:
+        user_roles = [ur for ur in user.roles]
+        user_id = user.id
+    else:
+        user_roles = []
+        user_id = None
+
+    matched_roles = [ur for ur in user_roles if ur in allowed_roles]
+
+    if len(matched_roles) == 0 and '*' not in allowed_roles:
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    
     try:
-        return await func(*args, **kwargs, db=db, user_id=user.id)        
+        return await func(*args, **kwargs, db=db, user_id=user_id)
     except Exception as e:
         print("Error: ", e)
         db.rollback()
@@ -138,6 +153,10 @@ async def api_delete_user_text(request: Request, user_text_id: str, db: Session 
 @app.get("/user_admin/get_all_users/{limit}/{offset}")
 async def api_get_user_list(request: Request, limit: int = None, offset: int = None, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, UserService.get_users, limit, offset)
+
+@app.get("/user_admin/delete/{id}")
+async def api_delete_user(request: Request, id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    return auth_service(request, ["admin"], db, user, UserService.delete_user, id)
 
 @app.get("/user_data/summary/admin/{user_id}")
 async def api_get_user_summary_admin(request: Request, user_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):

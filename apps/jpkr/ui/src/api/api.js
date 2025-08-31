@@ -50,6 +50,7 @@ export const deleteUserText = (userTextId) => axios.get(`${API_URL}/user_text/de
 
 // === User Data CRUD ===
 export const getAllUsersAdmin = (limit = null, offset = null) => axios.get(`${API_URL}/user_admin/get_all_users/${encodeURIComponent(limit)}/${encodeURIComponent(offset)}`);
+export const deleteUserAdmin = (id) => axios.get(`${API_URL}/user_admin/delete/${id}`);
 export const getUserSummaryAdmin = (userId) => axios.get(`${API_URL}/user_data/summary/admin/${userId}`);
 export const getAllUserDataAdmin = (userId) => axios.get(`${API_URL}/user_data/all/admin/${userId}`);
 export const getUserSummaryUser = () => axios.get(`${API_URL}/user_data/summary/user`);
