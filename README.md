@@ -1,10 +1,14 @@
 
 # Onigiri - 일본 노래 가사 단어 학습기
 
+[https://www.onigiri.kr/](https://www.onigiri.kr/)
+
 **프로젝트 개요 및 목표**
 
 - **개요:** 사용자가 좋아하는 일본 노래 가사를 기반으로, 개인의 학습 목적과 수준에 맞춰 동적으로 생성되는 맞춤형 일본어 학습 경험을 제공하는 웹/앱 서비스.
 - **핵심 목표:** 사용자가 선택한 노래 한 곡을 완벽하게 이해하고 따라 부를 수 있게 함으로써, 학습에 대한 강력한 동기 부여와 최고의 성취감을 선사하는 것을 목표로 한다.
+
+<img width="1026" height="724" alt="image" src="https://github.com/user-attachments/assets/2a36b3f3-b0cd-47fa-b361-42e86c07a719" />
 
 **핵심 기능 (Core Features)**
 #### 가사 입력 및 해석
