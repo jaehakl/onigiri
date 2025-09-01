@@ -98,9 +98,9 @@ async def create_words_personal(
             words_existing_map[word] = new_word
 
         word_id_map[word] = new_word_id
-
+        print(payload.get('master'), 'payload.get("master")')
         # skill 자동처리 (예: level == 'N/A' → 읽기 100)
-        if payload.get('level') in ['N/A']:
+        if payload.get('master') == True:
             existing_skill = db.query(UserWordSkill).filter(
                 UserWordSkill.user_id == user_id,
                 UserWordSkill.word_id == new_word_id

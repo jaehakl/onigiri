@@ -12,6 +12,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
     kr_meaning: '',
     level: 'N1',
     tags: '',
+    master: false,
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileTags, setFileTags] = useState([]);
@@ -26,7 +27,13 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
         kr_meaning: word.kr_meaning || '',
         level: word.level || 'N1',
         tags: word.tags || '',
+        master: false,
       };
+      word.user_word_skills.forEach(skill => {
+        if (skill.skill_word_reading > 80) {
+          formData.master = true;
+        }
+      });
       setWordForm(formData);
     }
   }, [word]);
@@ -40,6 +47,11 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
         ...prev,
         'jp_pronunciation': kana,
         'kr_pronunciation': value
+      }));
+    } else if (name === 'master') {
+      setWordForm(prev => ({
+        ...prev,
+        [name]: !prev.master
       }));
     } else {
       setWordForm(prev => ({
@@ -120,6 +132,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
       kr_meaning: '',
       level: 'N1',
       tags: '',
+      master: false,
     });
     setSelectedFiles([]);
     setFileTags([]);
@@ -179,7 +192,6 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
                 value={wordForm.level}
                 onChange={handleFormChange}                  
               >
-                <option value="N/A">(N/A) 아주 쉬움</option>
                 <option value="N5">(N5) 초급</option>
                 <option value="N4">(N4) 초중급</option>
                 <option value="N3">(N3) 중급</option>
@@ -223,6 +235,8 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
                 삭제
               </button>
             )}
+            <input type="checkbox" name="master" checked={wordForm.master} onChange={handleFormChange} />
+            <label>Master</label>
             {!(user && user.roles.includes('user')) && (
               <h5>로그인 후 저장 가능합니다.</h5>
             )}

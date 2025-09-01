@@ -57,7 +57,7 @@ const WordsHighlighter = ({words}) => {
     const elements = [];
     for (let i_line in words) {
       for (let i_word in words[i_line]) {
-        if (words[i_line][i_word].word_id) {
+        if (words[i_line][i_word].word_id && !words[i_line][i_word].user_word_skills.some(skill => skill.skill_word_reading > 80)) {
         elements.push(
           <span
             key={`morpheme-${i_line}-${i_word}`}
