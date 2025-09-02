@@ -75,10 +75,10 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
             by_lemma[w.word]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
                 by_lemma[w.word]["user_word_skills"].append(row_to_dict(user_word_skill))
-        for example in w.examples:
-            by_lemma[w.word]["examples"].append(row_to_dict(example))
-        for image in w.images:
-            by_lemma[w.word]["images"].append(presign_get_url(image.object_key, expires=600))
+            for example in w.examples:
+                by_lemma[w.word]["examples"].append(row_to_dict(example))
+            for image in w.images:
+                by_lemma[w.word]["images"].append(presign_get_url(image.object_key, expires=600))
 
         if w.jp_pronunciation and w.jp_pronunciation not in by_surface:
             by_surface[w.jp_pronunciation] = row_to_dict(w)
@@ -88,11 +88,10 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
             by_surface[w.jp_pronunciation]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
                 by_surface[w.jp_pronunciation]["user_word_skills"].append(row_to_dict(user_word_skill))
-        for example in w.examples:
-            by_surface[w.jp_pronunciation]["examples"].append(row_to_dict(example))
-        for image in w.images:
-            by_surface[w.jp_pronunciation]["images"].append(presign_get_url(image.object_key, expires=600))
-
+            for example in w.examples:
+                by_surface[w.jp_pronunciation]["examples"].append(row_to_dict(example))
+            for image in w.images:
+                by_surface[w.jp_pronunciation]["images"].append(presign_get_url(image.object_key, expires=600))
 
     # 4) 원래 rows 순서를 유지하며 결과 구성 (lemma 우선, 없으면 surface)
     words_result = defaultdict(list)
