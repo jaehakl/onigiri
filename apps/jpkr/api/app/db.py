@@ -79,25 +79,36 @@ class Word(TimestampMixin, Base):
     kr_meaning: Mapped[str] = mapped_column(Text, nullable=False)
     level: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
-    examples: Mapped[List["Example"]] = relationship("Example", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
+    #examples: Mapped[List["Example"]] = relationship("Example", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
+    word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     images: Mapped[List["WordImage"]] = relationship("WordImage", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="words", lazy="selectin")
     root_word: Mapped[Optional["Word"]] = relationship("Word",back_populates="branch_words",foreign_keys=[root_word_id],remote_side=[id],lazy="selectin")
     branch_words: Mapped[List["Word"]] = relationship("Word",back_populates="root_word",lazy="selectin",)
 
+
+class WordExample(TimestampMixin, Base):
+    __tablename__ = "word_examples"
+    word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), primary_key=True)
+    example_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("examples.id", ondelete="CASCADE"), primary_key=True)
+    word: Mapped["Word"] = relationship("Word", back_populates="word_examples", lazy="selectin")
+    example: Mapped["Example"] = relationship("Example", back_populates="word_examples", lazy="selectin")
+
+
 class Example(TimestampMixin, Base):
     __tablename__ = "examples"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     __table_args__ = (Index("idx_examples_id", id, unique=True),)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
+    #word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)    
     tags: Mapped[str] = mapped_column(Text, nullable=False)
     jp_text: Mapped[str] = mapped_column(Text, nullable=False)
     kr_meaning: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
     audio: Mapped[List["ExampleAudio"]] = relationship("ExampleAudio", back_populates="example", cascade="all, delete-orphan", lazy="selectin")
-    word: Mapped["Word"] = relationship("Word", back_populates="examples", lazy="selectin")
+    #word: Mapped["Word"] = relationship("Word", back_populates="examples", lazy="selectin")
+    word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="example", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="examples", lazy="selectin")
 
 
@@ -106,7 +117,9 @@ class WordImage(TimestampMixin, Base):
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
-    tags: Mapped[str] = mapped_column(Text, nullable=False)
+    #tags: Mapped[str] = mapped_column(Text, nullable=False)
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    prompt_embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
     image_url: Mapped[str] = mapped_column(Text, nullable=False)
     word: Mapped["Word"] = relationship("Word", back_populates="images", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="images", lazy="selectin")    

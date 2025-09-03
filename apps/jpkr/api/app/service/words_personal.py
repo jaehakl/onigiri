@@ -179,7 +179,7 @@ async def create_words_personal(
             wi = WordImage(
                 user_id=user_id,
                 word_id=word_id,
-                tags=tags,
+                prompt=tags,
                 image_url=view_url,
                 object_key=key,
                 content_type=up.content_type,
@@ -250,8 +250,8 @@ def get_random_words_to_learn(limit: int, db: Session, user_id: str):
     stmt = (
         select(Word, level_priority.label('level_priority'), skill_sum.label('total_skill'))
         .options(
-            selectinload(Word.examples),
-            selectinload(Word.root_word).selectinload(Word.examples)
+            selectinload(Word.word_examples),
+            selectinload(Word.root_word).selectinload(Word.word_examples)
         )
         .outerjoin(UserWordSkill, (UserWordSkill.word_id == Word.id) & (UserWordSkill.user_id == user_id))
         .order_by(
@@ -263,7 +263,6 @@ def get_random_words_to_learn(limit: int, db: Session, user_id: str):
     )
     
     result = db.execute(stmt).all()
-    print(result, 'result')
     
     # Word 객체를 딕셔너리로 변환하여 반환 (순환 참조 방지)
     words_data = []
@@ -280,26 +279,24 @@ def get_random_words_to_learn(limit: int, db: Session, user_id: str):
             "root_word_id": word.root_word_id,
             "examples": [
                 {
-                    "id": ex.id,
-                    "jp_text": ex.jp_text,
-                    "kr_text": ex.kr_text,
-                    "jp_audio_url": ex.jp_audio_url,
-                    "kr_audio_url": ex.kr_audio_url
-                } for ex in word.examples
-            ] if word.examples else []
+                    "id": wex.example.id,
+                    "jp_text": wex.example.jp_text,
+                    "kr_meaning": wex.example.kr_meaning,
+                    "audio_url": wex.example.audio[0].audio_url if len(wex.example.audio) > 0 else None,
+                } for wex in word.word_examples
+            ] if word.word_examples else []
         }
         
         # root_word의 예문도 추가
-        if word.root_word and word.root_word.examples:
+        if word.root_word and word.root_word.word_examples:
             root_examples = [
                 {
-                    "id": ex.id,
-                    "jp_text": ex.jp_text,
-                    "kr_text": ex.kr_text,
-                    "jp_audio_url": ex.jp_audio_url,
-                    "kr_audio_url": ex.kr_audio_url,
+                    "id": wex.example.id,
+                    "jp_text": wex.example.jp_text,
+                    "kr_meaning": wex.example.kr_meaning,
+                    "audio_url": wex.example.audio[0].audio_url if len(wex.example.audio) > 0 else None,
                     "is_root_example": True
-                } for ex in word.root_word.examples
+                } for wex in word.root_word.word_examples
             ]
             word_dict["examples"].extend(root_examples)
         

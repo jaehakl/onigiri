@@ -122,8 +122,8 @@ class UserService:
                 "examples": [
                     {
                         "id": example.id,
-                        "word_id": example.word_id,
-                        "word": example.word.word,
+                        "word_id": example.word_examples[0].word_id,
+                        "word": example.word_examples[0].word.word,
                         "tags": example.tags,
                         "jp_text": example.jp_text,
                         "kr_meaning": example.kr_meaning,
@@ -137,7 +137,7 @@ class UserService:
                         "id": image.id,
                         "word_id": image.word_id,
                         "word": image.word.word,
-                        "tags": image.tags,
+                        "prompt": image.prompt,                        
                         "image_url": presign_get_url(image.object_key, expires=600),
                         "created_at": image.created_at,
                         "updated_at": image.updated_at

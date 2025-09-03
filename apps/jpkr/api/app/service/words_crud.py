@@ -100,7 +100,7 @@ def search_words_by_word(search_term: str, db: Session=None, user_id:str = None)
     result = []
     for word in found_words:
         word_data = row_to_dict(word)
-        word_data["num_examples"] = str(len(word.examples))
+        word_data["num_examples"] = str(len(word.word_examples))
         result.append(word_data)
     return result
         
@@ -119,7 +119,7 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, db:
     result_words = []
     for word in words:
         word_data = row_to_dict(word)
-        word_data["num_examples"] = str(len(word.examples))
+        word_data["num_examples"] = str(len(word.word_examples))
         result_words.append(word_data)
     return {
         "total_count": total_count,

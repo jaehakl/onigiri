@@ -2,7 +2,7 @@ import re
 from typing import List, Dict, Any
 from fugashi import Tagger
 from collections import defaultdict
-from db import SessionLocal, Word, Example
+from db import SessionLocal, Word
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_, select, case
 from sqlalchemy.orm import Session
@@ -50,7 +50,7 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     surfaces = [r["surface"] for r in rows]
     stmt = (
         select(Word)
-        .options(selectinload(Word.examples), 
+        .options(selectinload(Word.word_examples), 
                  selectinload(Word.user_word_skills),
                  selectinload(Word.images))
         .where(
@@ -75,8 +75,8 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
             by_lemma[w.word]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
                 by_lemma[w.word]["user_word_skills"].append(row_to_dict(user_word_skill))
-            for example in w.examples:
-                by_lemma[w.word]["examples"].append(row_to_dict(example))
+            for word_example in w.word_examples:
+                by_lemma[w.word]["examples"].append(row_to_dict(word_example.example))
             for image in w.images:
                 by_lemma[w.word]["images"].append(presign_get_url(image.object_key, expires=600))
 
@@ -88,8 +88,8 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
             by_surface[w.jp_pronunciation]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
                 by_surface[w.jp_pronunciation]["user_word_skills"].append(row_to_dict(user_word_skill))
-            for example in w.examples:
-                by_surface[w.jp_pronunciation]["examples"].append(row_to_dict(example))
+            for word_example in w.word_examples:
+                by_surface[w.jp_pronunciation]["examples"].append(row_to_dict(word_example.example))
             for image in w.images:
                 by_surface[w.jp_pronunciation]["images"].append(presign_get_url(image.object_key, expires=600))
 

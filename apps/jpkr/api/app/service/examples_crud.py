@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, select
 from typing import List, Dict, Any, Optional
-from db import SessionLocal, Example
+from db import SessionLocal, Example, WordExample, Word
 from models import ExampleData
 from sqlalchemy.orm import selectinload
 
@@ -14,7 +14,6 @@ def row_to_dict(obj) -> dict:
 def create_examples_batch(examples_data: List[ExampleData], db: Session=None, user_id:str = None):
     for example_data in examples_data:
         new_example = Example(
-            word_id=example_data.word_id,
             tags=example_data.tags,
             jp_text=example_data.jp_text,
             kr_meaning=example_data.kr_meaning,
@@ -22,6 +21,12 @@ def create_examples_batch(examples_data: List[ExampleData], db: Session=None, us
         )            
         db.add(new_example)
         db.flush()  # ID 생성을 위해 flush                
+        new_word_example = WordExample(
+            word_id=example_data.word_id,
+            example_id=new_example.id
+        )
+        db.add(new_word_example)
+        db.flush()
     db.commit()
     return
 
@@ -31,7 +36,6 @@ def update_examples_batch(examples_data: List[ExampleData], db: Session=None, us
         example = db.query(Example).filter(Example.id == example_data.id).first()            
         if example:
             # 예문 데이터 업데이트
-            example.word_id = example_data.word_id
             example.tags = example_data.tags
             example.jp_text = example_data.jp_text
             example.kr_meaning = example_data.kr_meaning
@@ -64,10 +68,17 @@ def search_examples_by_text(search_term: str, db: Session=None, user_id:str = No
     
     result = []
     for example in found_examples:
+        word_example = db.query(WordExample).filter(WordExample.example_id == example.id).first()
+        if word_example:
+            word_id = word_example.word_id
+            word_info = db.query(Word).filter(Word.id == word_id).first()
+        else:
+            word_id = None
+            word_info = None
         result.append({
             "id": example.id,
-            "word_id": example.word_id,
-            "word_info": example.word.word,
+            "word_id": word_id,
+            "word_info": word_info.word,
             "tags": example.tags,
             "jp_text": example.jp_text,
             "kr_meaning": example.kr_meaning,
@@ -77,19 +88,17 @@ def search_examples_by_text(search_term: str, db: Session=None, user_id:str = No
         
 
 def get_examples_by_word_id(word_id: int, db: Session=None, user_id:str = None) -> List[Dict[str, Any]]:
-    examples = db.query(Example).filter(Example.word_id == word_id).all()
-    
+    word_examples = db.query(WordExample).filter(WordExample.word_id == word_id).all()
     result = []
-    for example in examples:
+    for word_example in word_examples:
         result.append({
-            "id": example.id,
-            "word_id": example.word_id,
-            "word_info": example.word.word,
-            "tags": example.tags,
-            "jp_text": example.jp_text,
-            "kr_meaning": example.kr_meaning,
+            "id": word_example.example_id,
+            "word_id": word_example.word_id,
+            "word_info": word_example.word.word,
+            "tags": word_example.example.tags,
+            "jp_text": word_example.example.jp_text,
+            "kr_meaning": word_example.example.kr_meaning,
         })
-    
     return result
         
 
@@ -107,8 +116,8 @@ def get_all_examples(limit: Optional[int] = None, offset: Optional[int] = None, 
     for example in examples:
         result_examples.append({
             "id": example.id,
-            "word_id": example.word_id,
-            "word_info": example.word.word,
+            "word_id": example.word_examples[0].word_id,
+            "word_info": example.word_examples[0].word.word,
             "tags": example.tags,
             "jp_text": example.jp_text,
             "kr_meaning": example.kr_meaning,
