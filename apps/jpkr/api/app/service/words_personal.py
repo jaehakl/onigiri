@@ -46,7 +46,7 @@ async def create_words_personal(
     # 기존 단어 로드
     stmt = (
         select(Word)
-        .options(selectinload(Word.examples), selectinload(Word.user_word_skills))
+        .options(selectinload(Word.word_examples), selectinload(Word.user_word_skills))
         .where(Word.word.in_(list(words_map.keys())))
     )
     words_existing = db.execute(stmt).scalars().all()
@@ -98,7 +98,6 @@ async def create_words_personal(
             words_existing_map[word] = new_word
 
         word_id_map[word] = new_word_id
-        print(payload.get('master'), 'payload.get("master")')
         # skill 자동처리 (예: level == 'N/A' → 읽기 100)
         if payload.get('master') == True:
             existing_skill = db.query(UserWordSkill).filter(
@@ -123,7 +122,6 @@ async def create_words_personal(
                 db.add(new_skill)
                 db.flush()
                 created_skills.append(word)
-
     # ---------- 2) 이미지 업로드 & WordImage 등록 ----------
     created_images = []
     failed_images = []
@@ -150,13 +148,11 @@ async def create_words_personal(
         word_id = word_id_map[word_text]
         key = build_object_key(user_id=user_id, word_id=word_id, filename=up.filename or "image")
 
-
         # 기존 이미지 삭제
         existing_images = db.query(WordImage).filter(
             WordImage.user_id == user_id,
             WordImage.word_id == word_id
         ).all()
-        print(existing_images, 'existing_images')
         for old in existing_images:
             try:
                 if hasattr(old, "object_key") and old.object_key:
@@ -195,7 +191,6 @@ async def create_words_personal(
             except:
                 pass
             failed_images.append({"index": idx, "reason": f"DB insert failed: {e}"})
-
     # ---------- 3) 커밋 ----------
     db.commit()
 

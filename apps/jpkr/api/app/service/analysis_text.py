@@ -2,7 +2,7 @@ import re
 from typing import List, Dict, Any
 from fugashi import Tagger
 from collections import defaultdict
-from db import SessionLocal, Word
+from db import SessionLocal, Word, WordExample, Example
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_, select, case
 from sqlalchemy.orm import Session
@@ -50,7 +50,9 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     surfaces = [r["surface"] for r in rows]
     stmt = (
         select(Word)
-        .options(selectinload(Word.word_examples), 
+        .options(selectinload(Word.word_examples)
+                 .options(selectinload(WordExample.example)
+                          .options(selectinload(Example.audio))), 
                  selectinload(Word.user_word_skills),
                  selectinload(Word.images))
         .where(
@@ -65,7 +67,7 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     )
     words = db.execute(stmt).scalars().all()
     # 그 다음엔 "처음 본 키만 채우기"만 해도 같은 효과
-    by_lemma, by_surface = {}, {}
+    by_lemma = {}
     for w in words:
         if w.word and w.word not in by_lemma:
             by_lemma[w.word] = row_to_dict(w)
@@ -76,40 +78,29 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
             for user_word_skill in w.user_word_skills:
                 by_lemma[w.word]["user_word_skills"].append(row_to_dict(user_word_skill))
             for word_example in w.word_examples:
-                by_lemma[w.word]["examples"].append(row_to_dict(word_example.example))
+                example = word_example.example
+                example_dict = {
+                    "id": example.id,
+                    "word_info": w.word,
+                    "tags": example.tags,
+                    "jp_text": example.jp_text,
+                    "kr_meaning": example.kr_meaning,
+                    "audio_url": presign_get_url(example.audio[0].audio_url, expires=600) if len(example.audio) > 0 else None,
+                }
+                by_lemma[w.word]["examples"].append(example_dict)
             for image in w.images:
                 by_lemma[w.word]["images"].append(presign_get_url(image.object_key, expires=600))
-
-        if w.jp_pronunciation and w.jp_pronunciation not in by_surface:
-            by_surface[w.jp_pronunciation] = row_to_dict(w)
-            by_surface[w.jp_pronunciation]["examples"] = []
-            by_surface[w.jp_pronunciation]["images"] = []
-            by_surface[w.jp_pronunciation]["user_word_skills"] = []
-            by_surface[w.jp_pronunciation]["user"] = row_to_dict(w.user)
-            for user_word_skill in w.user_word_skills:
-                by_surface[w.jp_pronunciation]["user_word_skills"].append(row_to_dict(user_word_skill))
-            for word_example in w.word_examples:
-                by_surface[w.jp_pronunciation]["examples"].append(row_to_dict(word_example.example))
-            for image in w.images:
-                by_surface[w.jp_pronunciation]["images"].append(presign_get_url(image.object_key, expires=600))
 
     # 4) 원래 rows 순서를 유지하며 결과 구성 (lemma 우선, 없으면 surface)
     words_result = defaultdict(list)
     for r in rows:
         w = by_lemma.get(r["lemma"])
-        if not w:
-            if len(r["surface"]) > 2:
-                w = by_surface.get(r["surface"])
         if w:
             examples_list = []
             for example in w["examples"]:
-                examples_list.append({
-                    "id": example["id"],
-                    "word_info": w["word"],
-                    "tags": example["tags"],
-                    "jp_text": example["jp_text"],
-                    "kr_meaning": example["kr_meaning"],
-                })
+                examples_list.append(example)                
+                if len(examples_list) > 3:
+                    break
 
             user_word_skills_list = []
             for user_word_skill in w["user_word_skills"]:

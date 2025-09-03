@@ -1,15 +1,17 @@
 # examples_crud.py
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, select
+from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import and_, or_, select, case
+from collections import defaultdict
 from typing import List, Dict, Any, Optional
 from db import SessionLocal, Example, WordExample, Word
 from models import ExampleData
-from sqlalchemy.orm import selectinload
+from fugashi import Tagger
 
 def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
 
 def create_examples_batch(examples_data: List[ExampleData], db: Session=None, user_id:str = None):
     for example_data in examples_data:

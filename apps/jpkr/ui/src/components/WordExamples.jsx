@@ -1,4 +1,5 @@
 import React from 'react';
+import ExampleCard from './ExampleCard';
 import './WordExamples.css';
 
 const WordExamples = ({ wordsSet }) => {
@@ -44,7 +45,7 @@ const WordExamples = ({ wordsSet }) => {
       <button onClick={copyToClipboard} className="copy-button">클립보드에 복사</button>
       <div className="examples-container">
         {Object.values(wordsSet).map((word, wordIndex) => (
-          word.examples && (
+          word.examples && !word.user_word_skills.some(skill => skill.skill_word_reading > 80) && (
             <div 
               key={`word-${wordIndex}`} 
               className="word-examples"
@@ -70,23 +71,11 @@ const WordExamples = ({ wordsSet }) => {
               </div>
               <div className="examples-list">
                 {word.examples.map((example, exampleIndex) => (
-                  <div key={`example-${wordIndex}-${exampleIndex}`} className="example-item">
-                    <div className="example-japanese">
-                      {example.jp_text}
-                    </div>
-                    <div className="example-korean">
-                      {example.kr_meaning}
-                    </div>
-                    {example.tags && example.tags.trim() && (
-                      <div className="example-tags">
-                        {example.tags.split(',').map((tag, tagIndex) => (
-                          <span key={`tag-${wordIndex}-${exampleIndex}-${tagIndex}`} className="tag">
-                            {tag.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <ExampleCard 
+                    key={`example-${wordIndex}-${exampleIndex}`} 
+                    example={example} 
+                    isMain={false} 
+                  />
                 ))}
               </div>
             </div>

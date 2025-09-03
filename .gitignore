@@ -17,6 +17,10 @@ dist/
 **/pytest_cache/
 .coverage
 **/coverage
+espnet/
+**/espnet/
+*.whl
+ffmpeg/
 
 ### Node / Next.js ###
 node_modules/
