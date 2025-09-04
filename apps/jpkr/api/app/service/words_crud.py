@@ -99,8 +99,18 @@ def search_words_by_word(search_term: str, db: Session=None, user_id:str = None)
     
     result = []
     for word in found_words:
-        word_data = row_to_dict(word)
-        word_data["num_examples"] = str(len(word.word_examples))
+        word_data = {
+            "id": word.id,
+            "lemma_id": word.lemma_id,
+            "lemma": word.lemma,
+            "jp_pron": word.jp_pron,
+            "kr_pron": word.kr_pron,
+            "kr_mean": word.kr_mean,
+            "level": word.level,
+            "num_examples": len(word.word_examples),
+            "created_at": word.created_at,
+            "updated_at": word.updated_at
+        }
         result.append(word_data)
     return result
         
