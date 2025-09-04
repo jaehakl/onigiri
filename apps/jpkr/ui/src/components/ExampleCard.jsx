@@ -25,32 +25,36 @@ const ExampleCard = ({ example, isMain = false }) => {
 
     return (
         <div 
-            className={`example-card ${isMain ? 'example-card-main-example' : 'example-card-similar-example'} ${example.audio_url ? 'clickable' : ''}`}
+            className={`example-card ${isMain ? 'main-example' : 'similar-example'} ${example.audio_url ? 'clickable' : ''}`}
             onClick={handleExampleClick}
         >
-            <div className="example-card-header">
-                <span className="example-card-id">ID: {example.id}</span>
-                <span className="example-card-tags">{example.tags || '태그 없음'}</span>
+            <div className="example-header">
+                <span className="example-tags">{example.tags || '태그 없음'}</span>
                 {example.audio_url && (
-                    <span className="example-card-audio-indicator">🔊</span>
+                    <span className="audio-indicator">🔊</span>
                 )}
             </div>
-            <div className="example-card-content">
-                <div className="example-card-text">
-                    <span className="label">일본어 텍스트:</span>
-                    <span className="value example-card-jp-text">{example.jp_text}</span>
+            {example.image_url && (
+                <div className="example-image">
+                    <img src={example.image_url} alt="Example Image" />
                 </div>
-                <div className="example-card-meaning">
+            )}
+            <div className="example-content">
+                <div className="example-text">
+                    <span className="label">일본어 텍스트:</span>
+                    <span className="value jp-text">{example.jp_text}</span>
+                </div>
+                <div className="example-meaning">
                     <span className="label">한국어 의미:</span>
-                    <span className="value example-card-kr-meaning">{example.kr_meaning}</span>
+                    <span className="value kr-meaning">{example.kr_mean}</span>
                 </div>
             </div>
-            <div className="example-card-stats">
+            <div className="example-stats">
                 {isMain && (
                     <>
-                        <div className="example-card-stat">
-                            <span className="example-card-stat-label">단어 수:</span>
-                            <span className="example-card-stat-value">{example.num_words}</span>
+                        <div className="stat">
+                            <span className="stat-label">단어 수:</span>
+                            <span className="stat-value">{example.num_words}</span>
                         </div>
                     </>
                 )}

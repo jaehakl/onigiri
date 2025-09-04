@@ -46,6 +46,7 @@ def get_similar_examples(example_id: int, db: Session, user_id: str):
                 'kr_mean': row.kr_mean,
                 'tags': row.tags,
                 'audio_url': presign_get_url(row.audio_object_key, expires=600) if row.audio_object_key is not None else None,
+                'image_url': presign_get_url(row.image_object_key, expires=600) if row.image_object_key is not None else None,
                 'has_embedding': 1 if row.embedding is not None else 0
             })
         
@@ -57,6 +58,7 @@ def get_similar_examples(example_id: int, db: Session, user_id: str):
             'tags': example.tags,
             'num_words': len(example.word_examples),
             'audio_url': presign_get_url(example.audio_object_key, expires=600) if example.audio_object_key is not None else None,
+            'image_url': presign_get_url(example.image_object_key, expires=600) if example.image_object_key is not None else None,
             'has_embedding': 1 if example.embedding is not None else 0
         },
         'similar_examples': similar_examples

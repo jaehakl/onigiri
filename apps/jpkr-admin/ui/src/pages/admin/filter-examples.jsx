@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import EditableTable from '../../components/EditableTable';
 import ExampleDetailModal from '../../components/ExampleDetailModal';
 import FilterInput from '../../components/FilterInput';
-import { filterExamples, updateExamplesBatch, deleteExamplesBatch, genExampleEmbeddings, genExampleAudio, genExampleWords } from '../../api/api';
+import { filterExamples, updateExamplesBatch, deleteExamplesBatch, genExampleEmbeddings, genExampleAudio, genExampleImage, genExampleWords } from '../../api/api';
 import './FilterExamples.css';
 
  // 필터 설정
@@ -53,6 +53,7 @@ const FilterExamples = () => {
     filtering: false,
     embedding: false,
     audio: false,
+    image: false,
     words: false
   });
   const [error, setError] = useState(null);
@@ -237,6 +238,34 @@ const FilterExamples = () => {
     }
   };
 
+  // 이미지 생성 핸들러
+  const handleGenerateImage = async () => {
+    if (!examples || examples.length === 0) {
+      alert('이미지를 생성할 예문이 없습니다.');
+      return;
+    }
+
+    const exampleIds = examples.map(example => example.id);
+    const confirmMessage = `현재 표시된 ${exampleIds.length}개의 예문에 대해 이미지를 생성하시겠습니까?\n이 작업은 시간이 오래 걸릴 수 있습니다.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setLoading(prev => ({ ...prev, image: true }));
+      setError(null);
+      await genExampleImage(exampleIds);
+      alert(`${exampleIds.length}개의 예문에 대한 이미지가 성공적으로 생성되었습니다.`);
+      // 이미지 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
+    } catch (err) {
+      setError('이미지 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setLoading(prev => ({ ...prev, image: false }));
+    }
+  };
+
   // Words 생성 핸들러
   const handleGenerateWords = async () => {
     if (!examples || examples.length === 0) {
@@ -298,25 +327,32 @@ const FilterExamples = () => {
       {/* 결과 테이블 */}
       {examples.length > 0 && (
         <div className="results-section">
-          {/* 임베딩, 오디오, Words 생성 버튼 */}
+          {/* 임베딩, 오디오, 이미지, Words 생성 버튼 */}
           <div className="embedding-actions">
             <button 
               onClick={handleGenerateEmbeddings} 
-              disabled={loading.embedding || loading.filtering || loading.audio || loading.words} 
+              disabled={loading.embedding || loading.filtering || loading.audio || loading.image || loading.words} 
               className="generate-embeddings-btn"
             >
               {loading.embedding ? '임베딩 생성 중...' : `현재 ${examples.length}개 예문 임베딩 생성`}
             </button>
             <button 
               onClick={handleGenerateAudio} 
-              disabled={loading.audio || loading.filtering || loading.embedding || loading.words} 
+              disabled={loading.audio || loading.filtering || loading.embedding || loading.image || loading.words} 
               className="generate-audio-btn"
             >
               {loading.audio ? '오디오 생성 중...' : `현재 ${examples.length}개 예문 오디오 생성`}
             </button>
             <button 
+              onClick={handleGenerateImage} 
+              disabled={loading.image || loading.filtering || loading.embedding || loading.audio || loading.words} 
+              className="generate-image-btn"
+            >
+              {loading.image ? '이미지 생성 중...' : `현재 ${examples.length}개 예문 이미지 생성`}
+            </button>
+            <button 
               onClick={handleGenerateWords} 
-              disabled={loading.words || loading.filtering || loading.embedding || loading.audio} 
+              disabled={loading.words || loading.filtering || loading.embedding || loading.audio || loading.image} 
               className="generate-words-btn"
             >
               {loading.words ? 'Words 생성 중...' : `현재 ${examples.length}개 예문 Words 생성`}

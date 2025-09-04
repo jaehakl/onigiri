@@ -49,6 +49,7 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                     "jp_text": example.jp_text,
                     "kr_mean": example.kr_mean,
                     "audio_url": presign_get_url(example.audio_object_key, expires=600) if example.audio_object_key else None,
+                    "image_url": presign_get_url(example.image_object_key, expires=600) if example.image_object_key else None,
                 }
                 words_existing[w.lemma_id]["examples"].append(example_dict)
                 if len(words_existing[w.lemma_id]["examples"]) > 1:

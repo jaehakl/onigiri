@@ -29,12 +29,16 @@ const ExampleCard = ({ example, isMain = false }) => {
             onClick={handleExampleClick}
         >
             <div className="example-header">
-                <span className="example-id">ID: {example.id}</span>
                 <span className="example-tags">{example.tags || '태그 없음'}</span>
                 {example.audio_url && (
                     <span className="audio-indicator">🔊</span>
                 )}
             </div>
+            {example.image_url && (
+                <div className="example-image">
+                    <img src={example.image_url} alt="Example Image" />
+                </div>
+            )}
             <div className="example-content">
                 <div className="example-text">
                     <span className="label">일본어 텍스트:</span>
@@ -54,12 +58,6 @@ const ExampleCard = ({ example, isMain = false }) => {
                         </div>
                     </>
                 )}
-                <div className="stat">
-                    <span className="stat-label">임베딩:</span>
-                    <span className={`stat-value ${example.has_embedding ? 'has-embedding' : 'no-embedding'}`}>
-                        {example.has_embedding ? '있음' : '없음'}
-                    </span>
-                </div>
             </div>
         </div>
     );

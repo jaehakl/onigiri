@@ -31,6 +31,7 @@ export const mergeDuplicatedWords = (wordIds, newWordData) => axios.post(`${API_
 export const genWordEmbeddings = (wordIds) => axios.post(`${API_URL}/admin/words/gen-embeddings`, wordIds);
 export const genExampleEmbeddings = (exampleIds) => axios.post(`${API_URL}/admin/examples/gen-embeddings`, exampleIds);
 export const genExampleAudio = (exampleIds) => axios.post(`${API_URL}/admin/examples/gen-audio`, exampleIds);
+export const genExampleImage = (exampleIds) => axios.post(`${API_URL}/admin/examples/gen-image`, exampleIds);
 export const genExampleWords = (exampleIds) => axios.post(`${API_URL}/admin/examples/gen-words`, exampleIds);
 
 export const updateWordsBatch = (wordsData) => axios.post(`${API_URL}/admin/words/update/batch`, wordsData);

@@ -24,4 +24,7 @@ class Settings(BaseModel):
     S3_ENDPOINT_URL: str = os.getenv("S3_ENDPOINT_URL", "")
     MAX_IMAGE_SIZE_MB: int = 1
 
+    # Stable Diffusion
+    STABLE_DIFFUSION_CKPT: str = os.getenv("STABLE_DIFFUSION_CKPT", "")
+
 settings = Settings()

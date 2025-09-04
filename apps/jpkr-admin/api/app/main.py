@@ -19,6 +19,7 @@ from service.admin.merge_duplicated_words import merge_duplicated_words
 from service.admin.word_embeddings import gen_word_embeddings
 from service.admin.example_embeddings import gen_example_embeddings
 from service.admin.example_audio import gen_example_audio
+from service.admin.example_image import gen_example_image
 from service.admin.example_words import gen_example_words
 
 from service.words_crud import update_words_batch, delete_words_batch
@@ -61,9 +62,14 @@ async def api_gen_example_embeddings(request: Request, example_ids: List[int], d
 async def api_gen_example_audio(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, gen_example_audio, example_ids)
 
+@app.post("/admin/examples/gen-image")
+async def api_gen_example_image(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    return auth_service(request, ["admin"], db, user, gen_example_image, example_ids)
+
 @app.post("/admin/examples/gen-words")
 async def api_gen_example_words(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, gen_example_words, example_ids)
+
 
 # Update Word, Example
 @app.post("/admin/words/update/batch")
