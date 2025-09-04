@@ -1,20 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import EditableTable from '../components/EditableTable';
-import Pagination from '../components/Pagination';
-import { getAllWords, updateWordsBatch, deleteWordsBatch } from '../api/api';
+import FilterInput from '../components/FilterInput';
+import { filterWords, updateWordsBatch, deleteWordsBatch } from '../api/api';
 import './WordsTable.css';
 
 
+ // 필터 설정
+const FILTER_CONFIG = {
+  sections: [
+    {
+      type: 'checkbox-group',
+      key: 'levels',
+      label: '레벨 선택',
+      options: ['N5', 'N4', 'N3', 'N2', 'N1'],
+      defaultValue: []
+    },
+    {
+      type: 'range',
+      key: 'examples',
+      label: '예문 수',
+      minKey: 'min_examples',
+      maxKey: 'max_examples',
+      minLabel: '최소',
+      maxLabel: '최대',
+      minDefault: '',
+      maxDefault: ''
+    },
+    {
+      type: 'select',
+      key: 'has_embedding',
+      label: 'Embedding 보유 여부',
+      defaultValue: null
+    },
+  ]
+};
+
 const WordsTable = () => {
-  const navigate = useNavigate();
+
   const [words, setWords] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(100);
-  const [totalWords, setTotalWords] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   // 컬럼 정의
   const columns = [
@@ -27,41 +53,39 @@ const WordsTable = () => {
     { key: 'num_examples', label: '예문', editable: false },    
   ];
 
-  // Words 데이터 불러오기
-  const fetchWords = async (page = 1) => {
+  // 필터링 실행
+  const handleFilter = async (filterData) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
-      const offset = (page - 1) * pageSize;
-      const response = await getAllWords(pageSize, offset);
-      
-      if (response.data) {
-        setWords(response.data.words || []);
-        setTotalWords(response.data.total_count || 0);
-        setTotalPages(Math.ceil(response.data.total_count / pageSize));
-      } else {
-        setWords([]);
-        setTotalWords(0);
-        setTotalPages(0);
-      }
+      // 필터 데이터 정리
+      const cleanFilterData = {
+        ...filterData,
+        levels: filterData.levels.length > 0 ? filterData.levels : null,
+        min_examples: filterData.min_examples ? parseInt(filterData.min_examples) : null,
+        max_examples: filterData.max_examples ? parseInt(filterData.max_examples) : null,
+        limit: filterData.limit,
+        offset: filterData.offset || 0
+      };
+
+      const response = await filterWords(cleanFilterData);
+      setWords(response.data.words || []);
+      setTotalCount(response.data.total_count || 0);
     } catch (err) {
-      console.error('Words 데이터 불러오기 실패:', err);
-      setError('데이터를 불러오는데 실패했습니다.');
+      setError('필터링 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
+      setWords([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // 컴포넌트 마운트 시 데이터 불러오기
-  useEffect(() => {
-    fetchWords(currentPage);
-  }, [currentPage]);
-
-  // 페이지 변경 처리
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
+  // 필터 초기화
+  const handleReset = (defaultValues) => {
+    setWords([]);
+    setTotalCount(0);
+    setError(null);
   };
 
   // 데이터 변경 처리
@@ -78,7 +102,6 @@ const WordsTable = () => {
     try {
       await updateWordsBatch(wordsToUpdate);
       alert('단어들이 성공적으로 수정되었습니다.');
-      fetchWords(currentPage); // 현재 페이지 데이터 새로고침
     } catch (err) {
       console.error('일괄 수정 실패:', err);
       alert('수정에 실패했습니다.');
@@ -99,26 +122,11 @@ const WordsTable = () => {
     try {
       await deleteWordsBatch(wordIds);
       alert('선택된 단어들이 성공적으로 삭제되었습니다.');
-      fetchWords(currentPage); // 현재 페이지 데이터 새로고침
     } catch (err) {
       console.error('일괄 삭제 실패:', err);
       alert('삭제에 실패했습니다.');
     }
   };
-
-  if (loading) {
-    return <div className="loading">데이터를 불러오는 중...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="error">
-        <p>{error}</p>
-        <button onClick={() => fetchWords(currentPage)} className="retry-btn">다시 시도</button>
-      </div>
-    );
-  }
-
 
 
   return (
@@ -126,15 +134,33 @@ const WordsTable = () => {
       <div className="page-header">
         <h1>단어 관리</h1>
       </div>
-      <div className="pagination-section">
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
-      <span>페이지 {currentPage} / {totalPages || 1}</span>
-      <span>총 {totalWords}개의 단어</span>
+        {/* 필터 조건 입력 폼 */}
+        <FilterInput
+            filterConfig={FILTER_CONFIG}
+            onSubmit={handleFilter}
+            onReset={handleReset}
+            onFilterChange={handleFilter}
+            loading={loading}
+            totalCount={totalCount}
+            showPagination={true}
+            showFilterButton={false}
+            showResetButton={false}
+            limit={10}
+      />
+
+      {/* 결과 정보 */}
+      {totalCount > 0 && (
+        <div className="result-info">
+          <p>총 {totalCount}개의 단어가 검색되었습니다. (현재 {words.length}개 표시)</p>
+        </div>
+      )}
+
+      {/* 에러 메시지 */}
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
 
       <div className="table-section">
         <EditableTable

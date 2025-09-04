@@ -50,7 +50,14 @@ class UserData(BaseModel):
     display_name: str
     picture_url: str
     roles: List[str]
-
+    
+class WordFilterData(BaseModel):
+    levels: Optional[List[str]] = None
+    min_examples: Optional[int] = None
+    max_examples: Optional[int] = None
+    has_embedding: Optional[bool] = None
+    limit: Optional[int] = None
+    offset: Optional[int] = None
 
 class ExampleFilterData(BaseModel):
     min_words: Optional[int] = None

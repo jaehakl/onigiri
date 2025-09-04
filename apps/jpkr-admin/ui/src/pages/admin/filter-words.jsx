@@ -1,18 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import EditableTable from '../../components/EditableTable';
 import WordDetailModal from '../../components/WordDetailModal';
+import FilterInput from '../../components/FilterInput';
 import { filterWords, updateWordsBatch, deleteWordsBatch, genWordEmbeddings } from '../../api/api';
 import './FilterWords.css';
 
+  // 필터 설정
+const FILTER_CONFIG = {
+  sections: [
+    {
+      type: 'checkbox-group',
+      key: 'levels',
+      label: '레벨 선택',
+      options: ['N5', 'N4', 'N3', 'N2', 'N1'],
+      defaultValue: []
+    },
+    {
+      type: 'range',
+      key: 'examples',
+      label: '예문 수',
+      minKey: 'min_examples',
+      maxKey: 'max_examples',
+      minLabel: '최소',
+      maxLabel: '최대',
+      minDefault: '',
+      maxDefault: ''
+    },
+    {
+      type: 'select',
+      key: 'has_embedding',
+      label: 'Embedding 보유 여부',
+      defaultValue: null
+    }
+  ]
+};
+
 const FilterWords = () => {
-  const [filterData, setFilterData] = useState({
-    levels: [],
-    min_examples: '',
-    max_examples: '',
-    has_embedding: null,
-    limit: 100,
-    offset: 0
-  });
   
   const [words, setWords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,8 +46,8 @@ const FilterWords = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWordId, setSelectedWordId] = useState(null);
 
-  // JLPT 레벨 옵션
-  const levelOptions = ['N5', 'N4', 'N3', 'N2', 'N1'];
+
+
 
   // 테이블 컬럼 정의
   const columns = [
@@ -39,38 +62,19 @@ const FilterWords = () => {
     { key: 'has_embedding', label: '임베딩 보유' }
   ];
 
-  // 필터 조건 변경 핸들러
-  const handleFilterChange = (field, value) => {
-    setFilterData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // 레벨 선택/해제 핸들러
-  const handleLevelToggle = (level) => {
-    setFilterData(prev => ({
-      ...prev,
-      levels: prev.levels.includes(level)
-        ? prev.levels.filter(l => l !== level)
-        : [...prev.levels, level]
-    }));
-  };
-
   // 필터링 실행
-  const handleFilter = async () => {
+  const handleFilter = async (filterData) => {
     setLoading(true);
     setError(null);
     
     try {
       // 필터 데이터 정리
-      
       const cleanFilterData = {
         ...filterData,
         levels: filterData.levels.length > 0 ? filterData.levels : null,
         min_examples: filterData.min_examples ? parseInt(filterData.min_examples) : null,
         max_examples: filterData.max_examples ? parseInt(filterData.max_examples) : null,
-        limit: filterData.limit || 100,
+        limit: filterData.limit,
         offset: filterData.offset || 0
       };
 
@@ -86,24 +90,8 @@ const FilterWords = () => {
     }
   };
 
-  // 페이지네이션 핸들러
-  const handlePageChange = (newOffset) => {
-    setFilterData(prev => ({
-      ...prev,
-      offset: newOffset
-    }));
-  };
-
   // 필터 초기화
-  const handleReset = () => {
-    setFilterData({
-      levels: [],
-      min_examples: '',
-      max_examples: '',
-      has_embedding: null,
-      limit: 100,
-      offset: 0
-    });
+  const handleReset = (defaultValues) => {
     setWords([]);
     setTotalCount(0);
     setError(null);
@@ -130,7 +118,7 @@ const FilterWords = () => {
       await updateWordsBatch(wordDataList);
       alert(`${wordsToUpdate.length}개의 단어가 성공적으로 수정되었습니다.`);
       // 수정 후 현재 필터 조건으로 다시 검색
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('단어 수정 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -155,7 +143,7 @@ const FilterWords = () => {
       await deleteWordsBatch(wordIds);
       alert(`${wordIds.length}개의 단어가 성공적으로 삭제되었습니다.`);
       // 삭제 후 현재 필터 조건으로 다시 검색
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('단어 삭제 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -197,7 +185,7 @@ const FilterWords = () => {
       await genWordEmbeddings(wordIds);
       alert(`${wordIds.length}개의 단어에 대한 임베딩이 성공적으로 생성되었습니다.`);
       // 임베딩 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('임베딩 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -205,88 +193,24 @@ const FilterWords = () => {
     }
   };
 
-  // offset이 변경될 때마다 필터링 재실행
-  useEffect(() => {
-    if (filterData.offset > 0 || words.length > 0) {
-      handleFilter();
-    }
-  }, [filterData.offset]);
 
   return (
     <div className="filter-words-container">
       <h1>단어 필터링</h1>
       
       {/* 필터 조건 입력 폼 */}
-      <div className="filter-form">
-        <div className="filter-section">
-          <h3>레벨 선택</h3>
-          <div className="level-checkboxes">
-            {levelOptions.map(level => (
-              <label key={level} className="level-checkbox">
-                <input
-                  type="checkbox"
-                  checked={filterData.levels.includes(level)}
-                  onChange={() => handleLevelToggle(level)}
-                />
-                {level}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h3>예문 수</h3>
-          <div className="range-inputs">
-            <input
-              type="number"
-              placeholder="최소"
-              value={filterData.min_examples}
-              onChange={(e) => handleFilterChange('min_examples', e.target.value)}
-              min="0"
-            />
-            <span>~</span>
-            <input
-              type="number"
-              placeholder="최대"
-              value={filterData.max_examples}
-              onChange={(e) => handleFilterChange('max_examples', e.target.value)}
-              min="0"
-            />
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h3>Embedding 보유 여부</h3>
-          <select
-            value={filterData.has_embedding === null ? '' : filterData.has_embedding.toString()}
-            onChange={(e) => handleFilterChange('has_embedding', e.target.value === '' ? null : e.target.value === 'true')}
-          >
-            <option value="">상관없음</option>
-            <option value="true">보유</option>
-            <option value="false">미보유</option>
-          </select>
-        </div>
-
-        <div className="filter-section">
-          <h3>결과 수 제한</h3>
-          <input
-            type="number"
-            value={filterData.limit}
-            onChange={(e) => handleFilterChange('limit', parseInt(e.target.value) || 100)}
-            min="1"
-            max="1000"
-          />
-        </div>
-
-        <div className="filter-actions">
-          <button onClick={handleFilter} disabled={loading} className="filter-btn">
-            {loading ? '필터링 중...' : '필터링 실행'}
-          </button>
-          <button onClick={handleReset} className="reset-btn">
-            초기화
-          </button>
-        </div>
-      </div>
+      <FilterInput
+        filterConfig={FILTER_CONFIG}
+        onSubmit={handleFilter}
+        onReset={handleReset}
+        onFilterChange={handleFilter}
+        loading={loading}
+        totalCount={totalCount}
+        showPagination={true}
+        showFilterButton={false}
+        showResetButton={false}
+        limit={100}
+      />
 
       {/* 결과 정보 */}
       {totalCount > 0 && (
@@ -330,26 +254,6 @@ const FilterWords = () => {
             addRowText=""
             deleteRowText="삭제"
           />
-          
-          {/* 페이지네이션 */}
-          <div className="pagination">
-            <button
-              onClick={() => handlePageChange(Math.max(0, filterData.offset - filterData.limit))}
-              disabled={filterData.offset === 0}
-            >
-              이전
-            </button>
-            <span>
-              페이지 {Math.floor(filterData.offset / filterData.limit) + 1} 
-              ({(filterData.offset + 1)}-{Math.min(filterData.offset + filterData.limit, totalCount)} / {totalCount})
-            </span>
-            <button
-              onClick={() => handlePageChange(filterData.offset + filterData.limit)}
-              disabled={filterData.offset + filterData.limit >= totalCount}
-            >
-              다음
-            </button>
-          </div>
         </div>
       )}
 

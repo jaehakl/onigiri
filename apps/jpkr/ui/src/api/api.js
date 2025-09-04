@@ -25,9 +25,9 @@ export const updateWordsBatch = (wordsData) => axios.post(`${API_URL}/words/upda
 export const deleteWordsBatch = (wordIds) => axios.post(`${API_URL}/words/delete/batch`, wordIds);
 export const getAllWords = (limit = null, offset = null) => axios.post(`${API_URL}/words/all`, { limit, offset });
 export const searchWordsByWord = (searchTerm) => axios.get(`${API_URL}/words/search/${encodeURIComponent(searchTerm)}`);
-//export const createWordsPersonal = (data) => axios.post(`${API_URL}/words/create/personal`, data);
 export const createWordsPersonal = (fd) => axios.post(`${API_URL}/words/create/personal`, fd, {headers: { "Content-Type": "multipart/form-data" },});
 export const getRandomWordsToLearn = (limit) => axios.get(`${API_URL}/words/personal/random/${limit}`);
+export const filterWords = (wordFilterData) => axios.post(`${API_URL}/words/filter`, wordFilterData);
 
 // === Examples CRUD ===
 export const createExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/create/batch`, examplesData);

@@ -4,8 +4,9 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from fastapi import Depends, Form
 from initserver import server
-from models import WordData, ExampleData, TextData, ExampleFilterData
+from models import WordData, ExampleData, TextData, ExampleFilterData, WordFilterData
 from service.words_crud import create_words_batch, update_words_batch, delete_words_batch, get_all_words, search_words_by_word
+from service.admin.filter_words import filter_words_by_criteria
 from service.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, filter_examples_by_criteria
 from service.analysis_text import analyze_text
 from service.words_personal import create_words_personal, get_random_words_to_learn
@@ -94,6 +95,11 @@ async def api_create_words_personal(request: Request, data_json: str = Form(...)
 @app.get("/words/personal/random/{limit}")
 async def api_get_random_words_to_learn(request: Request, limit: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin", "user"], db, user, get_random_words_to_learn, limit)
+
+
+@app.post("/words/filter")
+async def api_filter_words(request: Request, word_filter_data: WordFilterData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    return auth_service(request, ["admin"], db, user, filter_words_by_criteria, **word_filter_data.model_dump())
 
 
 # Examples CRUD API endpoints

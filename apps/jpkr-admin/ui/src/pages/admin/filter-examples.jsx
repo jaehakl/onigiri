@@ -1,20 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import EditableTable from '../../components/EditableTable';
 import ExampleDetailModal from '../../components/ExampleDetailModal';
+import FilterInput from '../../components/FilterInput';
 import { filterExamples, updateExamplesBatch, deleteExamplesBatch, genExampleEmbeddings, genExampleAudio, genExampleWords } from '../../api/api';
 import './FilterExamples.css';
 
+ // 필터 설정
+const FILTER_CONFIG = {
+  sections: [
+    {
+      type: 'range',
+      key: 'words',
+      label: '단어 수',
+      minKey: 'min_words',
+      maxKey: 'max_words',
+      minLabel: '최소',
+      maxLabel: '최대',
+      minDefault: '',
+      maxDefault: ''
+    },
+    {
+      type: 'select',
+      key: 'has_en_prompt',
+      label: '프롬프트 보유 여부',
+      defaultValue: null
+    },
+    {
+      type: 'select',
+      key: 'has_audio',
+      label: '음성 보유 여부',
+      defaultValue: null
+    },
+    {
+      type: 'select',
+      key: 'has_image',
+      label: '이미지 보유 여부',
+      defaultValue: null
+    },
+    {
+      type: 'select',
+      key: 'has_embedding',
+      label: '임베딩 보유 여부',
+      defaultValue: null
+    }
+  ]
+};
+
 const FilterExamples = () => {
-  const [filterData, setFilterData] = useState({
-    min_words: '',
-    max_words: '',
-    has_en_prompt: null,
-    has_embedding: null,
-    has_audio: null,
-    has_image: null,
-    limit: 100,
-    offset: 0
-  });
   
   const [examples, setExamples] = useState([]);
   const [loading, setLoading] = useState({
@@ -30,6 +62,8 @@ const FilterExamples = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExampleId, setSelectedExampleId] = useState(null);
 
+ 
+
   // 테이블 컬럼 정의
   const columns = [
     { key: 'id', label: 'ID' },
@@ -43,16 +77,8 @@ const FilterExamples = () => {
     { key: 'has_embedding', label: '임베딩 보유' }
   ];
 
-  // 필터 조건 변경 핸들러
-  const handleFilterChange = (field, value) => {
-    setFilterData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
   // 필터링 실행
-  const handleFilter = async () => {
+  const handleFilter = async (filterData) => {
     setLoading(prev => ({ ...prev, filtering: true }));
     setError(null);
     
@@ -66,7 +92,7 @@ const FilterExamples = () => {
         has_embedding: filterData.has_embedding,
         has_audio: filterData.has_audio,
         has_image: filterData.has_image,
-        limit: filterData.limit || 100,
+        limit: filterData.limit,
         offset: filterData.offset || 0
       };
 
@@ -82,26 +108,8 @@ const FilterExamples = () => {
     }
   };
 
-  // 페이지네이션 핸들러
-  const handlePageChange = (newOffset) => {
-    setFilterData(prev => ({
-      ...prev,
-      offset: newOffset
-    }));
-  };
-
   // 필터 초기화
-  const handleReset = () => {
-    setFilterData({
-      min_words: '',
-      max_words: '',
-      has_en_prompt: null,
-      has_audio: null,
-      has_image: null,
-      has_embedding: null,
-      limit: 100,
-      offset: 0
-    });
+  const handleReset = (defaultValues) => {
     setExamples([]);
     setTotalCount(0);
     setError(null);
@@ -126,7 +134,7 @@ const FilterExamples = () => {
       await updateExamplesBatch(exampleDataList);
       alert(`${examplesToUpdate.length}개의 예문이 성공적으로 수정되었습니다.`);
       // 수정 후 현재 필터 조건으로 다시 검색
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('예문 수정 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -151,7 +159,7 @@ const FilterExamples = () => {
       await deleteExamplesBatch(exampleIds);
       alert(`${exampleIds.length}개의 예문이 성공적으로 삭제되었습니다.`);
       // 삭제 후 현재 필터 조건으로 다시 검색
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('예문 삭제 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -193,7 +201,7 @@ const FilterExamples = () => {
       await genExampleEmbeddings(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 임베딩이 성공적으로 생성되었습니다.`);
       // 임베딩 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('임베딩 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -221,7 +229,7 @@ const FilterExamples = () => {
       await genExampleAudio(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 오디오가 성공적으로 생성되었습니다.`);
       // 오디오 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('오디오 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -249,7 +257,7 @@ const FilterExamples = () => {
       await genExampleWords(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 Words가 성공적으로 생성되었습니다.`);
       // Words 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      await handleFilter();
+      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
     } catch (err) {
       setError('Words 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -257,109 +265,21 @@ const FilterExamples = () => {
     }
   };
 
-  // offset이 변경될 때마다 필터링 재실행
-  useEffect(() => {
-    if (filterData.offset > 0 || examples.length > 0) {
-      handleFilter();
-    }
-  }, [filterData.offset]);
 
   return (
     <div className="filter-words-container">
       <h1>예문 필터링</h1>
       
       {/* 필터 조건 입력 폼 */}
-      <div className="filter-form">
-        <div className="filter-section">
-          <h3>단어 수</h3>
-          <div className="range-inputs">
-            <input
-              type="number"
-              placeholder="최소"
-              value={filterData.min_words}
-              onChange={(e) => handleFilterChange('min_words', e.target.value)}
-              min="0"
-            />
-            <span>~</span>
-            <input
-              type="number"
-              placeholder="최대"
-              value={filterData.max_words}
-              onChange={(e) => handleFilterChange('max_words', e.target.value)}
-              min="0"
-            />
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h3>프롬프트 보유 여부</h3>
-          <select
-            value={filterData.has_en_prompt === null ? '' : filterData.has_en_prompt.toString()}
-            onChange={(e) => handleFilterChange('has_en_prompt', e.target.value === '' ? null : e.target.value === 'true')}
-          >
-            <option value="">상관없음</option>
-            <option value="true">보유</option>
-            <option value="false">미보유</option>
-          </select>
-        </div>
-
-        <div className="filter-section">
-          <h3>음성 보유 여부</h3>
-          <select
-            value={filterData.has_audio === null ? '' : filterData.has_audio.toString()}
-            onChange={(e) => handleFilterChange('has_audio', e.target.value === '' ? null : e.target.value === 'true')}
-          >
-            <option value="">상관없음</option>
-            <option value="true">보유</option>
-            <option value="false">미보유</option>
-          </select>
-        </div>
-
-        <div className="filter-section">
-          <h3>이미지 보유 여부</h3>
-          <select
-            value={filterData.has_image === null ? '' : filterData.has_image.toString()}
-            onChange={(e) => handleFilterChange('has_image', e.target.value === '' ? null : e.target.value === 'true')}
-          >
-            <option value="">상관없음</option>
-            <option value="true">보유</option>
-            <option value="false">미보유</option>
-          </select>
-        </div>
-
-
-        <div className="filter-section">
-          <h3>임베딩 보유 여부</h3>
-          <select
-            value={filterData.has_embedding === null ? '' : filterData.has_embedding.toString()}
-            onChange={(e) => handleFilterChange('has_embedding', e.target.value === '' ? null : e.target.value === 'true')}
-          >
-            <option value="">상관없음</option>
-            <option value="true">보유</option>
-            <option value="false">미보유</option>
-          </select>
-        </div>
-
-        <div className="filter-section">
-          <h3>결과 수 제한</h3>
-          <input
-            type="number"
-            value={filterData.limit}
-            onChange={(e) => handleFilterChange('limit', parseInt(e.target.value) || 100)}
-            min="1"
-            max="1000"
-          />
-        </div>
-
-        <div className="filter-actions">
-          <button onClick={handleFilter} disabled={loading.filtering} className="filter-btn">
-            {loading.filtering ? '필터링 중...' : '필터링 실행'}
-          </button>
-          <button onClick={handleReset} className="reset-btn">
-            초기화
-          </button>
-        </div>
-      </div>
+      <FilterInput
+        filterConfig={FILTER_CONFIG}
+        onSubmit={handleFilter}
+        onReset={handleReset}
+        loading={loading.filtering}
+        totalCount={totalCount}
+        showPagination={true}
+        limit={100}
+      />
 
       {/* 결과 정보 */}
       {totalCount > 0 && (
@@ -417,26 +337,6 @@ const FilterExamples = () => {
             addRowText=""
             deleteRowText="삭제"
           />
-          
-          {/* 페이지네이션 */}
-          <div className="pagination">
-            <button
-              onClick={() => handlePageChange(Math.max(0, filterData.offset - filterData.limit))}
-              disabled={filterData.offset === 0}
-            >
-              이전
-            </button>
-            <span>
-              페이지 {Math.floor(filterData.offset / filterData.limit) + 1} 
-              ({(filterData.offset + 1)}-{Math.min(filterData.offset + filterData.limit, totalCount)} / {totalCount})
-            </span>
-            <button
-              onClick={() => handlePageChange(filterData.offset + filterData.limit)}
-              disabled={filterData.offset + filterData.limit >= totalCount}
-            >
-              다음
-            </button>
-          </div>
         </div>
       )}
 

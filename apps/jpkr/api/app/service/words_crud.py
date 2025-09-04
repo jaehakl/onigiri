@@ -118,9 +118,17 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, db:
     words = query.all()
     result_words = []
     for word in words:
-        word_data = row_to_dict(word)
-        word_data["num_examples"] = str(len(word.word_examples))
-        result_words.append(word_data)
+        result_words.append({
+            "id": word.id,
+            "lemma_id": word.lemma_id,
+            "lemma": word.lemma,
+            "jp_pron": word.jp_pron,
+            "kr_pron": word.kr_pron,
+            "kr_mean": word.kr_mean,
+            "level": word.level,
+            "num_examples": len(word.word_examples)
+        })
+    
     return {
         "total_count": total_count,
         "words": result_words,

@@ -1,27 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import EditableTable from '../components/EditableTable';
-import Pagination from '../components/Pagination';
+import FilterInput from '../components/FilterInput';
 import { filterExamples, updateExamplesBatch, deleteExamplesBatch } from '../api/api';
 import './ExamplesTable.css';
+
+ // 필터 설정
+ const FILTER_CONFIG = {
+  sections: [
+    {
+      type: 'range',
+      key: 'words',
+      label: '단어 수',
+      minKey: 'min_words',
+      maxKey: 'max_words',
+      minLabel: '최소',
+      maxLabel: '최대',
+      minDefault: '',
+      maxDefault: ''
+    },
+    {
+      type: 'select',
+      key: 'has_en_prompt',
+      label: '프롬프트 보유 여부',
+      defaultValue: null
+    },
+    {
+      type: 'select',
+      key: 'has_audio',
+      label: '음성 보유 여부',
+      defaultValue: null
+    },
+    {
+      type: 'select',
+      key: 'has_image',
+      label: '이미지 보유 여부',
+      defaultValue: null
+    },
+    {
+      type: 'select',
+      key: 'has_embedding',
+      label: '임베딩 보유 여부',
+      defaultValue: null
+    }
+  ]
+};
 
 const ExamplesTable = () => {
   const [examples, setExamples] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(100);
-  const [filter, setFilter] = useState({
-    min_words: null,
-    max_words: null,
-    has_en_prompt: null,
-    has_embedding: null,
-    has_audio: null,
-    has_image: null,
-    limit: 100,
-    offset: 0
-  });
-  const [totalExamples, setTotalExamples] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   // 컬럼 정의
   const columns = [
@@ -36,44 +64,33 @@ const ExamplesTable = () => {
   ];
 
   // Examples 데이터 불러오기
-  const fetchExamples = async (page = 1) => {
+  const handleFilter = async (filterData) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
-      const offset = (page - 1) * pageSize;
-      const cleanFilter = {
-        ...filter,
-        limit: pageSize,
-        offset: offset
+      // 필터 데이터 정리
+      const cleanFilterData = {
+        ...filterData,
+        min_words: filterData.min_words ? parseInt(filterData.min_words) : null,
+        max_words: filterData.max_words ? parseInt(filterData.max_words) : null,
+        has_en_prompt: filterData.has_en_prompt,
+        has_embedding: filterData.has_embedding,
+        has_audio: filterData.has_audio,
+        has_image: filterData.has_image,
+        limit: filterData.limit,
+        offset: filterData.offset || 0
       };
-      const response = await filterExamples(cleanFilter);
-      
-      if (response.data) {
-        setExamples(response.data.examples || []);
-        setTotalExamples(response.data.total_count || 0);
-        setTotalPages(Math.ceil(response.data.total_count / pageSize));
-      } else {
-        setExamples([]);
-        setTotalExamples(0);
-        setTotalPages(0);
-      }
+
+      const response = await filterExamples(cleanFilterData);
+      setExamples(response.data.examples || []);
+      setTotalCount(response.data.total_count || 0);
     } catch (err) {
-      console.error('Examples 데이터 불러오기 실패:', err);
-      setError('데이터를 불러오는데 실패했습니다.');
+      setError('필터링 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
+      setExamples([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 컴포넌트 마운트 시 데이터 불러오기
-  useEffect(() => {
-    fetchExamples(currentPage);
-  }, [currentPage]);
-
-  // 페이지 변경 처리
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
     }
   };
 
@@ -102,7 +119,6 @@ const ExamplesTable = () => {
     try {
       await updateExamplesBatch(processedExamples);
       alert('예문들이 성공적으로 수정되었습니다.');
-      fetchExamples(currentPage); // 현재 페이지 데이터 새로고침
     } catch (err) {
       console.error('일괄 수정 실패:', err);
       alert('수정에 실패했습니다.');
@@ -124,43 +140,30 @@ const ExamplesTable = () => {
     try {
       await deleteExamplesBatch(exampleIds);
       alert('선택된 예문들이 성공적으로 삭제되었습니다.');
-      fetchExamples(currentPage); // 현재 페이지 데이터 새로고침
     } catch (err) {
       console.error('일괄 삭제 실패:', err);
       alert('삭제에 실패했습니다.');
     }
   };
 
-  if (loading) {
-    return <div className="loading">데이터를 불러오는 중...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="error">
-        <p>{error}</p>
-        <button onClick={() => fetchExamples(currentPage)} className="retry-btn">다시 시도</button>
-      </div>
-    );
-  }
-
   return (
     <div className="examples-table-page">
       <div className="page-header">
         <h1>예문 관리</h1>
-        <div className="page-info">
-          <span>페이지 {currentPage} / {totalPages || 1}</span>
-          <span>총 {totalExamples}개의 예문</span>
-        </div>
       </div>
 
-      <div className="pagination-section">
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
+      {/* 필터 조건 입력 폼 */}
+      <FilterInput
+        filterConfig={FILTER_CONFIG}
+        onSubmit={handleFilter}
+        onFilterChange={handleFilter}
+        loading={loading}
+        totalCount={totalCount}
+        showPagination={true}
+        showFilterButton={false}
+        showResetButton={false}
+        limit={100}
+      />
 
       <div className="table-section">
         <EditableTable
