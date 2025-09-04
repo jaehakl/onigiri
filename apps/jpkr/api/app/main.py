@@ -4,11 +4,10 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from fastapi import Depends, Form
 from initserver import server
-from models import WordData, ExampleData, TextData, UserWordSkillData, UserTextData
+from models import WordData, ExampleData, TextData, ExampleFilterData
 from service.words_crud import create_words_batch, update_words_batch, delete_words_batch, get_all_words, search_words_by_word
-from service.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, get_all_examples, search_examples_by_text, get_examples_by_word_id
+from service.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, filter_examples_by_criteria
 from service.analysis_text import analyze_text
-from service.user_word_skill import create_user_word_skill_batch, update_user_word_skill_batch, delete_user_word_skill_batch, get_user_word_skills_by_word_ids, get_all_user_word_skills
 from service.words_personal import create_words_personal, get_random_words_to_learn
 from service.user_text_crud import create_user_text, update_user_text, delete_user_text, get_user_text, get_user_text_list
 from service.user_sevice import UserService
@@ -110,26 +109,15 @@ async def api_update_examples(request: Request, examples_data: List[ExampleData]
 async def api_delete_examples(request: Request, example_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, delete_examples_batch, example_ids)
 
-@app.post("/examples/all")
-async def api_get_examples(request: Request, data: Dict[str, Any], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    limit = data.get("limit")
-    offset = data.get("offset")
-    return auth_service(request, ["*"], db, user, get_all_examples, limit, offset)
-
-
-@app.get("/examples/search/{search_term}")
-async def api_search_example(request: Request, search_term: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin"], db, user, search_examples_by_text, search_term)
-
-@app.get("/examples/word/{word_id}")
-async def api_get_examples_by_word(request: Request, word_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin"], db, user, get_examples_by_word_id, word_id)
+@app.post("/examples/filter")
+async def api_filter_examples(request: Request, example_filter_data: ExampleFilterData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    return auth_service(request, ["admin"], db, user, filter_examples_by_criteria, **example_filter_data.model_dump())
 
 
 
 # User Text CRUD API endpoints
 @app.post("/user_text/create")
-async def api_create_user_text(request: Request, user_text_data: UserTextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_create_user_text(request: Request, user_text_data: TextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin", "user"], db, user, create_user_text, user_text_data)
 
 @app.get("/user_text/get/{user_text_id}")
@@ -141,7 +129,7 @@ async def api_get_user_text_list(request: Request, limit: int = None, offset: in
     return auth_service(request, ["admin", "user"], db, user, get_user_text_list, limit, offset)
 
 @app.post("/user_text/update")
-async def api_update_user_text(request: Request, user_text_data: UserTextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_update_user_text(request: Request, user_text_data: TextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin", "user"], db, user, update_user_text, user_text_data)
 
 @app.get("/user_text/delete/{user_text_id}")

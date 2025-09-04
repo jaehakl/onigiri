@@ -18,12 +18,13 @@ const WordsTable = () => {
 
   // 컬럼 정의
   const columns = [
-    { key: 'word', label: '단어', editable: true },
-    { key: 'jp_pronunciation', label: '일본어 발음', editable: true },
-    { key: 'kr_pronunciation', label: '한글 발음', editable: true },
-    { key: 'kr_meaning', label: '한글 의미', editable: true },
+    { key: 'lemma_id', label: '원형 ID', editable: false },
+    { key: 'lemma', label: '원형', editable: true },
+    { key: 'jp_pron', label: '발음', editable: true },
+    { key: 'kr_pron', label: '한글', editable: true },
+    { key: 'kr_mean', label: '의미', editable: true },
     { key: 'level', label: '레벨', editable: true },
-    { key: 'num_examples', label: '예문 수', editable: false },
+    { key: 'num_examples', label: '예문', editable: false },    
   ];
 
   // Words 데이터 불러오기
@@ -118,32 +119,7 @@ const WordsTable = () => {
     );
   }
 
-  const handleBatchAddExamples = async (wordIds) => {
-    if (!wordIds || wordIds.length === 0) {
-      alert('예문을 추가할 단어를 선택해주세요.');
-      return;
-    }
-    
-    // 선택된 단어들의 정보를 가져오기
-    const selectedWords = words.filter(word => wordIds.includes(word.id));
-    
-    // 선택된 단어 ID들과 단어 정보를 쿼리 파라미터로 전달
-    const queryParams = new URLSearchParams();
-    wordIds.forEach(id => queryParams.append('wordIds', id));
-    
-    // 단어 정보를 JSON으로 인코딩하여 전달
-    const wordsInfo = selectedWords.map(word => ({
-      id: word.id,
-      word: word.word,
-      jp_pronunciation: word.jp_pronunciation,
-      kr_pronunciation: word.kr_pronunciation,
-      kr_meaning: word.kr_meaning,
-      level: word.level
-    }));
-    queryParams.append('wordsInfo', JSON.stringify(wordsInfo));
-    
-    navigate(`/examples-register?${queryParams.toString()}`);
-  };
+
 
   return (
     <div className="words-table-page">
@@ -167,8 +143,6 @@ const WordsTable = () => {
           onDataChange={handleDataChange}
           onUpdate={handleBatchUpdate}
           onDelete={handleBatchDelete}
-          onAction={handleBatchAddExamples}
-          actionText="예문 추가"
           showAddRow={false}
           showPasteButton={false}
           showCopyButton={true}

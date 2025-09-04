@@ -9,8 +9,6 @@ const FilterWords = () => {
     levels: [],
     min_examples: '',
     max_examples: '',
-    min_images: '',
-    max_images: '',
     has_embedding: null,
     limit: 100,
     offset: 0
@@ -31,13 +29,13 @@ const FilterWords = () => {
   // 테이블 컬럼 정의
   const columns = [
     { key: 'id', label: 'ID' },
-    { key: 'word', label: '단어' },
-    { key: 'jp_pronunciation', label: '일본어 발음' },
-    { key: 'kr_pronunciation', label: '한국어 발음' },
-    { key: 'kr_meaning', label: '의미' },
+    { key: 'lemma_id', label: '원형 ID' },
+    { key: 'lemma', label: '원형' },
+    { key: 'jp_pron', label: '일본어 발음' },
+    { key: 'kr_pron', label: '한국어 발음' },
+    { key: 'kr_mean', label: '의미' },
     { key: 'level', label: '레벨' },
     { key: 'num_examples', label: '예문 수' },
-    { key: 'num_images', label: '이미지 수' },
     { key: 'has_embedding', label: '임베딩 보유' }
   ];
 
@@ -72,8 +70,6 @@ const FilterWords = () => {
         levels: filterData.levels.length > 0 ? filterData.levels : null,
         min_examples: filterData.min_examples ? parseInt(filterData.min_examples) : null,
         max_examples: filterData.max_examples ? parseInt(filterData.max_examples) : null,
-        min_images: filterData.min_images ? parseInt(filterData.min_images) : null,
-        max_images: filterData.max_images ? parseInt(filterData.max_images) : null,
         limit: filterData.limit || 100,
         offset: filterData.offset || 0
       };
@@ -104,8 +100,6 @@ const FilterWords = () => {
       levels: [],
       min_examples: '',
       max_examples: '',
-      min_images: '',
-      max_images: '',
       has_embedding: null,
       limit: 100,
       offset: 0
@@ -126,10 +120,11 @@ const FilterWords = () => {
       setLoading(true);
       const wordDataList = wordsToUpdate.map(word => ({
         id: word.id,
-        word: word.word,
-        jp_pronunciation: word.jp_pronunciation,
-        kr_pronunciation: word.kr_pronunciation,
-        kr_meaning: word.kr_meaning,
+        lemma_id: word.lemma_id,
+        lemma: word.lemma,
+        jp_pron: word.jp_pron,
+        kr_pron: word.kr_pron,
+        kr_mean: word.kr_mean,
         level: word.level,
       }));
       await updateWordsBatch(wordDataList);
@@ -255,27 +250,6 @@ const FilterWords = () => {
               placeholder="최대"
               value={filterData.max_examples}
               onChange={(e) => handleFilterChange('max_examples', e.target.value)}
-              min="0"
-            />
-          </div>
-        </div>
-
-        <div className="filter-section">
-          <h3>이미지 수</h3>
-          <div className="range-inputs">
-            <input
-              type="number"
-              placeholder="최소"
-              value={filterData.min_images}
-              onChange={(e) => handleFilterChange('min_images', e.target.value)}
-              min="0"
-            />
-            <span>~</span>
-            <input
-              type="number"
-              placeholder="최대"
-              value={filterData.max_images}
-              onChange={(e) => handleFilterChange('max_images', e.target.value)}
               min="0"
             />
           </div>

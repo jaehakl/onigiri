@@ -1,95 +1,57 @@
 from typing import List, Dict, Any
+from sqlalchemy.orm import Session
 
-from fugashi import Tagger
-from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import text, select, or_, case
-
+from service.analysis.words_from_text import extract_words_from_text
 from db import Example, WordExample, Word
-
-def row_to_dict(obj) -> dict:
-    # ORM 객체를 dict로 안전하게 변환
-    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
 
 def gen_example_words(
-    example_ids: List[str],
+    example_ids: List[int],
     db: Session,
     user_id: str
 ) -> Dict[str, Any]:
     examples = db.query(Example).filter(Example.id.in_(example_ids)).all()
 
-    tagger = Tagger()  # unidic-lite 자동 사용    
-    rows = []
-    word_list = []
+    words_dict_global = {}
 
     for i, example in enumerate(examples):
-        text_words = tagger(example.jp_text)
-        for i_word, word in enumerate(text_words):
-            feat = word.feature
-            pos  = getattr(feat, "pos1", "")
-            rows.append({
-                "example_id": example.id,
-                "surface": word.surface if getattr(feat, "lemma", None) != None else " "+word.surface,
-                "lemma": getattr(feat, "lemma", None),
-                "pos": pos,
-                "pos2": getattr(feat, "pos2", ""),
-                "pos3": getattr(feat, "pos3", ""),
-                "pos4": getattr(feat, "pos4", ""),
-                "cType": getattr(feat, "cType", ""),
-                "cForm": getattr(feat, "cForm", ""),
-                "reading": getattr(feat, "reading", ""),
-            })
-            word_list.append(word.surface)
+        document, words_dict = extract_words_from_text(example.jp_text)
 
-    lemmas = [r["lemma"] for r in rows]
-    stmt = (
-        select(Word)
-        .options(selectinload(Word.word_examples))
-        .where(
-            or_(
-                Word.word.in_(lemmas) if lemmas else False,
-            )
-        )
-        .order_by(
-            case((Word.user_id == user_id, 0), else_=1)  # 내 것이 먼저 오게
-        )
-    )
-    words = db.execute(stmt).scalars().all()
-    # 그 다음엔 "처음 본 키만 채우기"만 해도 같은 효과
-    by_lemma = {}
-    for w in words:
-        if w.word and w.word not in by_lemma:
-            by_lemma[w.word] = [w.id, [we.example_id for we in w.word_examples]]
-    
-    for row in rows:
-        if row["lemma"] == None:
-            continue
-        w = by_lemma.get(row["lemma"])
-        if w:
-            w_id = w[0]
-            w_example_ids = w[1]
-        else:
-            word = Word(
-                word=row["lemma"],
-                jp_pronunciation=row["reading"],
-                kr_pronunciation=row["pos"],
-                kr_meaning=row["pos2"],
-                level="N1",
+    words_existing = db.query(Word).filter(Word.lemma_id.in_(list(words_dict_global.keys()))
+                                            ).where(Word.user_id == user_id).all()
+
+    words_dict_existing = {w.lemma_id: w.id for w in words_existing}
+    for lemma_id, word_data in words_dict_global.items():
+        if lemma_id not in words_dict_existing:
+            pos = word_data["pos1"]
+            level = "N1"
+            if pos in ["助詞", "記号", "助動詞","補助記号","接尾辞"]:
+                level = "N5"
+            new_word = Word(
                 user_id=user_id,
+                lemma_id=lemma_id,
+                lemma=word_data["lemma"],
+                jp_pron=word_data["pronBase"],
+                kr_pron=word_data["pos1"],
+                kr_mean=word_data["type"],
+                level=level,
             )
-            db.add(word)
+            db.add(new_word)
             db.flush()
-            if row["lemma"] not in by_lemma:
-                by_lemma[row["lemma"]] = [word.id, []]
-            w_id = word.id
-            w_example_ids = []
-        if row["example_id"] not in w_example_ids:
-            word_example = WordExample(
-                word_id=w_id,
-                example_id=row["example_id"],
+            words_dict_existing[lemma_id] = new_word.id
+        else:
+            pass
+
+    for i, example in enumerate(examples):
+        document, words_dict = extract_words_from_text(example.jp_text)
+        for word_data in words_dict.values():
+            if word_data["lemma_id"] not in words_dict_existing:
+                continue
+            new_word_example = WordExample(
+                word_id=words_dict_existing[word_data["lemma_id"]],
+                example_id=example.id
             )
-            db.add(word_example)
+            db.add(new_word_example)
             db.flush()
-            by_lemma[row["lemma"]][1].append(row["example_id"])
     db.commit()
     return {"message": "Example words generated successfully"}

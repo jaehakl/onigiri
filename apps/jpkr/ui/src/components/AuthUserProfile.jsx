@@ -82,10 +82,6 @@ function AuthUserProfile() {
                   <span className="stat-icon-small">📝</span>
                   <span className="stat-number-small">{userSummary.stats.total_texts}</span>
                 </div>
-                <div className="stat-compact">
-                  <span className="stat-icon-small">⭐</span>
-                  <span className="stat-number-small">{userSummary.stats.favorite_words}</span>
-                </div>
               </div>
             )}
 

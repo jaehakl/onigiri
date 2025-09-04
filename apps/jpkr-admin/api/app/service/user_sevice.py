@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, List
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session
 from sqlalchemy import select, func
-from db import User, Word, Example, WordImage, UserText, UserWordSkill, UserRole
+from db import User, Word, Example, UserText
 from utils.aws_s3 import presign_get_url
 
 class UserService:
@@ -108,12 +108,14 @@ class UserService:
                 "words": [
                     {
                         "id": word.id,
-                        "root_word_id": word.root_word_id,
-                        "word": word.word,
-                        "jp_pronunciation": word.jp_pronunciation,
-                        "kr_pronunciation": word.kr_pronunciation,
-                        "kr_meaning": word.kr_meaning,
+                        "lemma_id": word.lemma_id,
+                        "lemma": word.lemma,
+                        "jp_pron": word.jp_pron,
+                        "kr_pron": word.kr_pron,
+                        "kr_mean": word.kr_mean,
                         "level": word.level,
+                        "num_word_examples": len(word.word_examples),
+                        "has_embedding": 1 if word.embedding is not None else 0,
                         "created_at": word.created_at,
                         "updated_at": word.updated_at
                     }
@@ -122,40 +124,26 @@ class UserService:
                 "examples": [
                     {
                         "id": example.id,
-                        "word_id": example.word_examples[0].word_id,
-                        "word": example.word_examples[0].word.word,
+                        "num_word_examples": len(example.word_examples),
                         "tags": example.tags,
                         "jp_text": example.jp_text,
-                        "kr_meaning": example.kr_meaning,
+                        "kr_mean": example.kr_mean,
+                        "en_prompt": example.en_prompt,
+                        "has_embedding": 1 if example.embedding is not None else 0,
+                        "has_audio": 1 if example.audio_object_key is not None else 0,
+                        "has_image": 1 if example.image_object_key is not None else 0,
                         "created_at": example.created_at,
                         "updated_at": example.updated_at
                     }
                     for example in user.examples
                 ],
-                "images": [
-                    {
-                        "id": image.id,
-                        "word_id": image.word_id,
-                        "word": image.word.word,
-                        "prompt": image.prompt,                        
-                        "image_url": presign_get_url(image.object_key, expires=600),
-                        "created_at": image.created_at,
-                        "updated_at": image.updated_at
-                    }
-                    for image in user.images
-                ],
                 "user_word_skills": [
                     {
                         "id": skill.id,
                         "word_id": skill.word_id,
-                        "word": skill.word.word,
-                        "skill_kanji": skill.skill_kanji,
-                        "skill_word_reading": skill.skill_word_reading,
-                        "skill_word_speaking": skill.skill_word_speaking,
-                        "skill_sentence_reading": skill.skill_sentence_reading,
-                        "skill_sentence_speaking": skill.skill_sentence_speaking,
-                        "skill_sentence_listening": skill.skill_sentence_listening,
-                        "is_favorite": skill.is_favorite,
+                        "reading": skill.reading,
+                        "listening": skill.listening,
+                        "speaking": skill.speaking,
                         "created_at": skill.created_at,
                         "updated_at": skill.updated_at
                     }
@@ -199,28 +187,12 @@ class UserService:
             .correlate(User)
             .scalar_subquery()
         )
-        total_images = (
-            select(func.count(WordImage.id))
-            .where(WordImage.user_id == User.id)
-            .correlate(User)
-            .scalar_subquery()
-        )
         total_texts = (
             select(func.count(UserText.id))
             .where(UserText.user_id == User.id)
             .correlate(User)
             .scalar_subquery()
         )
-        favorite_words = (
-            select(func.count(UserWordSkill.id))
-            .where(
-                (UserWordSkill.user_id == User.id) &
-                (UserWordSkill.is_favorite.is_(True))
-            )
-            .correlate(User)
-            .scalar_subquery()
-        )
-
         stmt = (
             select(
                 User.id,
@@ -230,9 +202,7 @@ class UserService:
                 User.created_at,
                 total_words.label("total_words"),
                 total_examples.label("total_examples"),
-                total_images.label("total_images"),
                 total_texts.label("total_texts"),
-                favorite_words.label("favorite_words"),
             )
             .where(User.id == id_to_get)
             # 불필요한 컬럼 pre-load 방지 (혹시 ORM 객체로 바꿀 때 대비)
@@ -252,8 +222,6 @@ class UserService:
             "stats": {
                 "total_words": row.total_words,
                 "total_examples": row.total_examples,
-                "total_images": row.total_images,
                 "total_texts": row.total_texts,
-                "favorite_words": row.favorite_words,
             },
         }

@@ -17,17 +17,17 @@ def update_examples_batch(examples_data: List[ExampleData], db: Session=None, us
         example = db.query(Example).filter(Example.id == example_data.id).first()            
         if example:
             # 예문 데이터 업데이트
+            example.user_id = user_id
             example.tags = example_data.tags
             example.jp_text = example_data.jp_text
-            example.kr_meaning = example_data.kr_meaning
-            example.user_id = user_id
+            example.kr_mean = example_data.kr_mean
+            example.en_prompt = example_data.en_prompt
         else:
             # 해당 ID의 예문이 없는 경우
             raise Exception("Example not found")        
     db.commit()
     return
         
-
 def delete_examples_batch(example_ids: List[int], db: Session=None, user_id:str = None):
     deleted_count = db.query(Example).filter(Example.id.in_(example_ids)).delete(synchronize_session=False)
     db.commit()

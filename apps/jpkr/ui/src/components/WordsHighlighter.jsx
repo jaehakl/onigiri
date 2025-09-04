@@ -57,7 +57,7 @@ const WordsHighlighter = ({words}) => {
     const elements = [];
     for (let i_line in words) {
       for (let i_word in words[i_line]) {
-        if (words[i_line][i_word].word_id && !words[i_line][i_word].user_word_skills.some(skill => skill.skill_word_reading > 80)) {
+        if (words[i_line][i_word].word_id && !words[i_line][i_word].user_word_skills.some(skill => skill.reading > 80)) {
         elements.push(
           <span
             key={`morpheme-${i_line}-${i_word}`}
@@ -136,22 +136,22 @@ const WordsHighlighter = ({words}) => {
             }}
           >
             <div className="tooltip-header">
-              <span className="tooltip-surface">{tooltip.data.word}</span>
+              <span className="tooltip-surface">{tooltip.data.lemma}</span>
               <span className="tooltip-level">{tooltip.data.level}</span>
               <span className="tooltip-level">{tooltip.data.user_display_name}</span>
             </div>
             <div className="tooltip-content">
               <div className="tooltip-row">
                 <span className="tooltip-label">일본어 발음:</span>
-                <span className="tooltip-value">{tooltip.data.jp_pronunciation || '-'}</span>
+                <span className="tooltip-value">{tooltip.data.jp_pron || '-'}</span>
               </div>
               <div className="tooltip-row">
                 <span className="tooltip-label">한국어 발음:</span>
-                <span className="tooltip-value">{tooltip.data.kr_pronunciation || '-'}</span>
+                <span className="tooltip-value">{tooltip.data.kr_pron || '-'}</span>
               </div>
               <div className="tooltip-row">
                 <span className="tooltip-label">한국어 뜻:</span>
-                <span className="tooltip-value">{tooltip.data.kr_meaning || '-'}</span>
+                <span className="tooltip-value">{tooltip.data.kr_mean || '-'}</span>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import EditableTable from '../components/EditableTable';
 import Pagination from '../components/Pagination';
-import { getAllExamples, updateExamplesBatch, deleteExamplesBatch } from '../api/api';
+import { filterExamples, updateExamplesBatch, deleteExamplesBatch } from '../api/api';
 import './ExamplesTable.css';
 
 const ExamplesTable = () => {
@@ -10,16 +10,29 @@ const ExamplesTable = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(100);
+  const [filter, setFilter] = useState({
+    min_words: null,
+    max_words: null,
+    has_en_prompt: null,
+    has_embedding: null,
+    has_audio: null,
+    has_image: null,
+    limit: 100,
+    offset: 0
+  });
   const [totalExamples, setTotalExamples] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   // 컬럼 정의
   const columns = [
-    { key: 'word_info', label: '단어 정보', editable: false },
     { key: 'tags', label: '태그', editable: true },
     { key: 'jp_text', label: '일본어 예문', editable: true },
-    { key: 'kr_meaning', label: '한국어 의미', editable: true },
-    { key: 'updated_at', label: '수정일', editable: false },
+    { key: 'kr_mean', label: '한국어 의미', editable: true },
+    { key: 'en_prompt', label: '프롬프트', editable: true },
+    { key: 'has_embedding', label: '임베딩 보유', editable: false },
+    { key: 'has_audio', label: '음성 보유', editable: false },
+    { key: 'has_image', label: '이미지 보유', editable: false },
+    { key: 'num_words', label: '단어 수', editable: false },
   ];
 
   // Examples 데이터 불러오기
@@ -28,7 +41,12 @@ const ExamplesTable = () => {
       setLoading(true);
       setError(null);
       const offset = (page - 1) * pageSize;
-      const response = await getAllExamples(pageSize, offset);
+      const cleanFilter = {
+        ...filter,
+        limit: pageSize,
+        offset: offset
+      };
+      const response = await filterExamples(cleanFilter);
       
       if (response.data) {
         setExamples(response.data.examples || []);
@@ -71,16 +89,15 @@ const ExamplesTable = () => {
       return;
     }
 
-    // word_id를 숫자로 변환하고 word_info 필드 제거
     const processedExamples = examplesToUpdate.map(example => {
         return {
           id: example.id,
           tags: example.tags,
           jp_text: example.jp_text,
-          kr_meaning: example.kr_meaning,
+          kr_mean: example.kr_mean,
+          en_prompt: example.en_prompt,
         };
       });
-    console.log(processedExamples);
 
     try {
       await updateExamplesBatch(processedExamples);

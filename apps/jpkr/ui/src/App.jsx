@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Content, Sidebar, Button, Form, Input } from 'rsuite';
 import { useLocation, matchPath, useNavigate, Routes, Route } from 'react-router-dom';
-import WordsRegister from './pages/words-register';
 import WordsTable from './pages/words-table';
 import WordsSearch from './pages/words-search';
 import WordAnalysis from './pages/word-analysis';
@@ -22,11 +21,6 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItemsAdmin = [
-    {
-      key: 'words-register',
-      label: '단어 등록',
-      path: '/words-register',
-    },
     {
       key: 'words-table',
       label: '단어 관리',
@@ -188,7 +182,6 @@ function App() {
           <Routes>
             <Route path="/" element={<WordAnalysis />} />
             <Route path="/words-search" element={<WordsSearch />} />              
-            <Route path="/words-register" element={<WordsRegister />} />
             <Route path="/words-table" element={<WordsTable />} />
             <Route path="/examples-register" element={<ExamplesRegister />} />
             <Route path="/examples-table" element={<ExamplesTable />} />

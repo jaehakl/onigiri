@@ -71,31 +71,27 @@ const WordDetailModal = ({ isOpen, onClose, wordId }) => {
                                 <h3>단어 정보</h3>
                                 <div className="word-card main-word">
                                     <div className="word-header">
-                                        <span className="word-text">{wordData.word.word}</span>
+                                        <span className="word-text">{wordData.word.lemma}</span>
                                         <span className="word-level">Level {wordData.word.level}</span>
                                     </div>
                                     <div className="word-pronunciations">
                                         <div className="pronunciation">
                                             <span className="label">일본어 발음:</span>
-                                            <span className="value">{wordData.word.jp_pronunciation}</span>
+                                            <span className="value">{wordData.word.jp_pron}</span>
                                         </div>
                                         <div className="pronunciation">
                                             <span className="label">한국어 발음:</span>
-                                            <span className="value">{wordData.word.kr_pronunciation}</span>
+                                            <span className="value">{wordData.word.kr_pron}</span>
                                         </div>
                                     </div>
                                     <div className="word-meaning">
                                         <span className="label">의미:</span>
-                                        <span className="value">{wordData.word.kr_meaning}</span>
+                                        <span className="value">{wordData.word.kr_mean}</span>
                                     </div>
                                     <div className="word-stats">
                                         <div className="stat">
                                             <span className="stat-label">예문 수:</span>
                                             <span className="stat-value">{wordData.word.num_examples}</span>
-                                        </div>
-                                        <div className="stat">
-                                            <span className="stat-label">이미지 수:</span>
-                                            <span className="stat-value">{wordData.word.num_images}</span>
                                         </div>
                                         <div className="stat">
                                             <span className="stat-label">임베딩:</span>
@@ -115,31 +111,27 @@ const WordDetailModal = ({ isOpen, onClose, wordId }) => {
                                         {wordData.similar_words.map((similarWord, index) => (
                                             <div key={similarWord.id} className="word-card similar-word">
                                                 <div className="word-header">
-                                                    <span className="word-text">{similarWord.word}</span>
+                                                    <span className="word-text">{similarWord.lemma}</span>
                                                     <span className="word-level">Level {similarWord.level}</span>
                                                 </div>
                                                 <div className="word-pronunciations">
                                                     <div className="pronunciation">
                                                         <span className="label">일본어 발음:</span>
-                                                        <span className="value">{similarWord.jp_pronunciation}</span>
+                                                        <span className="value">{similarWord.jp_pron}</span>
                                                     </div>
                                                     <div className="pronunciation">
                                                         <span className="label">한국어 발음:</span>
-                                                        <span className="value">{similarWord.kr_pronunciation}</span>
+                                                        <span className="value">{similarWord.kr_pron}</span>
                                                     </div>
                                                 </div>
                                                 <div className="word-meaning">
                                                     <span className="label">의미:</span>
-                                                    <span className="value">{similarWord.kr_meaning}</span>
+                                                    <span className="value">{similarWord.kr_mean}</span>
                                                 </div>
                                                 <div className="word-stats">
                                                     <div className="stat">
                                                         <span className="stat-label">예문 수:</span>
                                                         <span className="stat-value">{similarWord.num_examples}</span>
-                                                    </div>
-                                                    <div className="stat">
-                                                        <span className="stat-label">이미지 수:</span>
-                                                        <span className="stat-value">{similarWord.num_images}</span>
                                                     </div>
                                                     <div className="stat">
                                                         <span className="stat-label">임베딩:</span>

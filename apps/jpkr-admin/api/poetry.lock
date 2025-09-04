@@ -1224,7 +1224,7 @@ files = [
 ]
 
 [package.dependencies]
-unidic-lite = {version = "*", optional = true, markers = "extra == \"unidic-lite\""}
+unidic = {version = "*", optional = true, markers = "extra == \"unidic\""}
 
 [package.extras]
 unidic = ["unidic"]
@@ -2569,6 +2569,18 @@ test-arrow = ["pyarrow"]
 tests = ["check-manifest", "coverage (>=7.4.2)", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "trove-classifiers (>=2024.10.12)"]
 typing = ["typing-extensions ; python_version < \"3.10\""]
 xmp = ["defusedxml"]
+
+[[package]]
+name = "plac"
+version = "1.4.5"
+description = "The smartest command line arguments parser in the world"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "plac-1.4.5-py2.py3-none-any.whl", hash = "sha256:87187786b4e446688b1cf5112e18fed8a23ab3b316c25fe91266a10bd1736b16"},
+    {file = "plac-1.4.5.tar.gz", hash = "sha256:5f05bf85235c017fcd76c73c8101d4ff8e96beb3dc58b9a37de49cac7de82d14"},
+]
 
 [[package]]
 name = "platformdirs"
@@ -4472,15 +4484,21 @@ files = [
 ]
 
 [[package]]
-name = "unidic-lite"
-version = "1.0.8"
-description = "A small version of UniDic packaged for Python"
+name = "unidic"
+version = "1.1.0"
+description = "UniDic packaged for Python"
 optional = false
-python-versions = "*"
+python-versions = ">=3.5"
 groups = ["main"]
 files = [
-    {file = "unidic-lite-1.0.8.tar.gz", hash = "sha256:db9d4572d9fdd4d00a97949d4b0741ec480ee05a7e7e2e32f547500dae27b245"},
+    {file = "unidic-1.1.0.tar.gz", hash = "sha256:0ab91c05de342c84d2a6314901fd3afb9061ecd7534dd4a0431dccbb87d921b7"},
 ]
+
+[package.dependencies]
+plac = ">=1.1.3,<2.0.0"
+requests = ">=2.22.0,<3.0.0"
+tqdm = ">=4.41.1,<5.0.0"
+wasabi = ">=0.6.0,<1.0.0"
 
 [[package]]
 name = "urllib3"
@@ -4518,6 +4536,18 @@ h11 = ">=0.8"
 
 [package.extras]
 standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.15.1) ; sys_platform != \"win32\" and sys_platform != \"cygwin\" and platform_python_implementation != \"PyPy\"", "watchfiles (>=0.13)", "websockets (>=10.4)"]
+
+[[package]]
+name = "wasabi"
+version = "0.10.1"
+description = "A lightweight console printing and formatting toolkit"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "wasabi-0.10.1-py3-none-any.whl", hash = "sha256:fe862cc24034fbc9f04717cd312ab884f71f51a8ecabebc3449b751c2a649d83"},
+    {file = "wasabi-0.10.1.tar.gz", hash = "sha256:c8e372781be19272942382b14d99314d175518d7822057cb7a97010c4259d249"},
+]
 
 [[package]]
 name = "yarl"
@@ -4661,4 +4691,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.12"
-content-hash = "efb8d21237b8f767d6ed747a72bafede00a4608a78674a0192e2d40d104534ce"
+content-hash = "e136cd2eb2302e1d4560d7383597e96328735fb581cdd388d0f85e7201e9524d"

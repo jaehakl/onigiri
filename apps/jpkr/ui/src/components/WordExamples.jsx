@@ -18,9 +18,9 @@ const WordExamples = ({ wordsSet }) => {
             word_id,
             wordsSet[word_id].word || '',
             wordsSet[word_id].level || '',
-            wordsSet[word_id].jp_pronunciation || '',
-            wordsSet[word_id].kr_pronunciation || '',
-            wordsSet[word_id].kr_meaning || '',
+            wordsSet[word_id].jp_pron || '',
+            wordsSet[word_id].kr_pron || '',
+            wordsSet[word_id].kr_mean || '',
           ].join('\t'))        
 
       // 헤더와 데이터를 결합
@@ -45,16 +45,10 @@ const WordExamples = ({ wordsSet }) => {
       <button onClick={copyToClipboard} className="copy-button">클립보드에 복사</button>
       <div className="examples-container">
         {Object.values(wordsSet).map((word, wordIndex) => (
-          word.examples && !word.user_word_skills.some(skill => skill.skill_word_reading > 80) && (
+          word.examples && !word.user_word_skills.some(skill => skill.reading > 80) && (
             <div 
               key={`word-${wordIndex}`} 
               className="word-examples"
-              style={word.images && word.images.length > 0 ? {
-                backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${word.images[0]})`,
-                backgroundSize: 'contain', // 'cover', 'contain', '100% 100%', 'auto' 중 선택
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              } : {}}
             >
               <div className="word-header">
                 <div className="word-info">
@@ -63,9 +57,9 @@ const WordExamples = ({ wordsSet }) => {
                     <span className="word-level">({word.level})</span>
                   </h3>
                   <div className="word-details">
-                    <span className="word-pronunciation">{word.jp_pronunciation}</span>
-                    <span className="word-pronunciation">{word.kr_pronunciation}</span>
-                    <span className="word-meaning">{word.kr_meaning}</span>
+                    <span className="word-pronunciation">{word.jp_pron}</span>
+                    <span className="word-pronunciation">{word.kr_pron}</span>
+                    <span className="word-meaning">{word.kr_mean}</span>
                   </div>
                 </div>
               </div>

@@ -48,13 +48,13 @@ const Quiz = () => {
   const generateWordMeaningQuiz = (word) => {
     const isWordToMeaning = Math.random() > 0.5;
     const otherWords = words.filter(w => w.word_id !== word.word_id);
-    const options = [word.kr_meaning];
+    const options = [word.kr_mean];
     
     // 다른 단어들의 뜻을 옵션으로 추가
     while (options.length < 4 && otherWords.length > 0) {
       const randomWord = otherWords[Math.floor(Math.random() * otherWords.length)];
-      if (!options.includes(randomWord.kr_meaning)) {
-        options.push(randomWord.kr_meaning);
+      if (!options.includes(randomWord.kr_mean)) {
+        options.push(randomWord.kr_mean);
       }
       otherWords.splice(otherWords.indexOf(randomWord), 1);
     }
@@ -64,10 +64,10 @@ const Quiz = () => {
     
     return {
       type: 'word-meaning',
-      question: isWordToMeaning ? word.word : word.kr_meaning,
-      correctAnswer: isWordToMeaning ? word.kr_meaning : word.jp_pronunciation,
+      question: isWordToMeaning ? word.word : word.kr_mean,
+      correctAnswer: isWordToMeaning ? word.kr_mean : word.jp_pron,
       options: isWordToMeaning ? shuffledOptions : null,
-      explanation: `${word.word} (${word.jp_pronunciation}) - ${word.kr_meaning}`,
+      explanation: `${word.word} (${word.jp_pron}) - ${word.kr_mean}`,
       wordId: word.word_id
     };
   };
@@ -80,10 +80,10 @@ const Quiz = () => {
     
     return {
       type: 'translation',
-      question: isJapaneseToKorean ? example.jp_text : example.kr_meaning,
-      correctAnswer: isJapaneseToKorean ? example.kr_meaning : example.jp_text,
+      question: isJapaneseToKorean ? example.jp_text : example.kr_mean,
+      correctAnswer: isJapaneseToKorean ? example.kr_mean : example.jp_text,
       options: null,
-      explanation: `${example.jp_text} - ${example.kr_meaning}`,
+      explanation: `${example.jp_text} - ${example.kr_mean}`,
       wordId: word.word_id
     };
   };

@@ -1,40 +1,22 @@
-from typing import List, Optional
-from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func, and_, or_
-from db import Example, ExampleAudio, WordExample, Word
-from utils.aws_s3 import presign_get_url
+from typing import Optional
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from db import Example, WordExample
 
 def filter_examples_by_criteria(
-    levels: Optional[List[str]] = None,
     min_words: Optional[int] = None,
     max_words: Optional[int] = None,
-    min_audios: Optional[int] = None,
-    max_audios: Optional[int] = None,
+    has_en_prompt: Optional[bool] = None,
     has_embedding: Optional[bool] = None,
+    has_audio: Optional[bool] = None,
+    has_image: Optional[bool] = None,
     limit: Optional[int] = None,
     offset: Optional[int] = None,
     db: Session = None,
     user_id: Optional[str] = None,
 ):
-    """
-    Examples 테이블에서 다양한 기준으로 필터링하여 예문 목록을 가져옵니다.
-    
-    Args:
-        db: 데이터베이스 세션
-        min_words: 최소 단어 수
-        max_words: 최대 단어 수
-        min_audios: 최소 음성 수
-        max_audios: 최대 음성 수
-        has_embedding: embedding 보유 여부 (True: 보유, False: 미보유, None: 상관없음)
-        limit: 반환할 최대 결과 수
-        offset: 건너뛸 결과 수
-    
-    Returns:
-        필터링된 Example 목록
-    """
     # 기본 쿼리 시작
-    query = db.query(Example)    
-    
+    query = db.query(Example)
 
     # 단어 수 필터링    
     if min_words is not None or max_words is not None:
@@ -56,37 +38,34 @@ def filter_examples_by_criteria(
             query = query.filter(
                 func.coalesce(example_count_subquery.c.word_count, 0) <= max_words)
 
+    if has_en_prompt is not None:
+        if has_en_prompt:
+            query = query.filter(Example.en_prompt.isnot(None))
+        else:
+            query = query.filter(Example.en_prompt.is_(None))
 
-    # 음성 수 필터링    
-    if min_audios is not None or max_audios is not None:
-        # 서브쿼리로 음성 수 계산
-        example_count_subquery = db.query(
-            ExampleAudio.example_id,
-            func.count(ExampleAudio.id).label('audio_count')
-        ).group_by(ExampleAudio.example_id).subquery()
-        
-        query = query.outerjoin(
-            example_count_subquery,
-            Example.id == example_count_subquery.c.example_id
-        )
-        
-        if min_audios is not None:
-            query = query.filter(
-                func.coalesce(example_count_subquery.c.audio_count, 0) >= min_audios)
-        if max_audios is not None:
-            query = query.filter(
-                func.coalesce(example_count_subquery.c.audio_count, 0) <= max_audios)
-    
-    
     # Embedding 보유 여부 필터링
     if has_embedding is not None:
         if has_embedding:
             query = query.filter(Example.embedding.isnot(None))
         else:
             query = query.filter(Example.embedding.is_(None))
+
+    if has_audio is not None:
+        if has_audio:
+            query = query.filter(Example.audio_object_key.isnot(None))
+        else:
+            query = query.filter(Example.audio_object_key.is_(None))
+
+    if has_image is not None:
+        if has_image:
+            query = query.filter(Example.image_object_key.isnot(None))
+        else:
+            query = query.filter(Example.image_object_key.is_(None))
     
-    # 정렬 (생성일 기준 내림차순)
-    query = query.order_by(Example.created_at.desc())
+    
+    # 정렬 (생성일 기준 오름차순)
+    query = query.order_by(Example.created_at.asc())
     total_count = query.count()
     
     # 페이징
@@ -102,11 +81,14 @@ def filter_examples_by_criteria(
             'id': example.id,
             'tags': example.tags,
             'jp_text': example.jp_text,
-            'kr_meaning': example.kr_meaning,
+            'kr_mean': example.kr_mean,
+            'en_prompt': example.en_prompt,
+            'has_embedding': 1 if example.embedding is not None else 0,
+            'has_audio': 1 if example.audio_object_key is not None else 0,
+            'has_image': 1 if example.image_object_key is not None else 0,
+            'created_at': example.created_at,
+            'updated_at': example.updated_at,
             'num_words': len(example.word_examples),
-            'num_audio': len(example.audio),
-            'audio_url': presign_get_url(example.audio[0].audio_url, expires=600) if len(example.audio) > 0 else None,
-            'has_embedding': 1 if example.embedding is not None else 0            
         })
     
     return {

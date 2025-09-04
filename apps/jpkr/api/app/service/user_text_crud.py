@@ -4,7 +4,7 @@ from sqlalchemy import and_, or_, select, delete
 from typing import List, Dict, Any, Optional, Sequence
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from models import UserTextData
+from models import TextData
 from db import SessionLocal, UserText
 from datetime import datetime
 
@@ -13,7 +13,7 @@ def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
-def create_user_text(user_text_data: UserTextData, db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
+def create_user_text(user_text_data: TextData, db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
     if not user_text_data:
         return {}
     user_text = UserText(
@@ -27,10 +27,10 @@ def create_user_text(user_text_data: UserTextData, db: Session, user_id: Optiona
     db.commit()
     return row_to_dict(user_text)
 
-def get_user_text(user_text_id: str, db: Session, user_id: str) -> UserTextData:
+def get_user_text(user_text_id: str, db: Session, user_id: str) -> TextData:
     user_text = db.query(UserText).filter(UserText.id == user_text_id).first()
     if user_text:
-        return UserTextData(**row_to_dict(user_text))
+        return TextData(**row_to_dict(user_text))
     else:
         return None
 
@@ -44,12 +44,12 @@ def get_user_text_list(limit, offset, db: Session = None, user_id: str = None) -
     user_texts = query.all()
     return {
         "total_count": total_count,
-        "user_texts": [UserTextData(id=user_text.id, title=user_text.title, tags=user_text.tags) for user_text in user_texts],
+        "user_texts": [TextData(id=user_text.id, title=user_text.title, tags=user_text.tags) for user_text in user_texts],
         "limit": limit,
         "offset": offset
     }
 
-def update_user_text(user_text_data: UserTextData, db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
+def update_user_text(user_text_data: TextData, db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     result = {}        
     user_text = db.query(UserText).filter(UserText.id == user_text_data.id).first()
     if user_text:

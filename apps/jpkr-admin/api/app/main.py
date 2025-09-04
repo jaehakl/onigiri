@@ -32,11 +32,11 @@ app = server()
 
 # Test API endpoints
 @app.get("/test/get-similar-words/{word_id}")
-async def api_get_similar_words(request: Request, word_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_get_similar_words(request: Request, word_id: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, get_similar_words, word_id)
 
 @app.get("/test/get-similar-examples/{example_id}")
-async def api_get_similar_examples(request: Request, example_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_get_similar_examples(request: Request, example_id: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, get_similar_examples, example_id)
 
 # Admin API endpoints
@@ -45,24 +45,24 @@ async def api_get_duplicated_words(request: Request, db: Session = Depends(get_d
     return auth_service(request, ["admin"], db, user, get_duplicated_words)
 
 @app.post("/admin/words/merge-duplicated")
-async def api_merge_duplicated_words(request: Request, word_ids: List[str], new_word_data: WordData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_merge_duplicated_words(request: Request, word_ids: List[int], new_word_data: WordData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, merge_duplicated_words, word_ids, new_word_data.model_dump())
 
 # Gen Word, Example Embeddings
 @app.post("/admin/words/gen-embeddings")
-async def api_gen_word_embeddings(request: Request, word_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_gen_word_embeddings(request: Request, word_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, gen_word_embeddings, word_ids)
 
 @app.post("/admin/examples/gen-embeddings")
-async def api_gen_example_embeddings(request: Request, example_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_gen_example_embeddings(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, gen_example_embeddings, example_ids)
 
 @app.post("/admin/examples/gen-audio")
-async def api_gen_example_audio(request: Request, example_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_gen_example_audio(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, gen_example_audio, example_ids)
 
 @app.post("/admin/examples/gen-words")
-async def api_gen_example_words(request: Request, example_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_gen_example_words(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, gen_example_words, example_ids)
 
 # Update Word, Example
@@ -77,12 +77,12 @@ async def api_update_examples(request: Request, examples_data: List[ExampleData]
 
 # Delete Word, Example
 @app.post("/admin/words/delete/batch")
-async def api_delete_words(request: Request, word_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_delete_words(request: Request, word_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     print(word_ids, "word_ids")
     return auth_service(request, ["admin"], db, user, delete_words_batch, word_ids)
 
 @app.post("/admin/examples/delete/batch")
-async def api_delete_examples(request: Request, example_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_delete_examples(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, delete_examples_batch, example_ids)
 
 # Filter Word, Example

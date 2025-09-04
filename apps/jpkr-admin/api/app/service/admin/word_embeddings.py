@@ -6,13 +6,14 @@ from db import Word
 from service.analysis.embedding import get_text_embedding
 
 def gen_word_embeddings(
-    word_ids: List[str],
+    word_ids: List[int],
     db: Session,
     user_id: str
 ) -> Dict[str, Any]:
     words = db.query(Word).filter(Word.id.in_(word_ids)).all()
     for i, word in enumerate(words):
-        word.embedding = get_text_embedding(word.word)
+        print(word.lemma)
+        word.embedding = get_text_embedding(word.lemma)
         if i % 10 == 0:
             print(f"Generated embedding for word {i+1}/{len(words)}")
     db.commit()

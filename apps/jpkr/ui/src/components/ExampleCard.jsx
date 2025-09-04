@@ -52,18 +52,8 @@ const ExampleCard = ({ example, isMain = false }) => {
                             <span className="example-card-stat-label">단어 수:</span>
                             <span className="example-card-stat-value">{example.num_words}</span>
                         </div>
-                        <div className="example-card-stat">
-                            <span className="example-card-stat-label">음성 수:</span>
-                            <span className="example-card-stat-value">{example.num_audio}</span>
-                        </div>
                     </>
                 )}
-                <div className="example-card-stat">
-                    <span className="example-card-stat-label">임베딩:</span>
-                    <span className={`example-card-stat-value ${example.has_embedding ? 'has-embedding' : 'no-embedding'}`}>
-                        {example.has_embedding ? '있음' : '없음'}
-                    </span>
-                </div>
             </div>
         </div>
     );

@@ -91,9 +91,9 @@ function BranchesTable({ items, onMerge }) {
     const q = query.trim().toLowerCase();
     return (items || []).filter(row => {
       const passQuery = !q
-        || (row.word && row.word.toLowerCase().includes(q))
-        || (row.jp_pronunciation && row.jp_pronunciation.toLowerCase().includes(q))
-        || (row.kr_meaning && row.kr_meaning.toLowerCase().includes(q));
+        || (row.lemma && row.lemma.toLowerCase().includes(q))
+        || (row.jp_pron && row.jp_pron.toLowerCase().includes(q))
+        || (row.kr_mean && row.kr_mean.toLowerCase().includes(q));
       const passLevel = !levelFilter || row.level === levelFilter;
       return passQuery && passLevel;
     });
@@ -117,10 +117,11 @@ function BranchesTable({ items, onMerge }) {
       const firstItem = items.find(item => item.id === selectedItemsArray[0]);
       if (firstItem) {
         setMergeFormData({
-          word: firstItem.word || "",
-          jp_pronunciation: firstItem.jp_pronunciation || "",
-          kr_pronunciation: firstItem.kr_pronunciation || "",
-          kr_meaning: firstItem.kr_meaning || "",
+          lemma_id: firstItem.lemma_id || "",
+          lemma: firstItem.lemma || "",
+          jp_pron: firstItem.jp_pron || "",
+          kr_pron: firstItem.kr_pron || "",
+          kr_mean: firstItem.kr_mean || "",
           level: firstItem.level || ""
         });
       }
@@ -252,7 +253,7 @@ function BranchesTable({ items, onMerge }) {
         </Column>
         <Column flexGrow={1} minWidth={180}>
           <HeaderCell>단어</HeaderCell>
-          <Cell dataKey="word" />
+          <Cell dataKey="lemma" />
         </Column>
         <Column flexGrow={1} minWidth={180}>
           <HeaderCell>사용자</HeaderCell>
@@ -260,7 +261,7 @@ function BranchesTable({ items, onMerge }) {
         </Column>
         <Column width={140}>
           <HeaderCell>읽기(JP)</HeaderCell>
-          <Cell dataKey="jp_pronunciation" />
+          <Cell dataKey="jp_pron" />
         </Column>
         <Column width={120}>
           <HeaderCell>수준</HeaderCell>
@@ -268,7 +269,7 @@ function BranchesTable({ items, onMerge }) {
         </Column>
         <Column flexGrow={2} minWidth={240}>
           <HeaderCell>한국어 뜻</HeaderCell>
-          <Cell dataKey="kr_meaning" />
+          <Cell dataKey="kr_mean" />
         </Column>
         <Column width={220}>
           <HeaderCell>생성 시각</HeaderCell>
@@ -325,42 +326,53 @@ function BranchesTable({ items, onMerge }) {
           )}
 
           <Form fluid>
+          <Form.Group>
+              <Form.ControlLabel>단어</Form.ControlLabel>
+              <Form.Control
+                name="lemma_id"
+                value={mergeFormData.lemma_id || ""}
+                onChange={(value) => setMergeFormData(prev => ({ ...prev, lemma_id: value }))}
+                placeholder="원형 ID"
+              />
+            </Form.Group>
+
+
             <Form.Group>
               <Form.ControlLabel>단어</Form.ControlLabel>
               <Form.Control
                 name="word"
-                value={mergeFormData.word || ""}
-                onChange={(value) => setMergeFormData(prev => ({ ...prev, word: value }))}
-                placeholder="일본어 단어"
+                value={mergeFormData.lemma || ""}
+                onChange={(value) => setMergeFormData(prev => ({ ...prev, lemma: value }))}
+                placeholder="원형"
               />
             </Form.Group>
             
             <Form.Group>
               <Form.ControlLabel>일본어 읽기</Form.ControlLabel>
               <Form.Control
-                name="jp_pronunciation"
-                value={mergeFormData.jp_pronunciation || ""}
-                onChange={(value) => setMergeFormData(prev => ({ ...prev, jp_pronunciation: value }))}
+                name="jp_pron"
+                value={mergeFormData.jp_pron || ""}
+                onChange={(value) => setMergeFormData(prev => ({ ...prev, jp_pron: value }))}
                 placeholder="히라가나/카타카나"
               />
             </Form.Group>
             
             <Form.Group>
-              <Form.ControlLabel>한국어 읽기</Form.ControlLabel>
+              <Form.ControlLabel>한글</Form.ControlLabel>
               <Form.Control
-                name="kr_pronunciation"
-                value={mergeFormData.kr_pronunciation || ""}
-                onChange={(value) => setMergeFormData(prev => ({ ...prev, kr_pronunciation: value }))}
-                placeholder="한국어 발음"
+                name="kr_pron"
+                value={mergeFormData.kr_pron || ""}
+                onChange={(value) => setMergeFormData(prev => ({ ...prev, kr_pron: value }))}
+                placeholder="한글 발음"
               />
             </Form.Group>
             
             <Form.Group>
               <Form.ControlLabel>한국어 뜻</Form.ControlLabel>
               <Form.Control
-                name="kr_meaning"
-                value={mergeFormData.kr_meaning || ""}
-                onChange={(value) => setMergeFormData(prev => ({ ...prev, kr_meaning: value }))}
+                name="kr_mean"
+                value={mergeFormData.kr_mean || ""}
+                onChange={(value) => setMergeFormData(prev => ({ ...prev, kr_mean: value }))}
                 placeholder="한국어 의미"
               />
             </Form.Group>
@@ -387,7 +399,7 @@ function BranchesTable({ items, onMerge }) {
             appearance="primary"
             onClick={handleMerge}
             loading={mergeLoading}
-            disabled={!mergeFormData.word || !mergeFormData.jp_pronunciation || !mergeFormData.kr_meaning || !mergeFormData.level}
+            disabled={!mergeFormData.lemma_id || !mergeFormData.lemma || !mergeFormData.jp_pron || !mergeFormData.kr_mean || !mergeFormData.level}
           >
             병합 실행
           </Button>

@@ -61,12 +61,9 @@ const UserDetail = () => {
         ];
 
         const skillAreas = [
-            { key: 'skill_kanji', label: '한자' },
-            { key: 'skill_word_reading', label: '읽기(단어)' },
-            { key: 'skill_word_speaking', label: '말하기(단어)' },
-            { key: 'skill_sentence_reading', label: '읽기(문장)' },
-            { key: 'skill_sentence_speaking', label: '말하기(문장)' },
-            { key: 'skill_sentence_listening', label: '듣기(문장)' }
+            { key: 'reading', label: '읽기' },
+            { key: 'listening', label: '듣기' },
+            { key: 'speaking', label: '말하기' },
         ];
 
         return ranges.map(range => {
@@ -101,12 +98,9 @@ const UserDetail = () => {
                             <XAxis dataKey="range" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="한자" fill={colors[0]} />
-                            <Bar dataKey="읽기(단어)" fill={colors[1]} />
-                            <Bar dataKey="말하기(단어)" fill={colors[2]} />
-                            <Bar dataKey="읽기(문장)" fill={colors[3]} />
-                            <Bar dataKey="말하기(문장)" fill={colors[4]} />
-                            <Bar dataKey="듣기(문장)" fill={colors[5]} />
+                            <Bar dataKey="읽기" fill={colors[0]} />
+                            <Bar dataKey="듣기" fill={colors[1]} />
+                            <Bar dataKey="말하기" fill={colors[2]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -128,11 +122,12 @@ const UserDetail = () => {
         const totalPages = Math.ceil(userData.words.length / itemsPerPage);
 
         const wordColumns = [
-            { key: 'word', label: '단어' },
-            { key: 'jp_pronunciation', label: '일본어 발음' },
-            { key: 'kr_pronunciation', label: '한국어 발음' },
-            { key: 'kr_meaning', label: '의미' },
+            { key: 'lemma', label: '단어' },
+            { key: 'jp_pron', label: '일본어 발음' },
+            { key: 'kr_pron', label: '한국어 발음' },
+            { key: 'kr_mean', label: '한국어 의미' },
             { key: 'level', label: '레벨' },
+            { key: 'num_word_examples', label: '예문 수' },
             { key: 'created_at', label: '생성일' }
         ];
 
@@ -175,16 +170,23 @@ const UserDetail = () => {
         const totalPages = Math.ceil(userData.examples.length / itemsPerPage);
 
         const exampleColumns = [
-            { key: 'word', label: '단어' },
+            { key: 'num_word_examples', label: '단어 수' },
             { key: 'jp_text', label: '일본어' },
-            { key: 'kr_meaning', label: '한국어 의미' },
+            { key: 'kr_mean', label: '한국어 의미' },
+            { key: 'en_prompt', label: '프롬프트' },
+            { key: 'has_embedding', label: '임베딩 보유' },
+            { key: 'has_audio', label: '음성 보유' },
+            { key: 'has_image', label: '이미지 보유' },
             { key: 'tags', label: '태그' },
-            { key: 'created_at', label: '생성일' }
+            { key: 'updated_at', label: '수정일' },
         ];
 
         const formattedExamples = currentExamples.map(example => ({
             ...example,
-            created_at: formatDate(example.created_at)
+            created_at: formatDate(example.created_at),
+            has_embedding: example.has_embedding ? '보유' : '미보유',
+            has_audio: example.has_audio ? '보유' : '미보유',
+            has_image: example.has_image ? '보유' : '미보유'
         }));
 
         return (
@@ -211,34 +213,6 @@ const UserDetail = () => {
         );
     };
 
-    const renderImages = () => {
-        if (!userData?.images?.length) return null;
-
-        return (
-            <div className="images-section">
-                <h2>이미지 목록 ({userData.images.length}개)</h2>
-                <div className="images-grid">
-                    {userData.images.map((image) => (
-                        <div key={image.id} className="image-card">
-                            <div className="image-header">
-                                <h3>이미지 #{image.id}</h3>
-                                <span className="word-id">단어 ID: {image.word_id}</span>
-                            </div>
-                            <div className="image-content">
-                                <img src={image.image_url} alt={`이미지 ${image.id}`} className="content-image" />
-                                {image.tags && (
-                                    <p><strong>태그:</strong> {image.tags}</p>
-                                )}
-                                <p><strong>생성일:</strong> {formatDate(image.created_at)}</p>
-                                <p><strong>수정일:</strong> {formatDate(image.updated_at)}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    };
-
     const renderUserWordSkills = () => {
         if (!userData?.user_word_skills?.length) return null;
 
@@ -248,21 +222,15 @@ const UserDetail = () => {
         const totalPages = Math.ceil(userData.user_word_skills.length / itemsPerPage);
 
         const skillColumns = [
-            { key: 'word', label: '단어' },
-            { key: 'skill_kanji', label: '한자 스킬' },
-            { key: 'skill_word_reading', label: '단어 읽기' },
-            { key: 'skill_word_speaking', label: '단어 말하기' },
-            { key: 'skill_sentence_reading', label: '문장 읽기' },
-            { key: 'skill_sentence_speaking', label: '문장 말하기' },
-            { key: 'skill_sentence_listening', label: '문장 듣기' },
-            { key: 'is_favorite', label: '즐겨찾기' },
-            { key: 'created_at', label: '생성일' }
+            { key: 'word_id', label: '단어' },
+            { key: 'reading', label: '읽기' },
+            { key: 'listening', label: '듣기' },
+            { key: 'speaking', label: '말하기' },
         ];
 
         const formattedSkills = currentSkills.map(skill => ({
             ...skill,
-            created_at: formatDate(skill.created_at),
-            is_favorite: skill.is_favorite ? '⭐' : '-'
+            created_at: formatDate(skill.created_at)
         }));
 
         return (
@@ -332,11 +300,9 @@ const UserDetail = () => {
         const stats = {
             words: userData.words?.length || 0,
             examples: userData.examples?.length || 0,
-            images: userData.images?.length || 0,
             skills: userData.user_word_skills?.length || 0,
             texts: userData.user_texts?.length || 0,
             roles: userData.user_roles?.length || 0,
-            favorites: userData.user_word_skills?.filter(skill => skill.is_favorite).length || 0
         };
 
         return (
@@ -352,10 +318,6 @@ const UserDetail = () => {
                         <span className="stat-number">{stats.examples}</span>
                     </div>
                     <div className="stat-card">
-                        <h3>이미지</h3>
-                        <span className="stat-number">{stats.images}</span>
-                    </div>
-                    <div className="stat-card">
                         <h3>스킬</h3>
                         <span className="stat-number">{stats.skills}</span>
                     </div>
@@ -366,10 +328,6 @@ const UserDetail = () => {
                     <div className="stat-card">
                         <h3>역할</h3>
                         <span className="stat-number">{stats.roles}</span>
-                    </div>
-                    <div className="stat-card">
-                        <h3>즐겨찾기</h3>
-                        <span className="stat-number">{stats.favorites}</span>
                     </div>
                 </div>
 
@@ -455,8 +413,6 @@ const UserDetail = () => {
                 return renderWords();
             case 'examples':
                 return renderExamples();
-            case 'images':
-                return renderImages();
             case 'skills':
                 return renderUserWordSkills();
             case 'texts':
@@ -515,12 +471,6 @@ const UserDetail = () => {
                     onClick={() => handleTabChange('examples')}
                 >
                     예문
-                </button>
-                <button 
-                    className={`tab-button ${activeTab === 'images' ? 'active' : ''}`}
-                    onClick={() => handleTabChange('images')}
-                >
-                    이미지
                 </button>
                 <button 
                     className={`tab-button ${activeTab === 'skills' ? 'active' : ''}`}

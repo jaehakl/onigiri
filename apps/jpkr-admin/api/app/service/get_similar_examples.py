@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import text, select
 
-from db import Example, ExampleAudio
+from db import Example
 from utils.aws_s3 import presign_get_url
 
-def get_similar_examples(example_id: str, db: Session, user_id: str):
+def get_similar_examples(example_id: int, db: Session, user_id: str):
     result = db.execute(
         select(Example)
         .where(Example.id == example_id)
@@ -34,7 +34,6 @@ def get_similar_examples(example_id: str, db: Session, user_id: str):
         example_ids = [row.id for row in rows]
         result = db.execute(
             select(Example)
-            .options(selectinload(Example.audio))
             .where(Example.id.in_(example_ids))
         )
         rows = result.scalars().all()
@@ -44,9 +43,9 @@ def get_similar_examples(example_id: str, db: Session, user_id: str):
             similar_examples.append({
                 'id': row.id,
                 'jp_text': row.jp_text,
-                'kr_meaning': row.kr_meaning,
+                'kr_mean': row.kr_mean,
                 'tags': row.tags,
-                'audio_url': presign_get_url(row.audio[0].audio_url, expires=600) if len(row.audio) > 0 else None,
+                'audio_url': presign_get_url(row.audio_object_key, expires=600) if row.audio_object_key is not None else None,
                 'has_embedding': 1 if row.embedding is not None else 0
             })
         
@@ -54,11 +53,10 @@ def get_similar_examples(example_id: str, db: Session, user_id: str):
         'example':{
             'id': example.id,
             'jp_text': example.jp_text,
-            'kr_meaning': example.kr_meaning,
+            'kr_mean': example.kr_mean,
             'tags': example.tags,
             'num_words': len(example.word_examples),
-            'num_audio': len(example.audio),
-            'audio_url': presign_get_url(example.audio[0].audio_url, expires=600) if len(example.audio) > 0 else None,
+            'audio_url': presign_get_url(example.audio_object_key, expires=600) if example.audio_object_key is not None else None,
             'has_embedding': 1 if example.embedding is not None else 0
         },
         'similar_examples': similar_examples

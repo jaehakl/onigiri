@@ -1,15 +1,13 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, and_, or_
-from db import Word, WordExample, WordImage
+from db import Word, WordExample
 
 
 def filter_words_by_criteria(
     levels: Optional[List[str]] = None,
     min_examples: Optional[int] = None,
     max_examples: Optional[int] = None,
-    min_images: Optional[int] = None,
-    max_images: Optional[int] = None,
     has_embedding: Optional[bool] = None,
     limit: Optional[int] = None,
     offset: Optional[int] = None,
@@ -24,8 +22,6 @@ def filter_words_by_criteria(
         levels: 필터링할 레벨 목록 (예: ['N5', 'N4', 'N3'])
         min_examples: 최소 예문 수
         max_examples: 최대 예문 수
-        min_images: 최소 이미지 수
-        max_images: 최대 이미지 수
         has_embedding: embedding 보유 여부 (True: 보유, False: 미보유, None: 상관없음)
         limit: 반환할 최대 결과 수
         offset: 건너뛸 결과 수
@@ -65,29 +61,6 @@ def filter_words_by_criteria(
                 func.coalesce(example_count_subquery.c.example_count, 0) <= max_examples
             )
     
-    # 이미지 수 필터링
-    if min_images is not None or max_images is not None:
-        # 서브쿼리로 이미지 수 계산 (LEFT JOIN 사용)
-        image_count_subquery = db.query(
-            WordImage.word_id,
-            func.count(WordImage.id).label('image_count')
-        ).group_by(WordImage.word_id).subquery()
-        
-        query = query.outerjoin(
-            image_count_subquery,
-            Word.id == image_count_subquery.c.word_id
-        )
-        
-        if min_images is not None:
-            # COALESCE를 사용하여 NULL을 0으로 처리
-            query = query.filter(
-                func.coalesce(image_count_subquery.c.image_count, 0) >= min_images
-            )
-        if max_images is not None:
-            query = query.filter(
-                func.coalesce(image_count_subquery.c.image_count, 0) <= max_images
-            )
-    
     # Embedding 보유 여부 필터링
     if has_embedding is not None:
         if has_embedding:
@@ -110,13 +83,13 @@ def filter_words_by_criteria(
     for word in query.all():
         words_rv.append({
             'id': word.id,
-            'word': word.word,
-            'jp_pronunciation': word.jp_pronunciation,
-            'kr_pronunciation': word.kr_pronunciation,
-            'kr_meaning': word.kr_meaning,
+            'lemma_id': word.lemma_id,
+            'lemma': word.lemma,
+            'jp_pron': word.jp_pron,
+            'kr_pron': word.kr_pron,
+            'kr_mean': word.kr_mean,
             'level': word.level,
             'num_examples': len(word.word_examples),
-            'num_images': len(word.images),
             'has_embedding': 1 if word.embedding is not None else 0
         })
     

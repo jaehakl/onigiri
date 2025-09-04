@@ -42,10 +42,10 @@ def generate_audio(text: str):
 
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-from db import Example, ExampleAudio
+from db import Example
 
 def gen_example_audio(
-    example_ids: List[str],
+    example_ids: List[int],
     db: Session,
     user_id: str
 ) -> Dict[str, Any]:
@@ -56,7 +56,7 @@ def gen_example_audio(
             mp3_buf = generate_audio(example.jp_text)
 
             key = "onigiri/example_audio/" + uuid.uuid4().hex + ".mp3"
-            print(key)
+
             try:
                 upload_fileobj(mp3_buf, key, "audio/mpeg")
                 inserted_keys.append(key)
@@ -64,13 +64,8 @@ def gen_example_audio(
                 print(f"S3 upload failed: {e}")
                 continue
 
-            ea = ExampleAudio(
-                example_id=example.id,
-                tags="default",
-                audio_url=key
-            )
-            db.add(ea)
-            db.flush()
+            example.audio_object_key = key
+
             if i % 10 == 9:
                 db.commit()
                 inserted_keys = []

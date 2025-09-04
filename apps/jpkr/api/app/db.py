@@ -70,48 +70,69 @@ class TimestampMixin:
 
 class Word(TimestampMixin, Base):
     __tablename__ = "words"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    root_word_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False),ForeignKey("words.id", ondelete="SET NULL"),nullable=True)
-    word: Mapped[str] = mapped_column(Text, nullable=False)    
-    jp_pronunciation: Mapped[str] = mapped_column(Text, nullable=False)
-    kr_pronunciation: Mapped[str] = mapped_column(Text, nullable=False)
-    kr_meaning: Mapped[str] = mapped_column(Text, nullable=False)
+    lemma_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    lemma: Mapped[str] = mapped_column(Text, nullable=False)
+    jp_pron: Mapped[str] = mapped_column(Text, nullable=False)
+    kr_pron: Mapped[str] = mapped_column(Text, nullable=False)
+    kr_mean: Mapped[str] = mapped_column(Text, nullable=False)
     level: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
-    #examples: Mapped[List["Example"]] = relationship("Example", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
-    images: Mapped[List["WordImage"]] = relationship("WordImage", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="words", lazy="selectin")
-    root_word: Mapped[Optional["Word"]] = relationship("Word",back_populates="branch_words",foreign_keys=[root_word_id],remote_side=[id],lazy="selectin")
-    branch_words: Mapped[List["Word"]] = relationship("Word",back_populates="root_word",lazy="selectin",)
-
-
-class WordExample(TimestampMixin, Base):
-    __tablename__ = "word_examples"
-    word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), primary_key=True)
-    example_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("examples.id", ondelete="CASCADE"), primary_key=True)
-    word: Mapped["Word"] = relationship("Word", back_populates="word_examples", lazy="selectin")
-    example: Mapped["Example"] = relationship("Example", back_populates="word_examples", lazy="selectin")
 
 
 class Example(TimestampMixin, Base):
     __tablename__ = "examples"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    __table_args__ = (Index("idx_examples_id", id, unique=True),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    #word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)    
     tags: Mapped[str] = mapped_column(Text, nullable=False)
     jp_text: Mapped[str] = mapped_column(Text, nullable=False)
-    kr_meaning: Mapped[str] = mapped_column(Text, nullable=False)
+    kr_mean: Mapped[str] = mapped_column(Text, nullable=False)
+    en_prompt: Mapped[str] = mapped_column(Text, nullable=True)
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
-    audio: Mapped[List["ExampleAudio"]] = relationship("ExampleAudio", back_populates="example", cascade="all, delete-orphan", lazy="selectin")
-    #word: Mapped["Word"] = relationship("Word", back_populates="examples", lazy="selectin")
+    audio_object_key: Mapped[str] = mapped_column(Text, nullable=True)
+    image_object_key: Mapped[str] = mapped_column(Text, nullable=True)
     word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="example", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="examples", lazy="selectin")
 
 
+class WordExample(TimestampMixin, Base):
+    __tablename__ = "word_examples"
+    word_id: Mapped[int] = mapped_column(Integer, ForeignKey("words.id", ondelete="CASCADE"), primary_key=True)
+    example_id: Mapped[int] = mapped_column(Integer, ForeignKey("examples.id", ondelete="CASCADE"), primary_key=True)
+    word: Mapped["Word"] = relationship("Word", back_populates="word_examples", lazy="selectin")
+    example: Mapped["Example"] = relationship("Example", back_populates="word_examples", lazy="selectin")
+
+class UserWordSkill(TimestampMixin, Base):
+    __tablename__ = "user_word_skills"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    word_id: Mapped[int] = mapped_column(Integer, ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
+    reading: Mapped[int] = mapped_column(Integer, default=0)
+    listening: Mapped[int] = mapped_column(Integer, default=0)
+    speaking: Mapped[int] = mapped_column(Integer, default=0)
+    word: Mapped["Word"] = relationship("Word", back_populates="user_word_skills", lazy="selectin")
+    user: Mapped["User"] = relationship("User", back_populates="user_word_skills", lazy="selectin")
+
+
+class UserText(TimestampMixin, Base):
+    __tablename__ = "user_texts"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    tags: Mapped[str] = mapped_column(Text, nullable=False)
+    embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
+    youtube_url: Mapped[str] = mapped_column(Text, nullable=True)
+    audio_url: Mapped[str] = mapped_column(Text, nullable=True)
+    user: Mapped["User"] = relationship("User", back_populates="user_texts", lazy="selectin")
+
+
+
+'''
 class WordImage(TimestampMixin, Base):
     __tablename__ = "word_images"
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
@@ -134,35 +155,9 @@ class ExampleAudio(TimestampMixin, Base):
     tags: Mapped[str] = mapped_column(Text, nullable=False)
     audio_url: Mapped[str] = mapped_column(Text, nullable=False)
     example: Mapped["Example"] = relationship("Example", back_populates="audio", lazy="selectin")
+'''
 
 
-class UserWordSkill(TimestampMixin, Base):
-    __tablename__ = "user_word_skills"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
-    skill_kanji: Mapped[int] = mapped_column(Integer, default=0)
-    skill_word_reading: Mapped[int] = mapped_column(Integer, default=0)
-    skill_word_speaking: Mapped[int] = mapped_column(Integer, default=0)
-    skill_sentence_reading: Mapped[int] = mapped_column(Integer, default=0)
-    skill_sentence_speaking: Mapped[int] = mapped_column(Integer, default=0)
-    skill_sentence_listening: Mapped[int] = mapped_column(Integer, default=0)
-    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
-    word: Mapped["Word"] = relationship("Word", back_populates="user_word_skills", lazy="selectin")
-    user: Mapped["User"] = relationship("User", back_populates="user_word_skills", lazy="selectin")
-
-
-class UserText(TimestampMixin, Base):
-    __tablename__ = "user_texts"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    title: Mapped[str] = mapped_column(Text, nullable=False)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
-    tags: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
-    youtube_url: Mapped[str] = mapped_column(Text, nullable=True)
-    audio_url: Mapped[str] = mapped_column(Text, nullable=True)
-    user: Mapped["User"] = relationship("User", back_populates="user_texts", lazy="selectin")
 
 # ---------------------------------------------------------------------
 # Tables (Auth Layer)
@@ -181,7 +176,6 @@ class User(TimestampMixin, Base):
     user_roles: Mapped[List["UserRole"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     words: Mapped[List["Word"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     examples: Mapped[List["Example"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    images: Mapped[List["WordImage"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     user_word_skills: Mapped[List["UserWordSkill"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     user_texts: Mapped[List["UserText"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
 

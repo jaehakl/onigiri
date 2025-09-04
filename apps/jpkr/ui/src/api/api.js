@@ -34,9 +34,7 @@ export const createExamplesBatch = (examplesData) => axios.post(`${API_URL}/exam
 export const readExamplesBatch = (exampleIds) => axios.post(`${API_URL}/examples/read/batch`, exampleIds);
 export const updateExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/update/batch`, examplesData);
 export const deleteExamplesBatch = (exampleIds) => axios.post(`${API_URL}/examples/delete/batch`, exampleIds);
-export const getAllExamples = (limit = null, offset = null) => axios.post(`${API_URL}/examples/all`, { limit, offset });
-export const searchExamplesByText = (searchTerm) => axios.get(`${API_URL}/examples/search/${encodeURIComponent(searchTerm)}`);
-export const getExamplesByWordId = (wordId) => axios.get(`${API_URL}/examples/word/${wordId}`);
+export const filterExamples = (exampleFilterData) => axios.post(`${API_URL}/examples/filter`, exampleFilterData);
 
 // === Text Analysis ===
 export const analyzeText = (text) => axios.post(`${API_URL}/text/analyze`, { text });

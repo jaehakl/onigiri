@@ -10,3 +10,6 @@ AudioSegment.converter = which("ffmpeg") or r"C:\ffmpeg\bin\ffmpeg.exe"
 https://github.com/kingbri1/flash-attention/releases
 여기서 버전 맞는 걸 다운받은 후,
 poetry add "[.whl 파일 경로]"
+
+#fugashi (MeCab) unidic 다운로드
+python -m unidic download

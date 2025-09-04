@@ -97,10 +97,10 @@ const WordsSearch = () => {
             <table className="results-table">
               <thead>
                 <tr>
-                  <th>일본어</th>
+                  <th>단어 원형</th>
                   <th>일본어 발음</th>
                   <th>한글 발음</th>
-                  <th>의미</th>
+                  <th>한글 의미</th>
                   <th>레벨</th>
                   <th>수정일</th>
                 </tr>
@@ -108,10 +108,10 @@ const WordsSearch = () => {
               <tbody>
                 {searchResults.map((word) => (
                   <tr key={word.id}>
-                    <td className="word-cell">{word.word}</td>
-                    <td className="pronunciation-cell">{word.jp_pronunciation}</td>
-                    <td className="pronunciation-cell">{word.kr_pronunciation}</td>
-                    <td className="meaning-cell">{word.kr_meaning}</td>
+                    <td className="word-cell">{word.lemma}</td>
+                    <td className="pronunciation-cell">{word.jp_pron}</td>
+                    <td className="pronunciation-cell">{word.kr_pron}</td>
+                    <td className="meaning-cell">{word.kr_mean}</td>
                     <td className="level-cell">{word.level}</td>
                     <td className="date-cell">{new Date(word.updated_at).toLocaleDateString('ko-KR')}</td>
                   </tr>

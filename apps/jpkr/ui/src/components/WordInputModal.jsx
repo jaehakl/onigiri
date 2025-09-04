@@ -6,13 +6,14 @@ import { useUser } from '../contexts/UserContext';
 const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
   const { user } = useUser();
   const [wordForm, setWordForm] = useState({
-    word: '',
-    jp_pronunciation: '',
-    kr_pronunciation: '',
-    kr_meaning: '',
+    lemma_id: '',
+    lemma: '',
+    jp_pron: '',
+    kr_pron: '',
+    kr_mean: '',
     level: 'N1',
     tags: '',
-    master: false,
+    reading_mastered: false,
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileTags, setFileTags] = useState([]);
@@ -21,17 +22,17 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
   useEffect(() => {
     if (word) {
       const formData = {
-        word: word.word || '',
-        jp_pronunciation: word.jp_pronunciation || word.surface || '',
-        kr_pronunciation: word.kr_pronunciation || '',
-        kr_meaning: word.kr_meaning || '',
+        lemma_id: word.lemma_id || '',
+        lemma: word.lemma || '',
+        jp_pron: word.jp_pron || '',
+        kr_pron: word.kr_pron || '',
+        kr_mean: word.kr_mean || '',
         level: word.level || 'N1',
-        tags: word.tags || '',
-        master: false,
+        reading_mastered: false,
       };
       word.user_word_skills.forEach(skill => {
-        if (skill.skill_word_reading > 80) {
-          formData.master = true;
+        if (skill.reading > 80) {
+          formData.reading_mastered = true;
         }
       });
       setWordForm(formData);
@@ -41,17 +42,17 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
   // 폼 입력 처리
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'kr_pronunciation') {
+    if (name === 'kr_pron') {
       const kana = to_hiragana(value);
       setWordForm(prev => ({
         ...prev,
-        'jp_pronunciation': kana,
-        'kr_pronunciation': value
+        'jp_pron': kana,
+        'kr_pron': value
       }));
-    } else if (name === 'master') {
+    } else if (name === 'reading_mastered') {
       setWordForm(prev => ({
         ...prev,
-        [name]: !prev.master
+        [name]: !prev.reading_mastered
       }));
     } else {
       setWordForm(prev => ({
@@ -68,8 +69,8 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
     
     // 파일별로 태그 초기화
     const initialTags = files.map(file => ({
-      word: wordForm.word,
-      tags: wordForm.tags
+      lemma_id: wordForm.lemma_id,
+      lemma: wordForm.lemma,
     }));
     setFileTags(initialTags);
   };
@@ -77,31 +78,26 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
   // 파일 태그 변경 처리
   const handleFileTagChange = (index, value) => {
     const newFileTags = [...fileTags];
-    newFileTags[index] = { ...newFileTags[index], tags: value };
+    newFileTags[index] = { ...newFileTags[index], lemma_id: wordForm.lemma_id, lemma: wordForm.lemma };
     setFileTags(newFileTags);
   };
 
   // 폼 제출 처리
   const handleSubmit = () => {
-    if (!wordForm.word.trim()) {
+    if (!wordForm.lemma.trim()) {
       alert('단어를 입력해주세요.');
       return;
     }
 
-    const newWord = {
-      id: word?.id || Date.now(),
-      ...wordForm,
-      surface: wordForm.word,
-      originalWord: word
-    };
 
     // FormData 생성
     const fd = new FormData();
-    fd.append("data_json", JSON.stringify([newWord]));
+    fd.append("data_json", JSON.stringify([wordForm]));
     
     // 파일 메타데이터 추가
     const fileMetaData = selectedFiles.map((file, index) => ({
-      word: wordForm.word,
+      lemma_id: wordForm.lemma_id,
+      lemma: wordForm.lemma,
       tags: fileTags[index]?.tags || wordForm.tags
     }));
     fd.append("file_meta_json", JSON.stringify(fileMetaData));
@@ -126,13 +122,14 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
   // 모달 닫기
   const handleClose = () => {
     setWordForm({
-      word: '',
-      jp_pronunciation: '',
-      kr_pronunciation: '',
-      kr_meaning: '',
+      lemma_id: '',
+      lemma: '',
+      jp_pron: '',
+      kr_pron: '',
+      kr_mean: '',
       level: 'N1',
       tags: '',
-      master: false,
+      reading_mastered: false,
     });
     setSelectedFiles([]);
     setFileTags([]);
@@ -147,14 +144,14 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
         <div className="word-input-modal-body">
           <div className="word-input-modal-form-row">
             <div className="word-input-modal-form-group">
-              <h2 className="word-input-modal-word">{wordForm.word}</h2>
+              <h2 className="word-input-modal-word">{wordForm.lemma}</h2>
             </div>
             <div className="word-input-modal-form-group">
               <label>일본어 발음:</label>
               <input
                 type="text"
-                name="jp_pronunciation"
-                value={wordForm.jp_pronunciation}
+                name="jp_pron"
+                value={wordForm.jp_pron}
                 onChange={handleFormChange}
                 placeholder="일본어 발음을 입력하세요"
               />
@@ -165,8 +162,8 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
              <label>한국어 뜻:</label>
               <input
                 type="text"
-                name="kr_meaning"
-                value={wordForm.kr_meaning}
+                name="kr_mean"
+                value={wordForm.kr_mean}
                 onChange={handleFormChange}
                 placeholder="한국어 뜻을 입력하세요"
               />
@@ -176,8 +173,8 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
               <label>한국어 발음:</label>
               <input
                 type="text"
-                name="kr_pronunciation"
-                value={wordForm.kr_pronunciation}
+                name="kr_pron"
+                value={wordForm.kr_pron}
                 onChange={handleFormChange}
                 placeholder="한국어 발음을 입력하세요"
               />
@@ -199,34 +196,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
                 <option value="N1">(N1) 고급</option>
               </select>
             </div>
-            <div className="word-input-modal-form-group">
-              <label>이미지 파일:</label>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange}
-                placeholder="이미지 파일을 선택하세요"
-              />
             </div>
-            </div>
-          {selectedFiles.length > 0 && (
-            <div className="word-input-modal-form-group">
-              <label>파일별 태그:</label>
-              {selectedFiles.map((file, index) => (
-                <div key={index} className="word-input-modal-file-tag-item">
-                  <span className="word-input-modal-file-name">{file.name}</span>
-                  <input
-                    type="text"
-                    value={fileTags[index]?.tags || ''}
-                    onChange={(e) => handleFileTagChange(index, e.target.value)}
-                    placeholder="태그를 입력하세요"
-                    className="word-input-modal-file-tag-input"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
         </div>
         <div className="word-input-modal-footer">
           <div className="word-input-modal-footer-left">
@@ -235,7 +205,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
                 삭제
               </button>
             )}
-            <input type="checkbox" name="master" checked={wordForm.master} onChange={handleFormChange} />
+            <input type="checkbox" name="reading_mastered" checked={wordForm.reading_mastered} onChange={handleFormChange} />
             <label>Master</label>
             {!(user && user.roles.includes('user')) && (
               <h5>로그인 후 저장 가능합니다.</h5>

@@ -50,17 +50,17 @@ def create_words_batch(words_data: List[WordData], db: Session, user_id: Optiona
 def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     result = {}        
     for word_data in words_data:
+        print(word_data)
         word = db.query(Word).filter(Word.id == word_data.id).first()
         
         if word:
             # 단어 데이터 업데이트
-            word.word = word_data.word
-            word.jp_pronunciation = word_data.jp_pronunciation
-            word.kr_pronunciation = word_data.kr_pronunciation
-            word.kr_meaning = word_data.kr_meaning
+            word.lemma = word_data.lemma
+            word.jp_pron = word_data.jp_pron
+            word.kr_pron = word_data.kr_pron
+            word.kr_mean = word_data.kr_mean
             word.level = word_data.level
-            word.user_id = user_id
-            
+            word.user_id = user_id            
             result[word_data.id] = row_to_dict(word)            
         else:
             # 해당 ID의 단어가 없는 경우
@@ -90,10 +90,10 @@ def search_words_by_word(search_term: str, db: Session=None, user_id:str = None)
     
     found_words = db.query(Word).filter(
         or_(
-            Word.word.like(hiragana_pattern),
-            Word.jp_pronunciation.like(hiragana_pattern),
-            Word.kr_pronunciation.like(hangul_pattern),
-            Word.kr_meaning.like(hangul_pattern),
+            Word.lemma.like(hiragana_pattern),
+            Word.jp_pron.like(hiragana_pattern),
+            Word.kr_pron.like(hangul_pattern),
+            Word.kr_mean.like(hangul_pattern),
         )
     ).all()
     

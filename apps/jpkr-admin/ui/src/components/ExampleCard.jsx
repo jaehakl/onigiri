@@ -42,7 +42,7 @@ const ExampleCard = ({ example, isMain = false }) => {
                 </div>
                 <div className="example-meaning">
                     <span className="label">한국어 의미:</span>
-                    <span className="value kr-meaning">{example.kr_meaning}</span>
+                    <span className="value kr-meaning">{example.kr_mean}</span>
                 </div>
             </div>
             <div className="example-stats">
@@ -51,10 +51,6 @@ const ExampleCard = ({ example, isMain = false }) => {
                         <div className="stat">
                             <span className="stat-label">단어 수:</span>
                             <span className="stat-value">{example.num_words}</span>
-                        </div>
-                        <div className="stat">
-                            <span className="stat-label">음성 수:</span>
-                            <span className="stat-value">{example.num_audio}</span>
                         </div>
                     </>
                 )}

@@ -1,12 +1,12 @@
-import re
-from typing import List, Dict, Any
-from fugashi import Tagger
+from typing import Dict, Any
 from collections import defaultdict
-from db import SessionLocal, Word, WordExample, Example
+from db import SessionLocal, Word, WordExample
 from sqlalchemy.orm import selectinload
-from sqlalchemy import or_, select, case
+from sqlalchemy import select, case
 from sqlalchemy.orm import Session
 from utils.aws_s3 import presign_get_url
+
+from service.analysis.words_from_text import extract_words_from_text
 
 def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
@@ -16,138 +16,86 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     if db is None:
         db = SessionLocal()
 
-    tagger = Tagger()  # unidic-lite 자동 사용    
-    rows = []
-    word_list = []    
-    text_list = text.split("\n")
-    for i_line, text in enumerate(text_list):
-        text_words = tagger(text)
-        for i_word, word in enumerate(text_words):
-            feat = word.feature
-            pos  = getattr(feat, "pos1", "")
-            #if pos in ["助詞", "記号", "助動詞","補助記号","接尾辞"]:
-            #    continue
-            #if word.surface.strip() in word_list:
-            #    continue
-            rows.append({
-                "i_line": i_line,
-                "i_word": i_word,
-                "surface": word.surface if getattr(feat, "lemma", None) != None else " "+word.surface,
-                "lemma": getattr(feat, "lemma", None),
-                "pos": pos,
-                "pos2": getattr(feat, "pos2", ""),
-                "pos3": getattr(feat, "pos3", ""),
-                "pos4": getattr(feat, "pos4", ""),
-                "cType": getattr(feat, "cType", ""),
-                "cForm": getattr(feat, "cForm", ""),
-                "reading": getattr(feat, "reading", ""),
-            })
-            word_list.append(word.surface)
+    document, words_dict = extract_words_from_text(text)
         
-
-    # rows 에서 필요한 키들 수집 (중복 제거)
-    lemmas = [r["lemma"] for r in rows]
-    surfaces = [r["surface"] for r in rows]
     stmt = (
         select(Word)
         .options(selectinload(Word.word_examples)
-                 .options(selectinload(WordExample.example)
-                          .options(selectinload(Example.audio))), 
-                 selectinload(Word.user_word_skills),
-                 selectinload(Word.images))
-        .where(
-            or_(
-                Word.word.in_(lemmas) if lemmas else False,
-                Word.jp_pronunciation.in_(surfaces) if surfaces else False,
-            )
-        )
+                 .options(selectinload(WordExample.example)),
+                 selectinload(Word.user_word_skills),)
+        .where(Word.lemma_id.in_(list(words_dict.keys())))
         .order_by(
             case((Word.user_id == user_id, 0), else_=1)  # 내 것이 먼저 오게
         )
     )
     words = db.execute(stmt).scalars().all()
+
     # 그 다음엔 "처음 본 키만 채우기"만 해도 같은 효과
-    by_lemma = {}
+    words_existing = {}
     for w in words:
-        if w.word and w.word not in by_lemma:
-            by_lemma[w.word] = row_to_dict(w)
-            by_lemma[w.word]["examples"] = []
-            by_lemma[w.word]["images"] = []
-            by_lemma[w.word]["user_word_skills"] = []
-            by_lemma[w.word]["user"] = row_to_dict(w.user)
+        if w.lemma_id and w.lemma_id not in words_existing:
+            words_existing[w.lemma_id] = row_to_dict(w)
+            words_existing[w.lemma_id]["examples"] = []
+            words_existing[w.lemma_id]["user_word_skills"] = []
+            words_existing[w.lemma_id]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
-                by_lemma[w.word]["user_word_skills"].append(row_to_dict(user_word_skill))
+                words_existing[w.lemma_id]["user_word_skills"].append(row_to_dict(user_word_skill))
             for word_example in w.word_examples:
                 example = word_example.example
                 example_dict = {
                     "id": example.id,
-                    "word_info": w.word,
+                    "word_info": w.lemma,
                     "tags": example.tags,
                     "jp_text": example.jp_text,
-                    "kr_meaning": example.kr_meaning,
-                    "audio_url": presign_get_url(example.audio[0].audio_url, expires=600) if len(example.audio) > 0 else None,
+                    "kr_mean": example.kr_mean,
+                    "audio_url": presign_get_url(example.audio_object_key, expires=600) if example.audio_object_key else None,
                 }
-                by_lemma[w.word]["examples"].append(example_dict)
-            for image in w.images:
-                by_lemma[w.word]["images"].append(presign_get_url(image.object_key, expires=600))
-
-    # 4) 원래 rows 순서를 유지하며 결과 구성 (lemma 우선, 없으면 surface)
-    words_result = defaultdict(list)
-    for r in rows:
-        w = by_lemma.get(r["lemma"])
-        if w:
-            examples_list = []
-            for example in w["examples"]:
-                examples_list.append(example)                
-                if len(examples_list) > 3:
+                words_existing[w.lemma_id]["examples"].append(example_dict)
+                if len(words_existing[w.lemma_id]["examples"]) > 1:
                     break
-
-            user_word_skills_list = []
-            for user_word_skill in w["user_word_skills"]:
-                user_word_skills_list.append({
-                    "id": user_word_skill["id"],
-                    "skill_kanji": user_word_skill["skill_kanji"],
-                    "skill_word_reading": user_word_skill["skill_word_reading"],
-                    "skill_word_speaking": user_word_skill["skill_word_speaking"],
-                    "skill_sentence_reading": user_word_skill["skill_sentence_reading"],
-                    "skill_sentence_speaking": user_word_skill["skill_sentence_speaking"],
-                    "skill_sentence_listening": user_word_skill["skill_sentence_listening"],
-                    "is_favorite": user_word_skill["is_favorite"],
+    words_result = defaultdict(list)
+    for i_line, line in enumerate(document):
+        for i_word, word in enumerate(line):
+            surface = word["surface"]
+            lemma_id = word["lemma_id"]
+            print(lemma_id)
+            if lemma_id in words_existing:
+                print(i_line, i_word, "found")
+                w = words_existing[lemma_id]
+                words_result[i_line].append({
+                    "word_id": w["id"],
+                    "lemma_id": w["lemma_id"],
+                    "lemma": w["lemma"],
+                    "user_id": w["user_id"],
+                    "user_display_name": w["user"]["display_name"],
+                    "surface": surface,
+                    "jp_pron": w["jp_pron"],
+                    "kr_pron": w["kr_pron"],
+                    "kr_mean": w["kr_mean"],
+                    "level": w["level"],
+                    "examples": w["examples"],
+                    "num_examples": len(w["examples"]),
+                    "user_word_skills": w["user_word_skills"],
+                    "num_user_word_skills": len(w["user_word_skills"]),
                 })
-            user_word_skills_list = sorted(user_word_skills_list, key=lambda x: x["skill_kanji"], reverse=True)
-            words_result[r["i_line"]].append({
-                "word_id": w["id"],
-                "word": w["word"],
-                "user_id": w["user_id"],
-                "user_display_name": w["user"]["display_name"],
-                "surface": r["surface"],
-                "jp_pronunciation": w["jp_pronunciation"],
-                "kr_pronunciation": w["kr_pronunciation"],
-                "kr_meaning": w["kr_meaning"],
-                "level": w["level"],
-                "examples": examples_list,
-                "num_examples": len(examples_list),
-                "user_word_skills": user_word_skills_list,
-                "num_user_word_skills": len(user_word_skills_list),
-                "images": w["images"],
-                "num_images": len(w["images"]),
-            })
-        elif r["lemma"] != "":
-            words_result[r["i_line"]].append({
-                "word_id": None,
-                "word": r["lemma"],
-                "user_id": None,
-                "user_display_name": None,
-                "surface": r["surface"],
-                "jp_pronunciation": "",
-                "kr_pronunciation": "",
-                "kr_meaning": "",
-                "level": None,
-                "examples": [],
-                "num_examples": 0,
-                "user_word_skills": [],
-                "num_user_word_skills": 0,
-                "images": [],
-                "num_images": 0,
-            })
+            elif lemma_id in words_dict:
+                if words_dict[lemma_id]["lemma"] != "":
+                    print(i_line, i_word, "not found")
+                    w = words_dict[lemma_id]
+                    words_result[i_line].append({
+                        "word_id": None,
+                        "lemma_id": w["lemma_id"],
+                        "lemma": w["lemma"],
+                        "user_id": None,
+                        "user_display_name": None,
+                        "surface": surface,
+                        "jp_pron": w["pronBase"],
+                        "kr_pron": w["pos1"],
+                        "kr_mean": w["type"],
+                        "level": None,
+                        "examples": [],
+                        "num_examples": 0,
+                        "user_word_skills": [],
+                        "num_user_word_skills": 0,
+                    })
     return words_result

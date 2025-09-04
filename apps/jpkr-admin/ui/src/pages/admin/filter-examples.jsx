@@ -8,9 +8,10 @@ const FilterExamples = () => {
   const [filterData, setFilterData] = useState({
     min_words: '',
     max_words: '',
-    min_audios: '',
-    max_audios: '',
+    has_en_prompt: null,
     has_embedding: null,
+    has_audio: null,
+    has_image: null,
     limit: 100,
     offset: 0
   });
@@ -34,9 +35,11 @@ const FilterExamples = () => {
     { key: 'id', label: 'ID' },
     { key: 'tags', label: '태그' },
     { key: 'jp_text', label: '일본어 텍스트' },
-    { key: 'kr_meaning', label: '한국어 의미' },
+    { key: 'kr_mean', label: '한국어 의미' },
+    { key: 'en_prompt', label: '프롬프트' },
     { key: 'num_words', label: '단어 수' },
-    { key: 'num_audio', label: '음성 수' },
+    { key: 'has_audio', label: '음성 보유' },
+    { key: 'has_image', label: '이미지 보유' },
     { key: 'has_embedding', label: '임베딩 보유' }
   ];
 
@@ -59,8 +62,10 @@ const FilterExamples = () => {
         ...filterData,
         min_words: filterData.min_words ? parseInt(filterData.min_words) : null,
         max_words: filterData.max_words ? parseInt(filterData.max_words) : null,
-        min_audios: filterData.min_audios ? parseInt(filterData.min_audios) : null,
-        max_audios: filterData.max_audios ? parseInt(filterData.max_audios) : null,
+        has_en_prompt: filterData.has_en_prompt,
+        has_embedding: filterData.has_embedding,
+        has_audio: filterData.has_audio,
+        has_image: filterData.has_image,
         limit: filterData.limit || 100,
         offset: filterData.offset || 0
       };
@@ -90,8 +95,9 @@ const FilterExamples = () => {
     setFilterData({
       min_words: '',
       max_words: '',
-      min_audios: '',
-      max_audios: '',
+      has_en_prompt: null,
+      has_audio: null,
+      has_image: null,
       has_embedding: null,
       limit: 100,
       offset: 0
@@ -114,7 +120,8 @@ const FilterExamples = () => {
         id: example.id,
         tags: example.tags,
         jp_text: example.jp_text,
-        kr_meaning: example.kr_meaning,
+        kr_mean: example.kr_mean,
+        en_prompt: example.en_prompt,
       }));
       await updateExamplesBatch(exampleDataList);
       alert(`${examplesToUpdate.length}개의 예문이 성공적으로 수정되었습니다.`);
@@ -285,28 +292,44 @@ const FilterExamples = () => {
         </div>
 
         <div className="filter-section">
-          <h3>음성 수</h3>
-          <div className="range-inputs">
-            <input
-              type="number"
-              placeholder="최소"
-              value={filterData.min_audios}
-              onChange={(e) => handleFilterChange('min_audios', e.target.value)}
-              min="0"
-            />
-            <span>~</span>
-            <input
-              type="number"
-              placeholder="최대"
-              value={filterData.max_audios}
-              onChange={(e) => handleFilterChange('max_audios', e.target.value)}
-              min="0"
-            />
-          </div>
+          <h3>프롬프트 보유 여부</h3>
+          <select
+            value={filterData.has_en_prompt === null ? '' : filterData.has_en_prompt.toString()}
+            onChange={(e) => handleFilterChange('has_en_prompt', e.target.value === '' ? null : e.target.value === 'true')}
+          >
+            <option value="">상관없음</option>
+            <option value="true">보유</option>
+            <option value="false">미보유</option>
+          </select>
         </div>
 
         <div className="filter-section">
-          <h3>Embedding 보유 여부</h3>
+          <h3>음성 보유 여부</h3>
+          <select
+            value={filterData.has_audio === null ? '' : filterData.has_audio.toString()}
+            onChange={(e) => handleFilterChange('has_audio', e.target.value === '' ? null : e.target.value === 'true')}
+          >
+            <option value="">상관없음</option>
+            <option value="true">보유</option>
+            <option value="false">미보유</option>
+          </select>
+        </div>
+
+        <div className="filter-section">
+          <h3>이미지 보유 여부</h3>
+          <select
+            value={filterData.has_image === null ? '' : filterData.has_image.toString()}
+            onChange={(e) => handleFilterChange('has_image', e.target.value === '' ? null : e.target.value === 'true')}
+          >
+            <option value="">상관없음</option>
+            <option value="true">보유</option>
+            <option value="false">미보유</option>
+          </select>
+        </div>
+
+
+        <div className="filter-section">
+          <h3>임베딩 보유 여부</h3>
           <select
             value={filterData.has_embedding === null ? '' : filterData.has_embedding.toString()}
             onChange={(e) => handleFilterChange('has_embedding', e.target.value === '' ? null : e.target.value === 'true')}

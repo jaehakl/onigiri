@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 import uuid
 
-from db import Word, WordExample, WordImage, UserWordSkill
+from db import Word, WordExample, UserWordSkill
 
 
 def merge_duplicated_words(
-    word_ids: List[str],
+    word_ids: List[int],
     new_word_data: Dict[str, Any],
     db: Session,
     user_id: str
@@ -32,12 +32,12 @@ def merge_duplicated_words(
     
     # 새로운 단어 생성
     new_word = Word(
-        id=str(uuid.uuid4()),
         user_id=user_id,
-        word=new_word_data["word"],
-        jp_pronunciation=new_word_data["jp_pronunciation"],
-        kr_pronunciation=new_word_data["kr_pronunciation"],
-        kr_meaning=new_word_data["kr_meaning"],
+        lemma_id=new_word_data["lemma_id"],
+        lemma=new_word_data["lemma"],
+        jp_pron=new_word_data["jp_pron"],
+        kr_pron=new_word_data["kr_pron"],
+        kr_mean=new_word_data["kr_mean"],
         level=new_word_data["level"]
     )
     
@@ -56,27 +56,12 @@ def merge_duplicated_words(
         word_examples = db.query(WordExample).filter(WordExample.word_id == word_id).all()
         for word_example in word_examples:
             word_example.word_id = new_word.id
-        
-        # 2. WordImage 연결
-        word_images = db.query(WordImage).filter(WordImage.word_id == word_id).all()
-        for word_image in word_images:
-            word_image.word_id = new_word.id
-        
-        # 3. UserWordSkill 연결
+                
+        # 2. UserWordSkill 연결
         user_word_skills = db.query(UserWordSkill).filter(UserWordSkill.word_id == word_id).all()
         for user_word_skill in user_word_skills:
             user_word_skill.word_id = new_word.id
-        
-        # 4. branch_words 연결 (root_word_id를 새 단어로 변경)
-        branch_words = db.query(Word).filter(Word.root_word_id == word_id).all()
-        for branch_word in branch_words:
-            branch_word.root_word_id = new_word.id
-        
-        # 5. 기존 단어가 다른 단어의 branch_word인 경우 처리
-        if existing_word.root_word_id:
-            # 기존 단어가 다른 단어의 하위 단어였다면, 새 단어도 같은 상위 단어의 하위 단어로 설정
-            new_word.root_word_id = existing_word.root_word_id
-    
+                    
     # 기존 단어들 삭제
     for word_id in word_ids:
         existing_word = db.query(Word).filter(Word.id == word_id).first()
