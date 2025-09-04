@@ -53,7 +53,7 @@ const WordExamples = ({ wordsSet }) => {
               <div className="word-header">
                 <div className="word-info">
                   <h3 className="word-title">
-                    <span className="word-lemma">{word.word}</span>
+                    <span className="word-lemma">{word.lemma}</span>
                     <span className="word-level">({word.level})</span>
                   </h3>
                   <div className="word-details">
