@@ -127,7 +127,7 @@ async def api_create_user_text(request: Request, user_text_data: TextData, db: S
     return auth_service(request, ["admin", "user"], db, user, create_user_text, user_text_data)
 
 @app.get("/user_text/get/{user_text_id}")
-async def api_get_user_text(request: Request, user_text_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_get_user_text(request: Request, user_text_id: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin", "user"], db, user, get_user_text, user_text_id)
 
 @app.get("/user_text/all")
@@ -139,7 +139,7 @@ async def api_update_user_text(request: Request, user_text_data: TextData, db: S
     return auth_service(request, ["admin", "user"], db, user, update_user_text, user_text_data)
 
 @app.get("/user_text/delete/{user_text_id}")
-async def api_delete_user_text(request: Request, user_text_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_delete_user_text(request: Request, user_text_id: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin", "user"], db, user, delete_user_text, user_text_id)
 
 

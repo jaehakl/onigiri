@@ -3,7 +3,7 @@ import './SaveTextModal.css';
 import { createUserText, updateUserText } from '../api/api';
 
 const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
-  const [id, setId] = useState('');
+  const [id, setId] = useState(null);
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -12,7 +12,7 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
 
   useEffect(() => {
     if (defaultTextData) {
-      setId(defaultTextData.id);
+      setId(defaultTextData.id || null);
       setTitle(defaultTextData.title);
       setTags(defaultTextData.tags);
       setYoutubeUrl(defaultTextData.youtube_url);
@@ -35,6 +35,7 @@ const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
       youtube_url: youtubeUrl?youtubeUrl.trim():'',
       audio_url: audioUrl?audioUrl.trim():'',
     };
+    console.log(textData);
 
     try {      
       if (textData.id) {

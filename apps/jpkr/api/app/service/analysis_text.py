@@ -58,9 +58,7 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
         for i_word, word in enumerate(line):
             surface = word["surface"]
             lemma_id = word["lemma_id"]
-            print(lemma_id)
             if lemma_id in words_existing:
-                print(i_line, i_word, "found")
                 w = words_existing[lemma_id]
                 words_result[i_line].append({
                     "word_id": w["id"],
@@ -80,7 +78,6 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                 })
             elif lemma_id in words_dict:
                 if words_dict[lemma_id]["lemma"] != "":
-                    print(i_line, i_word, "not found")
                     w = words_dict[lemma_id]
                     words_result[i_line].append({
                         "word_id": None,

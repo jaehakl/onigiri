@@ -27,10 +27,20 @@ def create_user_text(user_text_data: TextData, db: Session, user_id: Optional[st
     db.commit()
     return row_to_dict(user_text)
 
-def get_user_text(user_text_id: str, db: Session, user_id: str) -> TextData:
+def get_user_text(user_text_id: int, db: Session, user_id: str) -> TextData:
     user_text = db.query(UserText).filter(UserText.id == user_text_id).first()
+
     if user_text:
-        return TextData(**row_to_dict(user_text))
+        return {
+            'id': user_text.id,
+            'title': user_text.title,
+            'text': user_text.text,
+            'tags': user_text.tags,
+            'youtube_url': user_text.youtube_url,
+            'audio_url': user_text.audio_url,
+            'created_at': user_text.created_at,
+            'updated_at': user_text.updated_at
+        }
     else:
         return None
 
@@ -41,10 +51,10 @@ def get_user_text_list(limit, offset, db: Session = None, user_id: str = None) -
         query = query.limit(limit)
     if offset:
         query = query.offset(offset)
-    user_texts = query.all()
+    user_texts = query.all()    
     return {
         "total_count": total_count,
-        "user_texts": [TextData(id=user_text.id, title=user_text.title, tags=user_text.tags) for user_text in user_texts],
+        "user_texts": [{'id': user_text.id, 'title': user_text.title, 'tags': user_text.tags} for user_text in user_texts],
         "limit": limit,
         "offset": offset
     }
@@ -58,14 +68,14 @@ def update_user_text(user_text_data: TextData, db: Session=None, user_id:str = N
                 setattr(user_text, key, value)
         user_text.user_id = user_id
         result[user_text_data.id] = row_to_dict(user_text)            
-    else:
-        result[user_text_data.id] = {"error": "User text not found"}    
-    db.commit()
+        db.commit()
+    else:        
+        result[user_text_data.id] = create_user_text(user_text_data, db, user_id)
     return result        
 
-def delete_user_text(user_text_id: str, db: Session, user_id: str) -> Dict[int, str]:
+def delete_user_text(user_text_id: int, db: Session, user_id: str) -> Dict[int, str]:
     if not user_text_id:
         return {}
     db.query(UserText).filter(UserText.id == user_text_id).delete()
     db.commit()
-    return {user_text_id: ("deleted" if user_text_id in user_text_id else "not found")}
+    return "deleted"
