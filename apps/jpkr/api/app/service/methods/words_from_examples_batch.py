@@ -21,7 +21,7 @@ def words_from_examples_batch(examples: List[Example], db: Session = None, user_
                             selectinload(Word.user)
                         )
                     .filter(Word.lemma_id.in_(list(words_dict_global.keys()))
-                                                            ).where(Word.user_id == user_id).all())
+                                                            ).all())
     words_dict_existing = {}
 
     for w in words_existing:
