@@ -16,8 +16,9 @@ def create_examples_batch(examples_data: List[ExampleData], db: Session=None, us
                                             ).where(Word.user_id == user_id).all()
     words_dict_existing = {w.lemma_id: w.id for w in words_existing}
     for lemma_id, word_data in words_dict_global.items():
+        if lemma_id == None:
+            continue
         if lemma_id not in words_dict_existing:
-            print(f"new word: {lemma_id}")
             pos = word_data["pos1"]
             level = "N1"
             if pos in ["助詞", "記号", "助動詞","補助記号","接尾辞", "代名詞"]:
@@ -48,6 +49,8 @@ def create_examples_batch(examples_data: List[ExampleData], db: Session=None, us
         db.flush()  # ID 생성을 위해 flush                
         document, words_dict = extract_words_from_text(example_data.jp_text)
         for word_data in words_dict.values():
+            if word_data["lemma_id"] == None:
+                continue
             if word_data["lemma_id"] not in words_dict_existing:
                 continue
             new_word_example = WordExample(
