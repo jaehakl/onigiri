@@ -122,7 +122,7 @@ async def api_filter_examples(request: Request, example_filter_data: ExampleFilt
 
 @app.get("/examples/get-examples-for-user")
 async def api_get_examples_for_user(request: Request, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin"], db, user, get_examples_for_user)
+    return auth_service(request, ["admin", "user"], db, user, get_examples_for_user)
 
 
 
