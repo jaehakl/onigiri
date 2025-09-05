@@ -13,6 +13,8 @@ def extract_words_from_text(text: str):
         for word in line_words:
             feat = word.feature            
             lemma_id = int(getattr(feat, "lemma_id", None)) if getattr(feat, "lemma_id", None) else None
+            if lemma_id is None:
+                continue
             line.append({                
                 "surface": word.surface,
                 #"surface": word.surface if getattr(feat, "lemma", None) != None else " "+word.surface,
