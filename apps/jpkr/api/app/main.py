@@ -74,7 +74,7 @@ async def api_update_words(request: Request, words_data: List[WordData], db: Ses
     return auth_service(request, ["admin"], db, user, update_words_batch, words_data)
 
 @app.post("/words/delete/batch")
-async def api_delete_words(request: Request, word_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_delete_words(request: Request, word_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, delete_words_batch, word_ids)
 
 @app.post("/words/all")
@@ -113,7 +113,7 @@ async def api_update_examples(request: Request, examples_data: List[ExampleData]
     return auth_service(request, ["admin"], db, user, update_examples_batch, examples_data)
 
 @app.post("/examples/delete/batch")
-async def api_delete_examples(request: Request, example_ids: List[str], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+async def api_delete_examples(request: Request, example_ids: List[int], db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, delete_examples_batch, example_ids)
 
 @app.post("/examples/filter")

@@ -69,10 +69,10 @@ def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_
     return result
         
 
-def delete_words_batch(word_ids: Sequence[str], db: Session, user_id: str) -> Dict[int, str]:
+def delete_words_batch(word_ids: Sequence[int], db: Session, user_id: str) -> Dict[int, str]:
     if not word_ids:
         return {}
-    ids = set(str(wid) for wid in word_ids)
+    ids = set(wid for wid in word_ids)
     stmt = (
         delete(Word)
         .where(Word.id.in_(ids), Word.user_id == user_id)
