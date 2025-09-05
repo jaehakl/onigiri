@@ -46,21 +46,21 @@ function App() {
   
   const menuItemsUser = [
     {
+      key: 'recommend-examples',
+      label: '문장별 학습',
+      path: '/recommend-examples'
+    },
+    {
       key: 'words-search',
       label: '단어 검색',
       path: '/words-search'
     },
-    {
-      key: 'recommend-examples',
-      label: '추천 예시',
-      path: '/recommend-examples'
-    }
   ];
 
   const menuItemsPublic = [
     {
       key: 'word-analysis',
-      label: '단어 분석',
+      label: '텍스트 단어 찾기',
       path: '/'
     }
   ];

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Loader, Message, Panel, Grid, Row, Col } from 'rsuite';
+import { Icon } from '@rsuite/icons';
+import { Reload } from '@rsuite/icons';
 import { getExamplesForUser } from '../api/api';
 import ExampleCard from '../components/ExampleCard';
 import './RecommendExamples.css';
@@ -16,8 +18,8 @@ const RecommendExamples = () => {
       const response = await getExamplesForUser();
       setExamples(response.data || []);
     } catch (err) {
-      console.error('예시 로드 실패:', err);
-      setError('예시를 불러오는데 실패했습니다.');
+      console.error('예문 로드 실패:', err);
+      setError('예문를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -36,7 +38,7 @@ const RecommendExamples = () => {
   if (loading) {
     return (
       <div className="recommend-examples-loading-container">
-        <Loader size="lg" content="예시를 불러오는 중..." />
+        <Loader size="lg" content="예문을 불러오는 중..." />
       </div>
     );
   }
@@ -54,34 +56,31 @@ const RecommendExamples = () => {
 
   return (
     <div className="recommend-examples-page">
-      <Panel header="추천 예시" className="recommend-examples-page-header">
-        <div className="recommend-examples-header-actions">
+      <Panel header={
+        <div className="recommend-examples-header-content">
+          <span className="recommend-examples-header-title">문장 학습</span>
           <Button 
-            appearance="primary" 
+            appearance="ghost" 
             onClick={loadExamples}
             loading={loading}
+            className="recommend-examples-refresh-btn"
+            size="sm"
           >
-            새로고침
+            <Reload />
           </Button>
         </div>
+      } className="recommend-examples-page-header">
       </Panel>
 
-      <div className="recommend-examples-content">
         {examples.length === 0 ? (
           <Message type="info" showIcon>
-            추천할 예시가 없습니다.
+            추천할 예문이 없습니다.
           </Message>
         ) : (
-          <>
-            <div className="recommend-examples-count">
-              총 {examples.length}개의 추천 예시
-            </div>
-            <div className="recommend-examples-grid">
-              {examples.map(renderExampleCard)}
-            </div>
-          </>
+          <div className="recommend-examples-grid">
+            {examples.map(renderExampleCard)}
+          </div>
         )}
-      </div>
     </div>
   );
 };

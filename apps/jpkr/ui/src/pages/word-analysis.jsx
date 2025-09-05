@@ -142,7 +142,7 @@ const WordAnalysis = () => {
             <h2>{currentTextInfo.title}</h2>
           )}
           {!currentTextInfo.id && (
-            <h2>テキスト入力</h2>
+            <h2>일본어 단어 추출기</h2>
           )}
           <div className="input-actions">
             <button 
@@ -189,7 +189,7 @@ const WordAnalysis = () => {
               setInputText(to_hiragana(inputText)); // 한글로 변환
             }
           }}
-          placeholder={sample_text(0)}
+          placeholder="일본어 텍스트를 입력해주세요."
           className="text-input"
           rows={8}
           disabled={isAnalyzing}
@@ -245,9 +245,9 @@ const WordAnalysis = () => {
       )}
       
         
-      {/* 단어별 예문 섹션 */}
+      {/* 단어별 예문 섹션 
       <WordExamples wordsSet={words_set} />
-
+      */}
       {/* 모달들 */}
       <SaveTextModal
         isOpen={isSaveModalOpen}

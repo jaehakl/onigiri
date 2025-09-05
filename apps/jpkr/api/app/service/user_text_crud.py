@@ -13,7 +13,7 @@ def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
-def create_user_text(user_text_data: TextData, db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
+async def create_user_text(user_text_data: TextData, db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
     if not user_text_data:
         return {}
     user_text = UserText(
@@ -27,8 +27,9 @@ def create_user_text(user_text_data: TextData, db: Session, user_id: Optional[st
     db.commit()
     return row_to_dict(user_text)
 
-def get_user_text(user_text_id: int, db: Session, user_id: str) -> TextData:
-    user_text = db.query(UserText).filter(UserText.id == user_text_id).first()
+async def get_user_text(user_text_id: int, db: Session, user_id: str) -> TextData:
+    stmt = select(UserText).filter(UserText.id == user_text_id)
+    user_text = db.execute(stmt).scalar_one_or_none()
 
     if user_text:
         return {
@@ -44,24 +45,26 @@ def get_user_text(user_text_id: int, db: Session, user_id: str) -> TextData:
     else:
         return None
 
-def get_user_text_list(limit, offset, db: Session = None, user_id: str = None) -> Dict[str, Any]:
+async def get_user_text_list(limit, offset, db: Session = None, user_id: str = None) -> Dict[str, Any]:
     total_count = db.query(UserText).filter(UserText.user_id == user_id).count()
-    query = db.query(UserText).filter(UserText.user_id == user_id)
+    stmt = select(UserText.id, UserText.title, UserText.tags).filter(UserText.user_id == user_id)
     if limit:
-        query = query.limit(limit)
+        stmt = stmt.limit(limit)
     if offset:
-        query = query.offset(offset)
-    user_texts = query.all()    
-    return {
+        stmt = stmt.offset(offset)
+    user_texts = db.execute(stmt).all()
+    result = {
         "total_count": total_count,
         "user_texts": [{'id': user_text.id, 'title': user_text.title, 'tags': user_text.tags} for user_text in user_texts],
         "limit": limit,
         "offset": offset
     }
+    return result
 
-def update_user_text(user_text_data: TextData, db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
+async def update_user_text(user_text_data: TextData, db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     result = {}        
-    user_text = db.query(UserText).filter(UserText.id == user_text_data.id).first()
+    stmt = select(UserText).filter(UserText.id == user_text_data.id)
+    user_text = db.execute(stmt).scalar_one_or_none()
     if user_text:
         for key, value in user_text_data.model_dump().items():
             if value and key != "id":
@@ -73,7 +76,7 @@ def update_user_text(user_text_data: TextData, db: Session=None, user_id:str = N
         result[user_text_data.id] = create_user_text(user_text_data, db, user_id)
     return result        
 
-def delete_user_text(user_text_id: int, db: Session, user_id: str) -> Dict[int, str]:
+async def delete_user_text(user_text_id: int, db: Session, user_id: str) -> Dict[int, str]:
     if not user_text_id:
         return {}
     db.query(UserText).filter(UserText.id == user_text_id).delete()

@@ -40,30 +40,28 @@ const WordExamples = ({ wordsSet }) => {
   };
 
   return (
-    <div className="examples-section">
+    <div className="word-examples-section">
       <h2>단어별 예문</h2>
-      <button onClick={copyToClipboard} className="copy-button">클립보드에 복사</button>
-      <div className="examples-container">
+      <button onClick={copyToClipboard} className="word-examples-copy-button">클립보드에 복사</button>
+      <div className="word-examples-container">
         {Object.values(wordsSet).map((word, wordIndex) => (
           word.examples && !word.user_word_skills.some(skill => skill.reading > 80) && (
             <div 
               key={`word-${wordIndex}`} 
-              className="word-examples"
+              className="word-examples-item"
             >
-              <div className="word-header">
-                <div className="word-info">
-                  <h3 className="word-title">
-                    <span className="word-lemma">{word.lemma}</span>
-                    <span className="word-level">({word.level})</span>
-                  </h3>
-                  <div className="word-details">
-                    <span className="word-pronunciation">{word.jp_pron}</span>
-                    <span className="word-pronunciation">{word.kr_pron}</span>
-                    <span className="word-meaning">{word.kr_mean}</span>
-                  </div>
+              <div className="word-examples-header">
+                <h3 className="word-examples-title">
+                  <span className="word-examples-lemma">{word.lemma}</span>
+                  <span className="word-examples-level">({word.level})</span>
+                </h3>
+                <div className="word-examples-details">
+                  <span className="word-examples-pronunciation">{word.jp_pron}</span>
+                  <span className="word-examples-pronunciation">{word.kr_pron}</span>
+                  <span className="word-examples-meaning">{word.kr_mean}</span>
                 </div>
               </div>
-              <div className="examples-list">
+              <div className="word-examples-list">
                 {word.examples.map((example, exampleIndex) => (
                   <ExampleCard 
                     key={`example-${wordIndex}-${exampleIndex}`} 

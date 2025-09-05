@@ -10,12 +10,11 @@ def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
-def words_from_examples_batch(examples: List[Example], db: Session = None, user_id: str = None) -> Dict[int, Dict[str, Any]]:
+def words_from_examples_batch(examples: List[Example], db: Session = None, user_id: str = None) -> Dict[int, Dict[str, Any]]:    
     words_dict_global = {}
     for i, example in enumerate(examples):
         document, words_dict = extract_words_from_text(example.jp_text)
         words_dict_global.update(words_dict)
-
     words_existing = (db.query(Word)
                     .options(selectinload(Word.user_word_skills),
                             selectinload(Word.user)
@@ -23,7 +22,6 @@ def words_from_examples_batch(examples: List[Example], db: Session = None, user_
                     .filter(Word.lemma_id.in_(list(words_dict_global.keys()))
                                                             ).all())
     words_dict_existing = {}
-
     for w in words_existing:
         if w.lemma_id and w.lemma_id not in words_dict_existing:
             words_dict_existing[w.lemma_id] = row_to_dict(w)

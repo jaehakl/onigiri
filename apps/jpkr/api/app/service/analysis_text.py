@@ -19,7 +19,6 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
         db = SessionLocal()
 
     document, words_dict = extract_words_from_text(text)
-        
     stmt = (
         select(Word)
         .options(selectinload(Word.word_examples)
@@ -40,22 +39,26 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     for w in words:
         if w.lemma_id and w.lemma_id not in words_existing:
             words_existing[w.lemma_id] = row_to_dict(w)
-            words_existing[w.lemma_id]["example_ids"] = []
-            words_existing[w.lemma_id]["examples"] = []
+            #words_existing[w.lemma_id]["example_ids"] = []
+            #words_existing[w.lemma_id]["examples"] = []
             words_existing[w.lemma_id]["user_word_skills"] = []
             words_existing[w.lemma_id]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
                 words_existing[w.lemma_id]["user_word_skills"].append(row_to_dict(user_word_skill))
-            shuffle(w.word_examples)
-            for word_example in w.word_examples:
-                words_existing[w.lemma_id]["example_ids"].append(word_example.example_id)
-                examples_to_batch.append(word_example.example)
-    examples_with_words = words_from_examples_batch(examples_to_batch, db=db, user_id=user_id)
-    for w, w_dict in words_existing.items():
-        for example_id in w_dict["example_ids"]:
-            w_dict["examples"].append(examples_with_words[example_id])
-            if len(w_dict["examples"]) > 1:
-                break
+            #shuffle(w.word_examples)
+            #for word_example in w.word_examples:
+            #    #숙련도 높은 단어는 백엔드에서 미리 필터링
+            #    if len(words_existing[w.lemma_id]["user_word_skills"]) > 0:
+            #        if words_existing[w.lemma_id]["user_word_skills"][0]["reading"] > 80:
+            #            break
+            #    #if len(words_existing[w.lemma_id]["example_ids"]) >= 1:
+            #    #    break                
+            #    #words_existing[w.lemma_id]["example_ids"].append(word_example.example_id)
+            #    #examples_to_batch.append(word_example.example)
+    #examples_with_words = words_from_examples_batch(examples_to_batch, db=db, user_id=user_id)
+    #for w, w_dict in words_existing.items():
+    #    for example_id in w_dict["example_ids"]:
+    #        w_dict["examples"].append(examples_with_words[example_id])
 
     words_result = defaultdict(list)
     for i_line, line in enumerate(document):
@@ -70,13 +73,13 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                     "lemma": w["lemma"],
                     "user_id": w["user_id"],
                     "user_display_name": w["user"]["display_name"],
-                    "surface": surface,
+                    "surface": surface if w["lemma"] != "" else " "+surface,
                     "jp_pron": w["jp_pron"],
                     "kr_pron": w["kr_pron"],
                     "kr_mean": w["kr_mean"],
                     "level": w["level"],
-                    "examples": w["examples"],
-                    "num_examples": len(w["examples"]),
+                    #"examples": w["examples"],
+                    #"num_examples": len(w["examples"]),
                     "user_word_skills": w["user_word_skills"],
                     "num_user_word_skills": len(w["user_word_skills"]),
                 })
@@ -89,13 +92,13 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                         "lemma": w["lemma"],
                         "user_id": None,
                         "user_display_name": None,
-                        "surface": surface,
+                        "surface": surface if w["lemma"] != "" else " "+surface,
                         "jp_pron": w["pronBase"],
                         "kr_pron": w["pos1"],
                         "kr_mean": w["type"],
                         "level": None,
-                        "examples": [],
-                        "num_examples": 0,
+                        #"examples": [],
+                        #"num_examples": 0,
                         "user_word_skills": [],
                         "num_user_word_skills": 0,
                     })

@@ -131,23 +131,23 @@ async def api_get_examples_for_user(request: Request, db: Session = Depends(get_
 # User Text CRUD API endpoints
 @app.post("/user_text/create")
 async def api_create_user_text(request: Request, user_text_data: TextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin", "user"], db, user, create_user_text, user_text_data)
+    return await auth_service_async(request, ["admin", "user"], db, user, create_user_text, user_text_data)
 
 @app.get("/user_text/get/{user_text_id}")
 async def api_get_user_text(request: Request, user_text_id: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin", "user"], db, user, get_user_text, user_text_id)
+    return await auth_service_async(request, ["admin", "user"], db, user, get_user_text, user_text_id)
 
 @app.get("/user_text/all")
 async def api_get_user_text_list(request: Request, limit: int = None, offset: int = None, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin", "user"], db, user, get_user_text_list, limit, offset)
+    return await auth_service_async(request, ["admin", "user"], db, user, get_user_text_list, limit, offset)
 
 @app.post("/user_text/update")
 async def api_update_user_text(request: Request, user_text_data: TextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin", "user"], db, user, update_user_text, user_text_data)
+    return await auth_service_async(request, ["admin", "user"], db, user, update_user_text, user_text_data)
 
 @app.get("/user_text/delete/{user_text_id}")
 async def api_delete_user_text(request: Request, user_text_id: int, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
-    return auth_service(request, ["admin", "user"], db, user, delete_user_text, user_text_id)
+    return await auth_service_async(request, ["admin", "user"], db, user, delete_user_text, user_text_id)
 
 
 # User CRUD API endpoints
