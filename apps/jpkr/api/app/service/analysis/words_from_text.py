@@ -18,7 +18,9 @@ def extract_words_from_text(text: str):
                 #"surface": word.surface if getattr(feat, "lemma", None) != None else " "+word.surface,
                 "lemma_id": lemma_id,
             })
-            if lemma_id not in words_dict:
+            if lemma_id is None:
+                continue
+            if lemma_id not in words_dict:                
                 words_dict[lemma_id] = {
                     "lemma_id": lemma_id,
                     "lemma": getattr(feat, "lemma", None),
