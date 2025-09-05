@@ -13,7 +13,9 @@ export async function fetchMe() {
                 refreshRes.data;
                 window.location.reload();
               }
-            )
+            ).catch(refreshErr => {
+              return null;
+            });
           } 
         }
       )
