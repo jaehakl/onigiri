@@ -20,8 +20,8 @@ def create_examples_batch(examples_data: List[ExampleData], db: Session=None, us
             print(f"new word: {lemma_id}")
             pos = word_data["pos1"]
             level = "N1"
-            if pos in ["助詞", "記号", "助動詞","補助記号","接尾辞"]:
-                level = "N5"
+            if pos in ["助詞", "記号", "助動詞","補助記号","接尾辞", "代名詞"]:
+                continue
             new_word = Word(
                 user_id=user_id,
                 lemma_id=lemma_id,
