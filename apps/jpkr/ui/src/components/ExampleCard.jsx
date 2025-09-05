@@ -1,10 +1,15 @@
 import React, { useRef, useState } from 'react';
 import WordsHighlighter from './WordsHighlighter';
 import './ExampleCard.css';
+import { deleteExamplesBatch } from '../api/api';
+import { useUser } from '../contexts/UserContext';
 
 const ExampleCard = ({ example, isMain = false }) => {
+    const { user } = useUser();
     const audioRef = useRef(null);
     const [showMeaning, setShowMeaning] = useState(false);
+    const [notification, setNotification] = useState(null);
+    const [deleted, setDeleted] = useState(false);
 
     const playAudio = (audioUrl) => {
         if (audioRef.current) {
@@ -31,10 +36,41 @@ const ExampleCard = ({ example, isMain = false }) => {
         setShowMeaning(!showMeaning);
     };
 
+    const handleDelete = async (e) => {
+        e.stopPropagation();
+        
+        try {
+            await deleteExamplesBatch([example.id]);
+            setNotification({ type: 'success', message: '예제가 성공적으로 삭제되었습니다.' });
+
+            setDeleted(true);
+            // 3초 후 알림 자동 제거
+            setTimeout(() => {
+                setNotification(null);
+            }, 3000);
+        } catch (error) {
+            console.error('삭제 실패:', error);
+            setNotification({ type: 'error', message: '삭제에 실패했습니다. 다시 시도해주세요.' });
+            
+            // 5초 후 알림 자동 제거
+            setTimeout(() => {
+                setNotification(null);
+            }, 5000);
+        }
+    };
+
     return (
         <div 
             className={`example-card ${isMain ? 'main-example' : 'similar-example'}`}
+            style={{ position: 'relative' }}
         >
+            {!deleted && (
+            <>
+            {notification && (
+                <div className={`notification ${notification.type}`}>
+                    {notification.message}
+                </div>
+            )}
             <div className="example-header">
                 <span className="example-tags">{example.tags || '태그 없음'}</span>
                 <div className="header-icons">
@@ -45,8 +81,11 @@ const ExampleCard = ({ example, isMain = false }) => {
                     >
                         {showMeaning ? '👁️' : '👁️‍🗨️'}
                     </span>
-                    {example.audio_url && (
-                        <span className="audio-indicator">🔊</span>
+                    {user && user.roles && user.roles.includes('admin') && (
+                        <span className="example-card-delete-icon" 
+                            onClick={handleDelete}
+                            title="삭제"
+                        >🗑️</span>
                     )}
                 </div>
             </div>
@@ -80,6 +119,8 @@ const ExampleCard = ({ example, isMain = false }) => {
                     </>
                 )}
             </div>
+            </>
+            )}
         </div>
     );
 };

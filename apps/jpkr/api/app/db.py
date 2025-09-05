@@ -71,7 +71,7 @@ class TimestampMixin:
 class Word(TimestampMixin, Base):
     __tablename__ = "words"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     lemma_id: Mapped[int] = mapped_column(Integer, nullable=False)
     lemma: Mapped[str] = mapped_column(Text, nullable=False)
     jp_pron: Mapped[str] = mapped_column(Text, nullable=False)
@@ -87,7 +87,7 @@ class Word(TimestampMixin, Base):
 class Example(TimestampMixin, Base):
     __tablename__ = "examples"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     tags: Mapped[str] = mapped_column(Text, nullable=False)
     jp_text: Mapped[str] = mapped_column(Text, nullable=False)
     kr_mean: Mapped[str] = mapped_column(Text, nullable=False)
@@ -130,7 +130,7 @@ class WordExample(TimestampMixin, Base):
 class UserWordSkill(TimestampMixin, Base):
     __tablename__ = "user_word_skills"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     word_id: Mapped[int] = mapped_column(Integer, ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
     reading: Mapped[int] = mapped_column(Integer, default=0)
     listening: Mapped[int] = mapped_column(Integer, default=0)
@@ -146,7 +146,7 @@ class UserWordSkill(TimestampMixin, Base):
 class UserText(TimestampMixin, Base):
     __tablename__ = "user_texts"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str] = mapped_column(Text, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     tags: Mapped[str] = mapped_column(Text, nullable=False)
@@ -156,40 +156,12 @@ class UserText(TimestampMixin, Base):
     user: Mapped["User"] = relationship("User", back_populates="user_texts", lazy="selectin")
 
 
-
-'''
-class WordImage(TimestampMixin, Base):
-    __tablename__ = "word_images"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    word_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
-    #tags: Mapped[str] = mapped_column(Text, nullable=False)
-    prompt: Mapped[str] = mapped_column(Text, nullable=False)
-    prompt_embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
-    image_url: Mapped[str] = mapped_column(Text, nullable=False)
-    word: Mapped["Word"] = relationship("Word", back_populates="images", lazy="selectin")
-    user: Mapped["User"] = relationship("User", back_populates="images", lazy="selectin")    
-    object_key: Mapped[str] = mapped_column(Text, nullable=False)  # S3 key 원본 보관
-    content_type: Mapped[str] = mapped_column(Text, nullable=True)
-    size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=True)
-
-class ExampleAudio(TimestampMixin, Base):
-    __tablename__ = "example_audio"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    example_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("examples.id", ondelete="CASCADE"), nullable=False)
-    tags: Mapped[str] = mapped_column(Text, nullable=False)
-    audio_url: Mapped[str] = mapped_column(Text, nullable=False)
-    example: Mapped["Example"] = relationship("Example", back_populates="audio", lazy="selectin")
-'''
-
-
-
 # ---------------------------------------------------------------------
 # Tables (Auth Layer)
 # ---------------------------------------------------------------------
 class User(TimestampMixin, Base):
     __tablename__ = "users"
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     __table_args__ = (Index("uq_users_email_lower", func.lower(email), unique=True),)
     email_verified_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True))
@@ -211,8 +183,8 @@ class Identity(TimestampMixin, Base):
         UniqueConstraint("provider", "provider_user_id", name="uq_identities_provider_provider_user_id"),
         Index("idx_identities_user_id", "user_id"),
     )
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     provider: Mapped[OAuthProvider] = mapped_column(oauth_provider_enum, nullable=False)
     provider_user_id: Mapped[str] = mapped_column(Text, nullable=False)  # OIDC 'sub'
     email: Mapped[Optional[str]] = mapped_column(Text)
@@ -231,8 +203,8 @@ class Session(Base):
         Index("idx_sessions_user_id", "user_id"),
         UniqueConstraint("session_id_hash", name="uq_sessions_session_id_hash"),
     )
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     session_id_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # store only hash
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     last_seen_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -248,7 +220,7 @@ class OAuthState(Base):
         Index("idx_oauth_states_created_at", "created_at"),
         UniqueConstraint("state", name="uq_oauth_states_state"),
     )
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     provider: Mapped[OAuthProvider] = mapped_column(oauth_provider_enum, nullable=False)
     state: Mapped[str] = mapped_column(Text, nullable=False)  # CSRF
     nonce: Mapped[Optional[str]] = mapped_column(Text)        # OIDC
@@ -267,8 +239,8 @@ class AuthAudit(Base):
             name="ck_auth_audit_event",
         ),
     )
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     provider: Mapped[Optional[OAuthProvider]] = mapped_column(oauth_provider_enum)
     event: Mapped[str] = mapped_column(Text, nullable=False)
     ip: Mapped[Optional[str]] = mapped_column(INET)
@@ -286,7 +258,7 @@ class Role(Base):
 class UserRole(Base):
     __tablename__ = "user_roles"
     __table_args__ = (UniqueConstraint("user_id", "role_id", name="uq_user_roles_user_id_role_id"),)
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     role_id: Mapped[int] = mapped_column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
     role: Mapped[Role] = relationship(back_populates="user_roles")
     user: Mapped[User] = relationship(back_populates="user_roles")
@@ -297,8 +269,8 @@ class APIKey(Base):
         UniqueConstraint("key_hash", name="uq_api_keys_key_hash"),
         Index("idx_api_keys_user_id", "user_id"),
     )
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, server_default=text("gen_random_uuid()"))
-    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     key_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # store only hash
     name: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

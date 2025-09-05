@@ -28,14 +28,14 @@ const RecommendExamples = () => {
   }, []);
 
   const renderExampleCard = (example) => (
-    <div key={example.id} className="example-card-wrapper">
+    <div key={example.id} className="recommend-examples-card-wrapper">
       <ExampleCard example={example} isMain={false} />
     </div>
   );
 
   if (loading) {
     return (
-      <div className="loading-container">
+      <div className="recommend-examples-loading-container">
         <Loader size="lg" content="예시를 불러오는 중..." />
       </div>
     );
@@ -54,8 +54,8 @@ const RecommendExamples = () => {
 
   return (
     <div className="recommend-examples-page">
-      <Panel header="추천 예시" className="page-header">
-        <div className="header-actions">
+      <Panel header="추천 예시" className="recommend-examples-page-header">
+        <div className="recommend-examples-header-actions">
           <Button 
             appearance="primary" 
             onClick={loadExamples}
@@ -66,17 +66,17 @@ const RecommendExamples = () => {
         </div>
       </Panel>
 
-      <div className="examples-content">
+      <div className="recommend-examples-content">
         {examples.length === 0 ? (
           <Message type="info" showIcon>
             추천할 예시가 없습니다.
           </Message>
         ) : (
           <>
-            <div className="examples-count">
+            <div className="recommend-examples-count">
               총 {examples.length}개의 추천 예시
             </div>
-            <div className="examples-grid">
+            <div className="recommend-examples-grid">
               {examples.map(renderExampleCard)}
             </div>
           </>

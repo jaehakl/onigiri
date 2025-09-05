@@ -4,33 +4,33 @@
   margin: 0 auto;
 }
 
-.page-header {
+.recommend-examples-page-header {
   margin-bottom: 20px;
 }
 
-.page-header .rs-panel-header {
+.recommend-examples-page-header .rs-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.header-actions {
+.recommend-examples-header-actions {
   display: flex;
   gap: 10px;
 }
 
-.examples-content {
+.recommend-examples-content {
   margin-top: 20px;
 }
 
-.examples-grid {
+.recommend-examples-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   justify-content: flex-start;
 }
 
-.example-card-wrapper {
+.recommend-examples-card-wrapper {
   flex: 0 0 auto;
   min-width: 300px;
   max-width: 400px;
@@ -38,19 +38,19 @@
 }
 
 @media (max-width: 1200px) {
-  .example-card-wrapper {
+  .recommend-examples-card-wrapper {
     flex-basis: calc(50% - 10px);
   }
 }
 
 @media (max-width: 768px) {
-  .example-card-wrapper {
+  .recommend-examples-card-wrapper {
     flex-basis: 100%;
     min-width: 280px;
   }
 }
 
-.examples-count {
+.recommend-examples-count {
   margin-bottom: 20px;
   font-size: 16px;
   font-weight: 500;
@@ -58,7 +58,7 @@
 }
 
 
-.loading-container {
+.recommend-examples-loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -71,7 +71,7 @@
     padding: 10px;
   }
   
-  .examples-grid {
+  .recommend-examples-grid {
     gap: 15px;
   }
   

@@ -1,11 +1,11 @@
 # auth.py
 from fastapi import Depends, HTTPException, Request
-from sqlalchemy.orm import Session
-from sqlalchemy import select, update, func
+from sqlalchemy.orm import Session,  joinedload, selectinload
+from sqlalchemy import select, update, func, text
 
 from settings import settings
 from utils.auth_utils import hash_token
-from db import SessionLocal, User, Session as DbSession  # DbSession = 세션 테이블
+from db import SessionLocal, User, UserRole, Session as DbSession   # DbSession = 세션 테이블
 
 # 공용 DB 의존성(이미 deps.py가 있다면 그걸 써도 됩니다)
 def get_db():
@@ -27,39 +27,52 @@ class CurrentUser:
         self.picture_url = picture_url
         self.roles = roles
 
+
+TOUCH_INTERVAL_MIN = 5
+
+def _maybe_touch_last_seen(db: Session, sess_id: str):
+    # last_seen_at이 N분보다 오래됐을 때만 갱신
+    db.execute(
+        update(DbSession)
+        .where(
+            DbSession.id == sess_id,
+            # PostgreSQL
+            DbSession.last_seen_at < func.now() - text(f"interval '{TOUCH_INTERVAL_MIN} minutes'")
+        )
+        .values(last_seen_at=func.now())
+    )
+    db.commit()
+
 def _load_user_from_session_cookie(request: Request, db: Session) -> User:
-    """
-    routes_auth.py 의 /auth/me 와 동일한 규칙으로
-    세션 쿠키를 검증하고 사용자 객체를 반환합니다.
-    """
-    cookie_name = settings.session_cookie_name  # routes_auth.py에서 쓰는 것과 동일해야 함
+    cookie_name = settings.session_cookie_name
     raw = request.cookies.get(cookie_name)
     if not raw:
         raise HTTPException(status_code=401, detail="no session")
 
     sid_hash = hash_token(raw)
-    sess = db.scalar(
-        select(DbSession).where(
+
+    # 세션과 유저를 한 번에, 그리고 roles까지 eager load
+    stmt = (
+        select(DbSession)
+        .options(
+            joinedload(DbSession.user).options(
+                selectinload(User.user_roles).joinedload(UserRole.role)
+            )
+        )
+        .where(
             DbSession.session_id_hash == sid_hash,
             DbSession.revoked_at.is_(None),
         )
+        .limit(1)
     )
-    if not sess:
+    sess = db.scalars(stmt).first()
+    if not sess or not sess.user or not getattr(sess.user, "is_active", True):
         raise HTTPException(status_code=401, detail="invalid session")
 
-    user = db.get(User, sess.user_id)
-    if not user or not getattr(user, "is_active", True):
-        raise HTTPException(status_code=401, detail="inactive or missing user")
+    # last_seen Throttling (아래 #4 참고)
+    _maybe_touch_last_seen(db, sess.id)
 
-    # 최근 접속 갱신(선택)
-    db.execute(
-        update(DbSession)
-        .where(DbSession.id == sess.id)
-        .values(last_seen_at=func.now())
-    )
-    db.commit()
-
-    return user
+    return sess.user
 
 def get_current_user(
     request: Request,
@@ -71,14 +84,15 @@ def get_current_user(
     인증이 선택인 엔드포인트에서 사용. 세션 없으면 None 반환.
     """
     try:
+        print(1)
         user = _load_user_from_session_cookie(request, db)
+        print(2)
     except HTTPException:
         return None
 
     roles = []
     if hasattr(user, "user_roles") and user.user_roles:
         roles = [ur.role.name for ur in user.user_roles if hasattr(ur, "role") and ur.role]
-
     return CurrentUser(
         id=str(user.id),
         email=user.email,
