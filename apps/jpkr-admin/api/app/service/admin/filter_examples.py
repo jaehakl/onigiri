@@ -73,7 +73,6 @@ def filter_examples_by_criteria(
         query = query.offset(offset)
     if limit:
         query = query.limit(limit)
-    print(len(query.all()))
     
     examples_rv = []
     for example in query.all():

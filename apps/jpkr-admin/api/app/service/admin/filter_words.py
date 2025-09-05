@@ -35,7 +35,6 @@ def filter_words_by_criteria(
     # 레벨 필터링
     if levels:
         query = query.filter(Word.level.in_(levels))
-    print(len(query.all()))
     
     # 예문 수 필터링
     
@@ -77,7 +76,6 @@ def filter_words_by_criteria(
         query = query.offset(offset)
     if limit:
         query = query.limit(limit)
-    print(len(query.all()))
     
     words_rv = []
     for word in query.all():

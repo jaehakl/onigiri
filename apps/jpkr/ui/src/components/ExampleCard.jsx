@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import WordsHighlighter from './WordsHighlighter';
 import './ExampleCard.css';
 
 const ExampleCard = ({ example, isMain = false }) => {
     const audioRef = useRef(null);
+    const [showMeaning, setShowMeaning] = useState(false);
 
     const playAudio = (audioUrl) => {
         if (audioRef.current) {
@@ -17,37 +19,56 @@ const ExampleCard = ({ example, isMain = false }) => {
         });
     };
 
-    const handleExampleClick = () => {
+    const handleImageClick = (e) => {
+        e.stopPropagation();
         if (example.audio_url) {
             playAudio(example.audio_url);
         }
     };
 
+    const toggleMeaning = (e) => {
+        e.stopPropagation();
+        setShowMeaning(!showMeaning);
+    };
+
     return (
         <div 
-            className={`example-card ${isMain ? 'main-example' : 'similar-example'} ${example.audio_url ? 'clickable' : ''}`}
-            onClick={handleExampleClick}
+            className={`example-card ${isMain ? 'main-example' : 'similar-example'}`}
         >
             <div className="example-header">
                 <span className="example-tags">{example.tags || '태그 없음'}</span>
-                {example.audio_url && (
-                    <span className="audio-indicator">🔊</span>
-                )}
+                <div className="header-icons">
+                    <span 
+                        className="meaning-toggle" 
+                        onClick={toggleMeaning}
+                        title="한국어 뜻 보기/숨기기"
+                    >
+                        {showMeaning ? '👁️' : '👁️‍🗨️'}
+                    </span>
+                    {example.audio_url && (
+                        <span className="audio-indicator">🔊</span>
+                    )}
+                </div>
             </div>
+            <div className="example-content">
+                {example.words ? (
+                    <WordsHighlighter words={example.words} />
+                ) : (
+                    <div className="example-text">
+                        <span className="value jp-text">{example.jp_text}</span>
+                    </div>
+                )}
             {example.image_url && (
-                <div className="example-image">
+                <div className="example-image" onClick={handleImageClick}>
                     <img src={example.image_url} alt="Example Image" />
                 </div>
             )}
-            <div className="example-content">
-                <div className="example-text">
-                    <span className="label">일본어 텍스트:</span>
-                    <span className="value jp-text">{example.jp_text}</span>
-                </div>
-                <div className="example-meaning">
-                    <span className="label">한국어 의미:</span>
-                    <span className="value kr-meaning">{example.kr_mean}</span>
-                </div>
+
+                {showMeaning && (
+                    <div className="example-meaning">
+                        <span className="value kr-meaning">{example.kr_mean}</span>
+                    </div>
+                )}
             </div>
             <div className="example-stats">
                 {isMain && (

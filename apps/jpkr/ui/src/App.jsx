@@ -6,6 +6,7 @@ import WordsSearch from './pages/words-search';
 import WordAnalysis from './pages/word-analysis';
 import ExamplesRegister from './pages/examples-register';
 import ExamplesTable from './pages/examples-table';
+import RecommendExamples from './pages/recommend-examples';
 import Quiz from './pages/quiz';
 import UserManagement from './pages/user-management';
 import UserDetail from './pages/user-detail';
@@ -48,6 +49,11 @@ function App() {
       key: 'words-search',
       label: '단어 검색',
       path: '/words-search'
+    },
+    {
+      key: 'recommend-examples',
+      label: '추천 예시',
+      path: '/recommend-examples'
     }
   ];
 
@@ -181,6 +187,7 @@ function App() {
         <Content className="content-area">
           <Routes>
             <Route path="/" element={<WordAnalysis />} />
+            <Route path="/recommend-examples" element={<RecommendExamples />} />
             <Route path="/words-search" element={<WordsSearch />} />              
             <Route path="/words-table" element={<WordsTable />} />
             <Route path="/examples-register" element={<ExamplesRegister />} />

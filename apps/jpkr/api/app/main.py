@@ -8,6 +8,7 @@ from models import WordData, ExampleData, TextData, ExampleFilterData, WordFilte
 from service.words_crud import create_words_batch, update_words_batch, delete_words_batch, get_all_words, search_words_by_word
 from service.admin.filter_words import filter_words_by_criteria
 from service.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, filter_examples_by_criteria
+from service.feed_examples import get_examples_for_user
 from service.analysis_text import analyze_text
 from service.words_personal import create_words_personal, get_random_words_to_learn
 from service.user_text_crud import create_user_text, update_user_text, delete_user_text, get_user_text, get_user_text_list
@@ -119,6 +120,12 @@ async def api_delete_examples(request: Request, example_ids: List[str], db: Sess
 async def api_filter_examples(request: Request, example_filter_data: ExampleFilterData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["admin"], db, user, filter_examples_by_criteria, **example_filter_data.model_dump())
 
+@app.get("/examples/get-examples-for-user")
+async def api_get_examples_for_user(request: Request, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    return auth_service(request, ["admin"], db, user, get_examples_for_user)
+
+
+
 
 
 # User Text CRUD API endpoints
@@ -173,6 +180,4 @@ async def api_get_user_all_data_user(request: Request, db: Session = Depends(get
 @app.post("/text/analyze")
 async def api_analyze_text(request: Request, text_data: TextData, db: Session = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     return auth_service(request, ["*"], db, user, analyze_text, text_data.text)
-
-
 

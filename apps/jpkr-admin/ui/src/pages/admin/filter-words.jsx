@@ -77,7 +77,6 @@ const FilterWords = () => {
         limit: filterData.limit,
         offset: filterData.offset || 0
       };
-
       const response = await filterWords(cleanFilterData);
       setWords(response.data.words || []);
       setTotalCount(response.data.total_count || 0);
@@ -203,11 +202,11 @@ const FilterWords = () => {
         filterConfig={FILTER_CONFIG}
         onSubmit={handleFilter}
         onReset={handleReset}
-        onFilterChange={handleFilter}
+        //onFilterChange={handleFilter}
         loading={loading}
         totalCount={totalCount}
         showPagination={true}
-        showFilterButton={false}
+        showFilterButton={true}
         showResetButton={false}
         limit={100}
       />

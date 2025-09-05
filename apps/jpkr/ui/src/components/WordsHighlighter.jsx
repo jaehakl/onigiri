@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import './WordsHighlighter.css';
 import { createWordsPersonal } from '../api/api';
 import WordInputModal from './WordInputModal';
@@ -11,13 +12,28 @@ const WordsHighlighter = ({words}) => {
 
   // 툴팁 표시
   const handleMouseEnter = (word, event) => {
-    const rect = event.target.getBoundingClientRect();
+    const x = Math.min(Math.max(event.clientX, 8), window.innerWidth - 8);
+    const y = Math.min(Math.max(event.clientY - 16, 8), window.innerHeight - 8);
     setTooltip({
       show: true,
       data: word,
       position: {
-        x: rect.left + rect.width / 2,
-        y: rect.top - 150
+        x: x,
+        y: y
+      }
+    });
+  };
+
+  // 마우스 이동 시 위치 업데이트
+  const handleMouseMove = (word, event) => {
+    const x = Math.min(Math.max(event.clientX, 8), window.innerWidth - 8);
+    const y = Math.min(Math.max(event.clientY - 16, 8), window.innerHeight - 8);
+    setTooltip({
+      show: true,
+      data: word,
+      position: {
+        x: x,
+        y: y-130
       }
     });
   };
@@ -63,6 +79,7 @@ const WordsHighlighter = ({words}) => {
             key={`morpheme-${i_line}-${i_word}`}
             className={`morpheme morpheme-${words[i_line][i_word].level}`}
             onMouseEnter={(e) => handleMouseEnter(words[i_line][i_word], e)}
+            onMouseMove={(e) => handleMouseMove(words[i_line][i_word], e)}
             onMouseLeave={handleMouseLeave}
             onClick={() => handleWordClick(words[i_line][i_word])}
             >
@@ -75,6 +92,7 @@ const WordsHighlighter = ({words}) => {
               key={`morpheme-${i_line}-${i_word}`}
               className={`morpheme morpheme-N\/A`}
               onMouseEnter={(e) => handleMouseEnter(words[i_line][i_word], e)}
+              onMouseMove={(e) => handleMouseMove(words[i_line][i_word], e)}
               onMouseLeave={handleMouseLeave}
               onClick={() => handleWordClick(words[i_line][i_word])}
             >
@@ -96,65 +114,41 @@ const WordsHighlighter = ({words}) => {
     <div className="words-highlighter-container">
         <div className="highlighted-text">
             {renderHighlightedText()}
-        </div>
+        </div>      
         
-        {words && (
-          <div className="level-legend">
-            <div className="legend-items">
-              <div className="legend-item">
-                <span className="legend-color morpheme-N5"></span>
-                <span>N5 (초급)</span>
+        {/* 커스텀 툴팁 (포탈로 body에 렌더링) */}
+        {tooltip.show && tooltip.data && createPortal(
+          (
+            <div 
+              className="custom-tooltip"
+              style={{
+                left: tooltip.position.x,
+                top: tooltip.position.y,
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <div className="tooltip-header">
+                <span className="tooltip-surface">{tooltip.data.lemma}</span>
+                <span className="tooltip-level">{tooltip.data.level}</span>
+                <span className="tooltip-level">{tooltip.data.user_display_name}</span>
               </div>
-              <div className="legend-item">
-                <span className="legend-color morpheme-N4"></span>
-                <span>N4 (초중급)</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color morpheme-N3"></span>
-                <span>N3 (중급)</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color morpheme-N2"></span>
-                <span>N2 (중고급)</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color morpheme-N1"></span>
-                <span>N1 (고급)</span>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* 커스텀 툴팁 */}
-        {tooltip.show && tooltip.data && (
-          <div 
-            className="custom-tooltip"
-            style={{
-              left: tooltip.position.x,
-              top: tooltip.position.y,
-              transform: 'translateX(-50%)'
-            }}
-          >
-            <div className="tooltip-header">
-              <span className="tooltip-surface">{tooltip.data.lemma}</span>
-              <span className="tooltip-level">{tooltip.data.level}</span>
-              <span className="tooltip-level">{tooltip.data.user_display_name}</span>
-            </div>
-            <div className="tooltip-content">
-              <div className="tooltip-row">
-                <span className="tooltip-label">일본어 발음:</span>
-                <span className="tooltip-value">{tooltip.data.jp_pron || '-'}</span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">한국어 발음:</span>
-                <span className="tooltip-value">{tooltip.data.kr_pron || '-'}</span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">한국어 뜻:</span>
-                <span className="tooltip-value">{tooltip.data.kr_mean || '-'}</span>
+              <div className="tooltip-content">
+                <div className="tooltip-row">
+                  <span className="tooltip-label">일본어 발음:</span>
+                  <span className="tooltip-value">{tooltip.data.jp_pron || '-'}</span>
+                </div>
+                <div className="tooltip-row">
+                  <span className="tooltip-label">한국어 발음:</span>
+                  <span className="tooltip-value">{tooltip.data.kr_pron || '-'}</span>
+                </div>
+                <div className="tooltip-row">
+                  <span className="tooltip-label">한국어 뜻:</span>
+                  <span className="tooltip-value">{tooltip.data.kr_mean || '-'}</span>
+                </div>
               </div>
             </div>
-          </div>
+          ),
+          document.body
         )}
 
 

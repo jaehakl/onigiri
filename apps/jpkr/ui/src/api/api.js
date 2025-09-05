@@ -35,6 +35,7 @@ export const readExamplesBatch = (exampleIds) => axios.post(`${API_URL}/examples
 export const updateExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/update/batch`, examplesData);
 export const deleteExamplesBatch = (exampleIds) => axios.post(`${API_URL}/examples/delete/batch`, exampleIds);
 export const filterExamples = (exampleFilterData) => axios.post(`${API_URL}/examples/filter`, exampleFilterData);
+export const getExamplesForUser = () => axios.get(`${API_URL}/examples/get-examples-for-user`);
 
 // === Text Analysis ===
 export const analyzeText = (text) => axios.post(`${API_URL}/text/analyze`, { text });

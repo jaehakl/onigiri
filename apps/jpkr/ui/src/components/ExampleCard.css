@@ -71,10 +71,30 @@
     background: #e74c3c;
 }
 
+/* 헤더 아이콘들 */
+.header-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.meaning-toggle {
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.meaning-toggle:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.1);
+}
+
 /* 오디오 인디케이터 */
 .audio-indicator {
     font-size: 1.2rem;
-    margin-left: 8px;
     animation: pulse 2s infinite;
 }
 
@@ -89,6 +109,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.example-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.example-image::before {
+    content: '🔊';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+}
+
+.example-image:hover::before {
+    opacity: 1;
 }
 
 .example-image img {
@@ -119,6 +166,21 @@
     display: flex;
     margin-bottom: 10px;
     align-items: flex-start;
+}
+
+.example-meaning {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .example-text .label, .example-meaning .label {

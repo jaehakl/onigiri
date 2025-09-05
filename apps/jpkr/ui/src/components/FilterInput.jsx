@@ -41,6 +41,7 @@ const FilterInput = ({
   // 내부 상태로 filterData 관리
   const [filterData, setFilterData] = useState(getDefaultValues());
   const [offset, setOffset] = useState(0);
+  const [selectedLimit, setSelectedLimit] = useState(limit);
 
   // filterConfig가 변경될 때 기본값 재설정
   useEffect(() => {
@@ -51,9 +52,9 @@ const FilterInput = ({
   useEffect(() => {
     if (onFilterChange) {
       setOffset(0);
-      onFilterChange({ ...filterData, offset: 0, limit });
+      onFilterChange({ ...filterData, offset: 0, limit: selectedLimit });
     }
-  }, [filterData]);
+  }, [filterData, selectedLimit]);
 
   // 필터 조건 변경 핸들러
   const handleFilterChange = (field, value) => {
@@ -75,7 +76,7 @@ const FilterInput = ({
   // 필터링 실행
   const handleSubmit = () => {
     setOffset(0); // 필터링 시 offset 초기화
-    onSubmit({ ...filterData, offset: 0, limit });
+    onSubmit({ ...filterData, offset: 0, limit: selectedLimit });
   };
 
   // 필터 초기화
@@ -89,12 +90,12 @@ const FilterInput = ({
   // 페이지네이션 핸들러
   const handlePageChange = (newOffset) => {
     setOffset(newOffset);
-    onSubmit({ ...filterData, offset: newOffset, limit });
+    onSubmit({ ...filterData, offset: newOffset, limit: selectedLimit });
   };
 
   // 페이지 번호 계산
-  const getCurrentPage = () => Math.floor(offset / limit) + 1;
-  const getTotalPages = () => Math.ceil(totalCount / limit);
+  const getCurrentPage = () => Math.floor(offset / selectedLimit) + 1;
+  const getTotalPages = () => Math.ceil(totalCount / selectedLimit);
 
   // 페이지네이션 버튼 생성
   const generatePageButtons = () => {
@@ -156,7 +157,7 @@ const FilterInput = ({
       buttons.push(
         <button
           key={i}
-          onClick={() => handlePageChange((i - 1) * limit)}
+          onClick={() => handlePageChange((i - 1) * selectedLimit)}
           className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
         >
           {i}
@@ -177,7 +178,7 @@ const FilterInput = ({
       buttons.push(
         <button
           key={totalPages}
-          onClick={() => handlePageChange((totalPages - 1) * limit)}
+          onClick={() => handlePageChange((totalPages - 1) * selectedLimit)}
           className={`pagination-btn ${currentPage === totalPages ? 'active' : ''}`}
         >
           {totalPages}
@@ -268,10 +269,31 @@ const FilterInput = ({
     }
   };
 
+  // limit 변경 핸들러
+  const handleLimitChange = (newLimit) => {
+    setSelectedLimit(newLimit);
+    setOffset(0); // limit 변경 시 첫 페이지로 이동
+  };
+
   return (
     <div className="filter-form">
       {filterConfig.sections.map(renderFilterSection)}
       
+      {/* Limit 선택 버튼 */}
+      <div className="filter-section">
+        <h3>페이지당 항목 수</h3>
+        <div className="limit-buttons">
+          {[20, 100, 1000].map(limitOption => (
+            <button
+              key={limitOption}
+              onClick={() => handleLimitChange(limitOption)}
+              className={`limit-btn ${selectedLimit === limitOption ? 'active' : ''}`}
+            >
+              {limitOption}개
+            </button>
+          ))}
+        </div>
+      </div>
       
       <div className="filter-actions">
         {showFilterButton && <button 
@@ -300,7 +322,7 @@ const FilterInput = ({
             처음
           </button>
           <button
-            onClick={() => handlePageChange(Math.max(0, offset - limit))}
+            onClick={() => handlePageChange(Math.max(0, offset - selectedLimit))}
             disabled={offset === 0}
             className="pagination-btn"
           >
@@ -310,15 +332,15 @@ const FilterInput = ({
           {generatePageButtons()}
           
           <button
-            onClick={() => handlePageChange(offset + limit)}
-            disabled={offset + limit >= totalCount}
+            onClick={() => handlePageChange(offset + selectedLimit)}
+            disabled={offset + selectedLimit >= totalCount}
             className="pagination-btn"
           >
             다음
           </button>
           <button
-            onClick={() => handlePageChange((getTotalPages() - 1) * limit)}
-            disabled={offset + limit >= totalCount}
+            onClick={() => handlePageChange((getTotalPages() - 1) * selectedLimit)}
+            disabled={offset + selectedLimit >= totalCount}
             className="pagination-btn"
           >
             마지막
@@ -326,7 +348,7 @@ const FilterInput = ({
           
           <span className="pagination-info">
             페이지 {getCurrentPage()} / {getTotalPages()} 
-            ({(offset + 1)}-{Math.min(offset + limit, totalCount)} / {totalCount})
+            ({(offset + 1)}-{Math.min(offset + selectedLimit, totalCount)} / {totalCount})
           </span>
         </div>
       )}

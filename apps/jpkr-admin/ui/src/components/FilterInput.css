@@ -87,6 +87,47 @@
   font-size: 13px;
 }
 
+/* Limit 버튼 스타일 */
+.limit-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.limit-btn {
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 50px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.limit-btn:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.limit-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.limit-btn.active:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
 .filter-actions {
   display: flex;
   gap: 10px;
@@ -253,6 +294,17 @@
   .filter-section input[type="number"] {
     padding: 5px 8px;
     font-size: 12px;
+  }
+  
+  .limit-buttons {
+    gap: 6px;
+  }
+  
+  .limit-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 40px;
+    height: 28px;
   }
   
   .filter-btn,

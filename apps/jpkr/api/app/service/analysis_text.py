@@ -1,4 +1,5 @@
 from typing import Dict, Any
+from random import shuffle
 from collections import defaultdict
 from db import SessionLocal, Word, WordExample
 from sqlalchemy.orm import selectinload
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from utils.aws_s3 import presign_get_url
 
 from service.analysis.words_from_text import extract_words_from_text
+from service.methods.words_from_examples_batch import words_from_examples_batch
 
 def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
@@ -21,8 +23,10 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     stmt = (
         select(Word)
         .options(selectinload(Word.word_examples)
-                 .options(selectinload(WordExample.example)),
-                 selectinload(Word.user_word_skills),)
+                    .options(selectinload(WordExample.example)),
+                 selectinload(Word.user_word_skills),
+                 selectinload(Word.user)
+            )
         .where(Word.lemma_id.in_(list(words_dict.keys())))
         .order_by(
             case((Word.user_id == user_id, 0), else_=1)  # 내 것이 먼저 오게
@@ -31,29 +35,28 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     words = db.execute(stmt).scalars().all()
 
     # 그 다음엔 "처음 본 키만 채우기"만 해도 같은 효과
+    examples_to_batch = []
     words_existing = {}
     for w in words:
         if w.lemma_id and w.lemma_id not in words_existing:
             words_existing[w.lemma_id] = row_to_dict(w)
+            words_existing[w.lemma_id]["example_ids"] = []
             words_existing[w.lemma_id]["examples"] = []
             words_existing[w.lemma_id]["user_word_skills"] = []
             words_existing[w.lemma_id]["user"] = row_to_dict(w.user)
             for user_word_skill in w.user_word_skills:
                 words_existing[w.lemma_id]["user_word_skills"].append(row_to_dict(user_word_skill))
+            shuffle(w.word_examples)
             for word_example in w.word_examples:
-                example = word_example.example
-                example_dict = {
-                    "id": example.id,
-                    "word_info": w.lemma,
-                    "tags": example.tags,
-                    "jp_text": example.jp_text,
-                    "kr_mean": example.kr_mean,
-                    "audio_url": presign_get_url(example.audio_object_key, expires=600) if example.audio_object_key else None,
-                    "image_url": presign_get_url(example.image_object_key, expires=600) if example.image_object_key else None,
-                }
-                words_existing[w.lemma_id]["examples"].append(example_dict)
-                if len(words_existing[w.lemma_id]["examples"]) > 1:
-                    break
+                words_existing[w.lemma_id]["example_ids"].append(word_example.example_id)
+                examples_to_batch.append(word_example.example)
+    examples_with_words = words_from_examples_batch(examples_to_batch, db=db, user_id=user_id)
+    for w, w_dict in words_existing.items():
+        for example_id in w_dict["example_ids"]:
+            w_dict["examples"].append(examples_with_words[example_id])
+            if len(w_dict["examples"]) > 1:
+                break
+
     words_result = defaultdict(list)
     for i_line, line in enumerate(document):
         for i_word, word in enumerate(line):

@@ -82,7 +82,7 @@ class Word(TimestampMixin, Base):
     word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="words", lazy="selectin")
-
+    __table_args__ = (Index("idx_words_lemma_id", "lemma_id"),)
 
 class Example(TimestampMixin, Base):
     __tablename__ = "examples"
@@ -97,7 +97,23 @@ class Example(TimestampMixin, Base):
     image_object_key: Mapped[str] = mapped_column(Text, nullable=True)
     word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="example", cascade="all, delete-orphan", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="examples", lazy="selectin")
-
+    __table_args__ = (
+        # -------- pgvector 인덱스: HNSW (권장, pgvector>=0.5)
+        Index(
+            "idx_examples_emb_hnsw",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+        # ---- 만약 IVFFlat을 쓰고 싶다면 위 HNSW 주석 처리하고 아래를 사용하세요
+        # Index(
+        #     "idx_examples_emb_ivf",
+        #     "embedding",
+        #     postgresql_using="ivfflat",
+        #     postgresql_ops={"embedding": "vector_cosine_ops"},
+        #     postgresql_with={"lists": 100},  # 데이터 크기에 맞춰 튜닝
+        # ),
+    )
 
 class WordExample(TimestampMixin, Base):
     __tablename__ = "word_examples"
@@ -105,7 +121,12 @@ class WordExample(TimestampMixin, Base):
     example_id: Mapped[int] = mapped_column(Integer, ForeignKey("examples.id", ondelete="CASCADE"), primary_key=True)
     word: Mapped["Word"] = relationship("Word", back_populates="word_examples", lazy="selectin")
     example: Mapped["Example"] = relationship("Example", back_populates="word_examples", lazy="selectin")
-
+    __table_args__ = (
+        # PK(word_id, example_id)는 word_id 쪽 탐색은 커버합니다.
+        # 역방향(example_id -> word_id) 탐색 최적화를 위해 별도 인덱스 추가
+        Index("idx_word_examples_example", "example_id"),
+    )
+    
 class UserWordSkill(TimestampMixin, Base):
     __tablename__ = "user_word_skills"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -116,7 +137,11 @@ class UserWordSkill(TimestampMixin, Base):
     speaking: Mapped[int] = mapped_column(Integer, default=0)
     word: Mapped["Word"] = relationship("Word", back_populates="user_word_skills", lazy="selectin")
     user: Mapped["User"] = relationship("User", back_populates="user_word_skills", lazy="selectin")
-
+    __table_args__ = (
+        Index("idx_uws_user_word", "user_id", "word_id"),
+        Index("idx_uws_user_updated", "user_id", "updated_at"),
+        # UniqueConstraint("user_id", "word_id", name="uq_uws_user_word"),  # 원하면 중복 방지
+    )
 
 class UserText(TimestampMixin, Base):
     __tablename__ = "user_texts"

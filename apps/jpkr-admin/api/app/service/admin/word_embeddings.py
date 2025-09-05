@@ -12,7 +12,6 @@ def gen_word_embeddings(
 ) -> Dict[str, Any]:
     words = db.query(Word).filter(Word.id.in_(word_ids)).all()
     for i, word in enumerate(words):
-        print(word.lemma)
         word.embedding = get_text_embedding(word.lemma)
         if i % 10 == 0:
             print(f"Generated embedding for word {i+1}/{len(words)}")

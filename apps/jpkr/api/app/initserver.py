@@ -41,6 +41,7 @@ def server():
             try:
                 conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS citext;")
                 conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+                conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS vector;")
             except Exception:
                 pass
         Base.metadata.create_all(bind=engine)        

@@ -105,6 +105,26 @@ async def create_words_personal(
                 db.add(new_skill)
                 db.flush()
                 created_skills.append(word)
+        else:
+            existing_skill = db.query(UserWordSkill).filter(
+                UserWordSkill.user_id == user_id,
+                UserWordSkill.word_id == new_word_id
+            ).first()
+            if existing_skill:
+                existing_skill.reading += 1
+                updated_skills.append(word)
+            else:
+                new_skill = UserWordSkill(
+                    user_id=user_id,
+                    word_id=new_word_id,
+                    reading=1,
+                    listening=0,
+                    speaking=0,
+                )
+                db.add(new_skill)
+                db.flush()
+                created_skills.append(word)
+
 
     db.commit()
 
