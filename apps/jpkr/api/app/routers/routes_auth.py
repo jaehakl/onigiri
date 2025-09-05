@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, update
@@ -12,6 +12,8 @@ from models import UserData
 from settings import settings
 from utils.auth_utils import random_urlsafe, pkce_challenge, hash_token, set_session_cookie, clear_session_cookie, set_return_to_cookie, pop_return_to_cookie
 from db import SessionLocal, User, Identity, Session as DbSession, OAuthState, UserRole, Role  # 기존 db.py 모델 임포트
+
+from utils.jwt import make_access, make_refresh, verify_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -154,54 +156,148 @@ def google_callback(request: Request, state: str = "", code: str = "", db: Sessi
     # state 소진
     st.consumed_at = func.now()
 
-    # 세션 발급(쿠키엔 랜덤 토큰, DB엔 SHA-256 해시 저장)
-    sid_raw = random_urlsafe(32)
-    sid_hash = hash_token(sid_raw)
-    sess = DbSession(user_id=user.id, session_id_hash=sid_hash)
-    db.add(sess)
-    db.commit()
+    ##########################################################
+    # 세션 발급(쿠키엔 랜덤 토큰, DB엔 SHA-256 해시 저장) # 세션기반 인증 사용 시
+    #sid_raw = random_urlsafe(32)
+    #sid_hash = hash_token(sid_raw)
+    #sess = DbSession(user_id=user.id, session_id_hash=sid_hash)
+    #db.add(sess)
+    #db.commit()
+    ##########################################################
+
+    # 3) 내부 JWT 생성
+    access = make_access(user)
+    refresh = make_refresh(str(user.id))
 
     # 돌아갈 곳
     return_to = request.cookies.get("rt") or settings.app_base_url
     resp = RedirectResponse(return_to)
-    set_session_cookie(resp, sid_raw)
+
+    ##########################################################
+    #set_session_cookie(resp, sid_raw) # 세션기반 인증 사용 시
+    ##########################################################
+
+    # 4) 쿠키/바디로 전달
+    set_auth_cookies(resp, access, refresh)
+
     pop_return_to_cookie(resp)
     return resp
 
-# 현재 로그인 사용자
+##########################################################
+## 현재 로그인 사용자 (세션기반 인증 사용 시)
+#@router.get("/me")
+#def check_user(request: Request, db: Session = Depends(get_db))->UserData:
+#    cookie = request.cookies.get(settings.session_cookie_name)
+#    if not cookie:
+#        raise HTTPException(401, "no session")
+#    sid_hash = hash_token(cookie)
+#    print(cookie, sid_hash)
+#    sess = db.scalar(select(DbSession).where(DbSession.session_id_hash == sid_hash, DbSession.revoked_at.is_(None)))
+#    if not sess:
+#        raise HTTPException(401, "invalid session")
+#    user = db.get(User, sess.user_id)
+#    db.execute(update(DbSession).where(DbSession.id == sess.id).values(last_seen_at=func.now()))
+#    db.commit()
+#    return UserData(
+#        id=str(user.id),
+#        email=user.email,
+#        display_name=user.display_name,
+#        picture_url=user.picture_url,
+#        roles=[user_role.role.name for user_role in user.user_roles],
+#    )
+##########################################################
+
+
 @router.get("/me")
 def check_user(request: Request, db: Session = Depends(get_db))->UserData:
-    cookie = request.cookies.get(settings.session_cookie_name)
-    if not cookie:
-        raise HTTPException(401, "no session")
-    sid_hash = hash_token(cookie)
-    print(cookie, sid_hash)
-    sess = db.scalar(select(DbSession).where(DbSession.session_id_hash == sid_hash, DbSession.revoked_at.is_(None)))
-    if not sess:
-        raise HTTPException(401, "invalid session")
-    user = db.get(User, sess.user_id)
-    db.execute(update(DbSession).where(DbSession.id == sess.id).values(last_seen_at=func.now()))
-    db.commit()
-    return UserData(
-        id=str(user.id),
-        email=user.email,
-        display_name=user.display_name,
-        picture_url=user.picture_url,
-        roles=[user_role.role.name for user_role in user.user_roles],
-    )
 
-# 로그아웃
+    token = request.cookies.get("access_token")
+
+    # 2) 없으면 Authorization 헤더 (Bearer …) 시도
+    if not token:
+        auth = request.headers.get("Authorization", "")
+        if auth.lower().startswith("bearer "):
+            token = auth.split(" ", 1)[1].strip()
+
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    try:
+        claims = verify_token(token)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {e}")
+
+    user_data = UserData(
+        id=str(claims.get("sub")),
+        email=claims.get("email"),
+        display_name=claims.get("display_name"),
+        picture_url=claims.get("picture_url"),
+        roles=claims.get("roles"),
+    )
+    if not user_data.id:
+        raise HTTPException(status_code=401, detail="Token missing sub")
+    return user_data
+
+
+@router.get("/refresh")
+def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
+    rtoken = request.cookies.get("refresh_token")
+    if not rtoken:
+        raise HTTPException(status_code=401, detail="No refresh token")
+
+    try:
+        claims = verify_token(rtoken)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid refresh: {e}")
+
+    if claims.get("typ") != "refresh":
+        raise HTTPException(status_code=401, detail="Not a refresh token")
+
+    user_id = claims["sub"]
+    user = db.query(User).get(user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User inactive")
+
+    # (선택) 토큰 로테이션/블록리스트 검사·등록
+
+    access = make_access(user)
+    refresh_new = make_refresh(user_id)   # 로테이션 권장
+
+    # 쿠키 갱신
+    kwargs = {"httponly": True, "secure": settings.SECURE_COOKIES, "samesite": "lax", "domain": settings.COOKIE_DOMAIN}
+    response.set_cookie("access_token", access, max_age=settings.ACCESS_TTL_SEC, path="/", **kwargs)
+    response.set_cookie("refresh_token", refresh_new, max_age=settings.REFRESH_TTL_SEC, path="/", **kwargs)
+    return {"ok": True}
+
+
+
 @router.post("/logout")
-def logout(request: Request, db: Session = Depends(get_db)):
-    cookie = request.cookies.get(settings.session_cookie_name)
-    resp = JSONResponse({"ok": True})
-    if not cookie:
-        clear_session_cookie(resp)
-        return resp
-    sid_hash = hash_token(cookie)
-    sess = db.scalar(select(DbSession).where(DbSession.session_id_hash == sid_hash, DbSession.revoked_at.is_(None)))
-    if sess:
-        sess.revoked_at = func.now()
-        db.commit()
-    clear_session_cookie(resp)
-    return resp
+def logout(resp: Response):
+    kwargs = {"httponly": True, "secure": settings.SECURE_COOKIES, "samesite": "lax", "domain": settings.COOKIE_DOMAIN}
+    resp.delete_cookie("access_token", path="/", **kwargs)
+    resp.delete_cookie("refresh_token", path="/", **kwargs)
+    return {"ok": True}
+
+
+# 로그아웃 #################### 세션기반 인증 사용 시 ####################
+#@router.post("/logout")
+#def logout(request: Request, db: Session = Depends(get_db)):
+#    cookie = request.cookies.get(settings.session_cookie_name)
+#    resp = JSONResponse({"ok": True})
+#    if not cookie:
+#        clear_session_cookie(resp)
+#        return resp
+#    sid_hash = hash_token(cookie)
+#    sess = db.scalar(select(DbSession).where(DbSession.session_id_hash == sid_hash, DbSession.revoked_at.is_(None)))
+#    if sess:
+#        sess.revoked_at = func.now()
+#        db.commit()
+#    clear_session_cookie(resp)
+#    return resp
+###################################################################
+
+
+def set_auth_cookies(resp: Response, access: str, refresh: str):
+    kwargs = {"httponly": True, "secure": settings.SECURE_COOKIES, "samesite": "lax", "domain": settings.COOKIE_DOMAIN}
+    resp.set_cookie("access_token", access, max_age=settings.ACCESS_TTL_SEC, path="/", **kwargs)
+    resp.set_cookie("refresh_token", refresh, max_age=settings.REFRESH_TTL_SEC, path="/", **kwargs)

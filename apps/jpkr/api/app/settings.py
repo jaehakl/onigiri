@@ -16,6 +16,13 @@ class Settings(BaseModel):
     session_cookie_secure: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
     session_max_age: int = int(os.getenv("SESSION_MAX_AGE_SECONDS", "1209600"))  # 14d
 
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "")
+    JWT_ALG: str = "HS256"
+    ACCESS_TTL_SEC: int = 3600
+    REFRESH_TTL_SEC: int = 60*60*24*14
+    COOKIE_DOMAIN: str = os.getenv("COOKIE_DOMAIN", "")
+    SECURE_COOKIES: bool = True
+
     # AWS
     AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
     AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")

@@ -7,9 +7,16 @@ export async function fetchMe() {
     return axios.get(`${API_URL}/auth/me`)
     .then(res => res.data)
     .catch(err => {
-        return null;
-    });
-
+          if (err.status === 401) {
+            return axios.get(`${API_URL}/auth/refresh`)
+            .then(refreshRes => {
+                refreshRes.data;
+                window.location.reload();
+              }
+            )
+          } 
+        }
+      )
 }  
 export function startGoogleLogin() {
   const returnTo = window.location.href;

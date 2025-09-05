@@ -24,6 +24,7 @@ boto3 = "^1.40.19"
 pydantic-settings = "^2.10.1"
 fugashi = {extras = ["unidic"], version = "^1.5.1"}
 unidic = "^1.1.0"
+pyjwt = "^2.10.1"
 
 [build-system]
 requires = ["poetry-core"]
