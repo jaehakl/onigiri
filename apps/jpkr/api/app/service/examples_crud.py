@@ -5,6 +5,7 @@ from sqlalchemy import func
 from db import Example, WordExample, Word
 from models import ExampleData
 from service.analysis.words_from_text import extract_words_from_text
+from utils.aws_s3 import delete_object
 
 def create_examples_batch(examples_data: List[ExampleData], db: Session=None, user_id:str = None):
     words_dict_global = {}
@@ -79,10 +80,18 @@ def update_examples_batch(examples_data: List[ExampleData], db: Session=None, us
     return
         
 def delete_examples_batch(example_ids: List[int], db: Session=None, user_id:str = None):
+    examples = db.query(Example).filter(Example.id.in_(example_ids)).all()
+    for example in examples:
+        audio_object_key = example.audio_object_key
+        image_object_key = example.image_object_key
+        if audio_object_key is not None:
+            delete_object(audio_object_key)
+        if image_object_key is not None:
+            delete_object(image_object_key)
     deleted_count = db.query(Example).filter(Example.id.in_(example_ids)).delete(synchronize_session=False)
     db.commit()
     print(f"총 {deleted_count}개의 예문을 일괄 삭제했습니다.")
-    return deleted_count                
+    return deleted_count
 
 def filter_examples_by_criteria(
     min_words: Optional[int] = None,
