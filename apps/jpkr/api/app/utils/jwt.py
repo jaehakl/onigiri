@@ -20,7 +20,7 @@ def make_token(sub: str, ttl_sec: int, extra: Dict[str, Any] | None = None) -> s
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
 
 def make_access(user: User) -> str:
-    user_id = str(user.id)
+    user_id = user.id
     roles = [user_role.role.name for user_role in user.user_roles]
     extra = {"roles": roles or [],
                 "email": user.email,

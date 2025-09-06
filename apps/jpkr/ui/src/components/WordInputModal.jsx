@@ -114,7 +114,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
   // 삭제 처리
   const handleDelete = () => {
     if (window.confirm('정말로 이 단어를 삭제하시겠습니까?')) {
-      onDelete(word.id);
+      onDelete(word.word_id);
       handleClose();
     }
   };

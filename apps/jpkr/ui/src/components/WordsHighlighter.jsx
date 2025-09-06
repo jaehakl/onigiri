@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import './WordsHighlighter.css';
-import { createWordsPersonal } from '../api/api';
+import { createWordsPersonal, deleteWordsBatch } from '../api/api';
 import WordInputModal from './WordInputModal';
 
 
@@ -54,6 +54,19 @@ const WordsHighlighter = ({words}) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedWord(null);
+  };
+
+  // 단어 삭제
+  const handleDeleteWord = async (wordId) => {
+    try {
+      const response = await deleteWordsBatch([wordId]);
+      if (response.status === 200) {
+        alert('단어가 성공적으로 삭제되었습니다.');
+      }
+    } catch (error) {
+      console.error('단어 삭제 오류:', error);
+      alert('단어 삭제 중 오류가 발생했습니다.');
+    }
   };
 
   // 단어 추가/수정
@@ -158,6 +171,7 @@ const WordsHighlighter = ({words}) => {
         isOpen={showModal}
         onClose={handleCloseModal}
         onSubmit={handleAddWord}
+        onDelete={handleDeleteWord}
       />
 
      </div>

@@ -57,7 +57,7 @@ async def create_words_personal(
     word_id_map: Dict[str, str] = {}  # word 텍스트 -> 실제 Word.id
     for word, payload in words_map.items():
         new_word_id = None
-        if word not in words_existing_map or words_existing_map[word].user_id != user_id:
+        if word not in words_existing_map or str(words_existing_map[word].user_id )!= user_id:
             new_word = Word(
                 user_id=user_id,
                 lemma_id=payload.get('lemma_id'),

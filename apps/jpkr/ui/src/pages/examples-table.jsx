@@ -47,7 +47,7 @@ import './ExamplesTable.css';
 
 const ExamplesTable = () => {
   const [examples, setExamples] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -156,11 +156,11 @@ const ExamplesTable = () => {
       <FilterInput
         filterConfig={FILTER_CONFIG}
         onSubmit={handleFilter}
-        onFilterChange={handleFilter}
+        //onFilterChange={handleFilter}
         loading={loading}
         totalCount={totalCount}
         showPagination={true}
-        showFilterButton={false}
+        showFilterButton={true}
         showResetButton={false}
         limit={100}
       />

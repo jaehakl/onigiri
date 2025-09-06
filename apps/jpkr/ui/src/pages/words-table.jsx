@@ -139,11 +139,11 @@ const WordsTable = () => {
             filterConfig={FILTER_CONFIG}
             onSubmit={handleFilter}
             onReset={handleReset}
-            onFilterChange={handleFilter}
+            //onFilterChange={handleFilter}
             loading={loading}
             totalCount={totalCount}
             showPagination={true}
-            showFilterButton={false}
+            showFilterButton={true}
             showResetButton={false}
             limit={10}
       />
