@@ -13,7 +13,6 @@ from service.analysis_text import analyze_text
 from service.words_personal import create_words_personal, get_random_words_to_learn
 from service.user_text_crud import create_user_text, update_user_text, delete_user_text, get_user_text, get_user_text_list
 from service.user_sevice import UserService
-from db import SessionLocal
 from routers.routes_auth import check_user, get_db
 
 app = server()
