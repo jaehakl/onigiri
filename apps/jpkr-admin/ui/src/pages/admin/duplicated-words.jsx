@@ -36,32 +36,14 @@ import MergeIcon from "@rsuite/icons/legacy/Exchange";
 
 const { Column, HeaderCell, Cell } = Table;
 
-/**
- * Utility: parse a root label like "下さる (ID: 12bf2...)" into { word, id }
- */
-function parseRootLabel(label) {
-  if (!label) return { word: label, id: null };
-  const m = label.match(/^(.*)\s*\(ID:\s*([^\)]+)\)/);
-  if (!m) return { word: label, id: null };
-  return { word: m[1], id: m[2] };
-}
 
-/**
- * Utility: normalize backend payload into an array of roots
- * Input shape:
- * {
- *   "<rootLabel>": [ {id, root_word_id, word, ...}, ... ],
- *   ...
- * }
- */
+
+
 function normalize(duplicatedWordsObj) {
   if (!duplicatedWordsObj || typeof duplicatedWordsObj !== "object") return [];
   return Object.entries(duplicatedWordsObj).map(([label, items]) => {
-    const { word: rootWord, id: rootId } = parseRootLabel(label);
     return {
       label,
-      rootWord,
-      rootId,
       count: Array.isArray(items) ? items.length : 0,
       items: Array.isArray(items) ? items : []
     };
@@ -112,6 +94,7 @@ function BranchesTable({ items, onMerge }) {
 
   // 선택된 항목이 변경될 때마다 병합 폼 데이터 업데이트
   useEffect(() => {
+    console.log("items", items);
     if (selectedItems.size > 0) {
       const selectedItemsArray = Array.from(selectedItems);
       const firstItem = items.find(item => item.id === selectedItemsArray[0]);
@@ -473,7 +456,7 @@ export default function DuplicatedWords() {
     <Cell {...props}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Badge content={rowData.count} style={{ background: undefined }}>
-          <Tag size="lg">{rowData.rootWord || rowData.label}</Tag>
+          <Tag size="lg">{rowData.lemma || rowData.label}</Tag>
         </Badge>
         {rowData.rootId && (
           <Tag size="sm" appearance="ghost">{rowData.rootId}</Tag>

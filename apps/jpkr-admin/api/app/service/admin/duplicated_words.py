@@ -39,9 +39,9 @@ def get_duplicated_words(db: Session, user_id: Optional[str] = None) -> Dict[str
             'created_at': r.created_at.isoformat() if r.created_at else None,
             'updated_at': r.updated_at.isoformat() if r.updated_at else None,
         }
-
-    groups: Dict[str, List[dict]] = {}
+    
+    groups: Dict[str, List[dict]] = defaultdict(list)
     for r in rows:
-        groups[r.lemma_id] = row_to_dict(r)
+        groups[r.lemma_id].append(row_to_dict(r))
 
     return groups

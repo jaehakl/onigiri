@@ -38,6 +38,7 @@ fugashi = {extras = ["unidic"], version = "^1.5.1"}
 diffusers = "^0.35.1"
 safetensors = "^0.6.2"
 huggingface-hub = "^0.34.4"
+pyjwt = "^2.10.1"
 
 [[tool.poetry.source]]
 name = "pytorch_gpu"

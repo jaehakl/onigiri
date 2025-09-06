@@ -41,13 +41,20 @@ def gen_example_words(
             words_dict_existing[lemma_id] = new_word.id
         else:
             pass
+
+    word_examples = db.query(WordExample).filter(WordExample.example_id.in_(example_ids)).all()
+    word_examples_list = [(w.word_id, w.example_id) for w in word_examples]
+
     for i, example in enumerate(examples):
         document, words_dict = extract_words_from_text(example.jp_text)
         for word_data in words_dict.values():
             if word_data["lemma_id"] not in words_dict_existing:
                 continue
+            word_id = words_dict_existing[word_data["lemma_id"]]
+            if (word_id, example.id) in word_examples_list:
+                continue
             new_word_example = WordExample(
-                word_id=words_dict_existing[word_data["lemma_id"]],
+                word_id=word_id,
                 example_id=example.id
             )
             db.add(new_word_example)
