@@ -19,7 +19,7 @@ function App() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const menuItemsAdmin = [
+  const menuItems = [
     {
       key: 'filter-words',
       label: '단어 목록',
@@ -37,7 +37,6 @@ function App() {
     }
   ];
   
-  const menuItems = menuItemsAdmin;
 
   const handleMenuSelect = (key) => {
     const menuItem = menuItems.find(item => item.key === key);
@@ -57,7 +56,7 @@ function App() {
 
   const renderMenuButtons = () => (
     <div className="menu-container">
-      {user && (user.roles.includes('admin')) && menuItemsAdmin.map(item => (
+      {menuItems.map(item => (
         <Button
           key={item.key}
           appearance={getActiveKey() === item.key ? 'primary' : 'ghost'}
@@ -130,7 +129,6 @@ function App() {
               className="logo-image" 
               onClick={() => navigate('/')}
             />
-            <AuthUserProfile />
             {renderMenuButtons()}
           </div>
         </Sidebar>

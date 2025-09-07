@@ -2,8 +2,8 @@ import uuid
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 
-from service.generate.stable_diffusion import generate_image
-from settings import settings
+from _creator.service.generate.stable_diffusion import generate_image
+from _creator.settings import settings
 from db import Example
 from utils.aws_s3 import upload_fileobj, delete_object
 

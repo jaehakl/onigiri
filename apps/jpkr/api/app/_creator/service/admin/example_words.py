@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 
-from service.analysis.words_from_text import extract_words_from_text
+from utils.words_from_text import extract_words_from_text
 from db import Example, WordExample, Word
 
 

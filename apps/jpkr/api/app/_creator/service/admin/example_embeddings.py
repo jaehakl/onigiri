@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 
 from db import Example
-from service.analysis.embedding import get_text_embedding
+from _creator.service.analysis.embedding import get_text_embedding
 
 def gen_example_embeddings(
     example_ids: List[int],

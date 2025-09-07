@@ -4,8 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from db import Base, engine
 from dotenv import load_dotenv
 
-from settings import settings
-from routers.routes_auth import router as auth_router
+from _creator.settings import settings
+from user_auth.routes import router as auth_router
 
 
 def server():
@@ -36,13 +36,15 @@ def server():
     )
 
     async def start():
+        print(settings.STABLE_DIFFUSION_CKPT)
+        print("start")
         app.state.progress = 0
-        with engine.begin() as conn:
-            try:
-                conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS citext;")
-                conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
-            except Exception:
-                pass
+        #with engine.begin() as conn:
+        #    try:
+        #        conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS citext;")
+        #        conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+        #    except Exception:
+        #        pass
         Base.metadata.create_all(bind=engine)        
         app.include_router(auth_router)
 

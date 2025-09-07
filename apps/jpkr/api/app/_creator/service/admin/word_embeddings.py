@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, select
 
 from db import Word
-from service.analysis.embedding import get_text_embedding
+from _creator.service.analysis.embedding import get_text_embedding
 
 def gen_word_embeddings(
     word_ids: List[int],
