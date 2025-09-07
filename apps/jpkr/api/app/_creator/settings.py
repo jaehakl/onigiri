@@ -33,5 +33,6 @@ class Settings(BaseModel):
 
     # Stable Diffusion
     STABLE_DIFFUSION_CKPT: str = os.getenv("STABLE_DIFFUSION_CKPT", "")
+    ADMIN_USER_ID: str = os.getenv("ADMIN_USER_ID", "")
 
 settings = Settings()

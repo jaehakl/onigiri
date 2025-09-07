@@ -36,15 +36,9 @@ def server():
     )
 
     async def start():
-        print(settings.STABLE_DIFFUSION_CKPT)
-        print("start")
+        print("admin user id: ", settings.ADMIN_USER_ID)
+        print("stable diffusion ckpt: ", settings.STABLE_DIFFUSION_CKPT)
         app.state.progress = 0
-        #with engine.begin() as conn:
-        #    try:
-        #        conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS citext;")
-        #        conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
-        #    except Exception:
-        #        pass
         Base.metadata.create_all(bind=engine)        
         app.include_router(auth_router)
 

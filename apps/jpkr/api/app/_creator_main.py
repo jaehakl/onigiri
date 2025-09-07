@@ -23,6 +23,7 @@ from service.admin.examples_crud import update_examples_batch, delete_examples_b
 from service.admin.filter_words import filter_words_by_criteria
 from service.admin.filter_examples import filter_examples_by_criteria
 
+from _creator.settings import settings
 from _creator.initserver import server
 from _creator.models import WordData, WordFilterData, ExampleFilterData, ExampleData, UserData
 
@@ -101,7 +102,7 @@ async def api_filter_examples(request: Request, example_filter_data: ExampleFilt
 
 
 def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **kwargs):    
-    user_id = "8c8300fa-1480-49be-858f-cf68c441ab12"    
+    user_id = settings.ADMIN_USER_ID
     try:
         return func(*args, **kwargs, db=db, user_id=user_id)
     except Exception as e:
