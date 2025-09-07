@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from db import Example, Word
 from utils.aws_s3 import presign_get_url
-from service.analysis.words_from_text import extract_words_from_text
+from utils.words_from_text import extract_words_from_text
 
 def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환

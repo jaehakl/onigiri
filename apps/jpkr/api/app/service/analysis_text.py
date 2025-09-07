@@ -7,8 +7,8 @@ from sqlalchemy import select, case
 from sqlalchemy.orm import Session
 from utils.aws_s3 import presign_get_url
 
-from service.analysis.words_from_text import extract_words_from_text
-from service.methods.words_from_examples_batch import words_from_examples_batch
+from utils.words_from_text import extract_words_from_text
+from methods.words_from_examples_batch import words_from_examples_batch
 
 def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환

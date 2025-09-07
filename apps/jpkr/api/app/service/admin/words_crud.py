@@ -5,9 +5,7 @@ from typing import List, Dict, Any, Optional, Sequence
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from models import WordData
-from db import SessionLocal, Word
-from datetime import datetime
-
+from db import Word
 
 def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환

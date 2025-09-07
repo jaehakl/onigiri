@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from db import Example, WordExample, Word
 from models import ExampleData
-from service.analysis.words_from_text import extract_words_from_text
+from utils.words_from_text import extract_words_from_text
 from utils.aws_s3 import delete_object
 
 def create_examples_batch(examples_data: List[ExampleData], db: Session=None, user_id:str = None):

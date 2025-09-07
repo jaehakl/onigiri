@@ -1,19 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from datetime import datetime, timedelta, timezone
 import requests
 
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 
-from models import UserData
 from settings import settings
-from utils.auth_utils import random_urlsafe, pkce_challenge, hash_token, set_session_cookie, clear_session_cookie, set_return_to_cookie, pop_return_to_cookie
-from db import SessionLocal, User, Identity, OAuthState, UserRole, Role  # 기존 db.py 모델 임포트
+from db import SessionLocal  # 기존 db.py 모델 임포트
 
-from utils.jwt import make_access, make_refresh, verify_token
+from user_auth.db import OAuthState, User, Identity, UserRole, Role
+from models import UserData
+from user_auth.utils.auth_utils import random_urlsafe, pkce_challenge, set_return_to_cookie, pop_return_to_cookie
+from user_auth.utils.jwt import make_access, make_refresh, verify_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -156,15 +157,6 @@ def google_callback(request: Request, state: str = "", code: str = "", db: Sessi
     # state 소진
     st.consumed_at = func.now()
 
-    ##########################################################
-    # 세션 발급(쿠키엔 랜덤 토큰, DB엔 SHA-256 해시 저장) # 세션기반 인증 사용 시
-    #sid_raw = random_urlsafe(32)
-    #sid_hash = hash_token(sid_raw)
-    #sess = DbSession(user_id=user.id, session_id_hash=sid_hash)
-    #db.add(sess)
-    #db.commit()
-    ##########################################################
-
     # 3) 내부 JWT 생성
     access = make_access(user)
     refresh = make_refresh(str(user.id))
@@ -173,39 +165,11 @@ def google_callback(request: Request, state: str = "", code: str = "", db: Sessi
     return_to = request.cookies.get("rt") or settings.app_base_url
     resp = RedirectResponse(return_to)
 
-    ##########################################################
-    #set_session_cookie(resp, sid_raw) # 세션기반 인증 사용 시
-    ##########################################################
-
     # 4) 쿠키/바디로 전달
     set_auth_cookies(resp, access, refresh)
 
     pop_return_to_cookie(resp)
     return resp
-
-##########################################################
-## 현재 로그인 사용자 (세션기반 인증 사용 시)
-#@router.get("/me")
-#def check_user(request: Request, db: Session = Depends(get_db))->UserData:
-#    cookie = request.cookies.get(settings.session_cookie_name)
-#    if not cookie:
-#        raise HTTPException(401, "no session")
-#    sid_hash = hash_token(cookie)
-#    print(cookie, sid_hash)
-#    sess = db.scalar(select(DbSession).where(DbSession.session_id_hash == sid_hash, DbSession.revoked_at.is_(None)))
-#    if not sess:
-#        raise HTTPException(401, "invalid session")
-#    user = db.get(User, sess.user_id)
-#    db.execute(update(DbSession).where(DbSession.id == sess.id).values(last_seen_at=func.now()))
-#    db.commit()
-#    return UserData(
-#        id=str(user.id),
-#        email=user.email,
-#        display_name=user.display_name,
-#        picture_url=user.picture_url,
-#        roles=[user_role.role.name for user_role in user.user_roles],
-#    )
-##########################################################
 
 
 @router.get("/me")
@@ -270,32 +234,12 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
     return {"ok": True}
 
 
-
 @router.post("/logout")
 def logout(resp: Response):
     kwargs = {"httponly": True, "secure": settings.SECURE_COOKIES, "samesite": "lax", "domain": settings.COOKIE_DOMAIN}
     resp.delete_cookie("access_token", path="/", **kwargs)
     resp.delete_cookie("refresh_token", path="/", **kwargs)
     return {"ok": True}
-
-
-# 로그아웃 #################### 세션기반 인증 사용 시 ####################
-#@router.post("/logout")
-#def logout(request: Request, db: Session = Depends(get_db)):
-#    cookie = request.cookies.get(settings.session_cookie_name)
-#    resp = JSONResponse({"ok": True})
-#    if not cookie:
-#        clear_session_cookie(resp)
-#        return resp
-#    sid_hash = hash_token(cookie)
-#    sess = db.scalar(select(DbSession).where(DbSession.session_id_hash == sid_hash, DbSession.revoked_at.is_(None)))
-#    if sess:
-#        sess.revoked_at = func.now()
-#        db.commit()
-#    clear_session_cookie(resp)
-#    return resp
-###################################################################
-
 
 def set_auth_cookies(resp: Response, access: str, refresh: str):
     kwargs = {"httponly": True, "secure": settings.SECURE_COOKIES, "samesite": "lax", "domain": settings.COOKIE_DOMAIN}

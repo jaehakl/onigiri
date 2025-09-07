@@ -2,7 +2,7 @@
 import time, uuid, jwt
 from typing import Any, Dict
 from settings import settings
-from db import User
+from user_auth.db import User
 
 def _now() -> int:
     return int(time.time())

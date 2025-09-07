@@ -2,10 +2,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import Base, engine
-from dotenv import load_dotenv
 
 from settings import settings
-from routers.routes_auth import router as auth_router
+from user_auth.routes import router as auth_router
 
 
 def server():

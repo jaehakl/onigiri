@@ -1,8 +1,8 @@
 from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
-from db import User, Word, Example, UserText
-from utils.aws_s3 import presign_get_url
+from user_auth.db import User
+from db import Word, Example, UserText
 
 class UserService:
     """사용자와 연관된 모든 데이터를 가져오는 서비스"""

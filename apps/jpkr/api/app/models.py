@@ -43,14 +43,6 @@ class TextData(BaseModel):
     youtube_url: Optional[str] = None
     audio_url: Optional[str] = None
 
-
-class UserData(BaseModel):
-    id: str
-    email: str
-    display_name: str
-    picture_url: str
-    roles: List[str]
-    
 class WordFilterData(BaseModel):
     levels: Optional[List[str]] = None
     min_examples: Optional[int] = None
@@ -68,3 +60,10 @@ class ExampleFilterData(BaseModel):
     has_image: Optional[bool] = None
     limit: Optional[int] = None
     offset: Optional[int] = None
+
+class UserData(BaseModel):
+    id: str
+    email: str
+    display_name: str
+    picture_url: str
+    roles: List[str]
