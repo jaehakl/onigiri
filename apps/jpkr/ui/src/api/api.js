@@ -2,69 +2,75 @@ import axios from 'axios';
 export const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 axios.defaults.withCredentials = true;
 
+
+function get_refresh(url) {
+  return axios.get(url)
+  .catch(err => {
+    if (err.status === 401) {
+      return axios.get(`${API_URL}/auth/refresh`).then(axios.get(url));
+    }
+  })
+}
+
+function post_refresh(url, data) {
+  return axios.post(url, data)
+  .catch(err => {
+    if (err.status === 401) {
+      return axios.get(`${API_URL}/auth/refresh`).then(axios.post(url, data));
+    }
+  })
+}
+
 // === OAuth ===
 export async function fetchMe() {
-    return axios.get(`${API_URL}/auth/me`)
+    return get_refresh(`${API_URL}/auth/me`)
     .then(res => res.data)
-    .catch(err => {
-          if (err.status === 401) {
-            return axios.get(`${API_URL}/auth/refresh`)
-            .then(refreshRes => {
-                refreshRes.data;
-                window.location.reload();
-              }
-            ).catch(refreshErr => {
-              return null;
-            });
-          } 
-        }
-      )
-}  
+    .catch(err => null)
+}
 export function startGoogleLogin() {
   const returnTo = window.location.href;
   // 백엔드로 바로 리다이렉트(백엔드가 구글로 다시 리다이렉트)
   window.location.href = `${API_URL}/auth/google/start?return_to=${encodeURIComponent(returnTo)}`;
 }
-export async function logout() {
-  await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
-}
+export async function logout() {await post_refresh(`${API_URL}/auth/logout`);}
+
 // === Words CRUD ===
-export const createWordsBatch = (wordsData) => axios.post(`${API_URL}/words/create/batch`, wordsData);
-export const updateWordsBatch = (wordsData) => axios.post(`${API_URL}/words/update/batch`, wordsData);
-export const deleteWordsBatch = (wordIds) => axios.post(`${API_URL}/words/delete/batch`, wordIds);
+export const createWordsBatch = (wordsData) => post_refresh(`${API_URL}/words/create/batch`, wordsData);
+export const updateWordsBatch = (wordsData) => post_refresh(`${API_URL}/words/update/batch`, wordsData);
+export const deleteWordsBatch = (wordIds) => post_refresh(`${API_URL}/words/delete/batch`, wordIds);
 export const getAllWords = (limit = null, offset = null) => axios.post(`${API_URL}/words/all`, { limit, offset });
-export const searchWordsByWord = (searchTerm) => axios.get(`${API_URL}/words/search/${encodeURIComponent(searchTerm)}`);
-export const createWordsPersonal = (fd) => axios.post(`${API_URL}/words/create/personal`, fd, {headers: { "Content-Type": "multipart/form-data" },});
-export const getRandomWordsToLearn = (limit) => axios.get(`${API_URL}/words/personal/random/${limit}`);
-export const filterWords = (wordFilterData) => axios.post(`${API_URL}/words/filter`, wordFilterData);
+export const searchWordsByWord = (searchTerm) => get_refresh(`${API_URL}/words/search/${encodeURIComponent(searchTerm)}`);
+export const createWordsPersonal = (fd) => post_refresh(`${API_URL}/words/create/personal`, fd, {headers: { "Content-Type": "multipart/form-data" },});
+export const getRandomWordsToLearn = (limit) => get_refresh(`${API_URL}/words/personal/random/${limit}`);
+export const filterWords = (wordFilterData) => post_refresh(`${API_URL}/words/filter`, wordFilterData);
 
 // === Examples CRUD ===
-export const createExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/create/batch`, examplesData);
-export const readExamplesBatch = (exampleIds) => axios.post(`${API_URL}/examples/read/batch`, exampleIds);
-export const updateExamplesBatch = (examplesData) => axios.post(`${API_URL}/examples/update/batch`, examplesData);
-export const deleteExamplesBatch = (exampleIds) => axios.post(`${API_URL}/examples/delete/batch`, exampleIds);
-export const filterExamples = (exampleFilterData) => axios.post(`${API_URL}/examples/filter`, exampleFilterData);
-export const getExamplesForUser = () => axios.get(`${API_URL}/examples/get-examples-for-user`);
+export const createExamplesBatch = (examplesData) => post_refresh(`${API_URL}/examples/create/batch`, examplesData);
+export const readExamplesBatch = (exampleIds) => post_refresh(`${API_URL}/examples/read/batch`, exampleIds);
+export const updateExamplesBatch = (examplesData) => post_refresh(`${API_URL}/examples/update/batch`, examplesData);
+export const deleteExamplesBatch = (exampleIds) => post_refresh(`${API_URL}/examples/delete/batch`, exampleIds);
+export const filterExamples = (exampleFilterData) => post_refresh(`${API_URL}/examples/filter`, exampleFilterData);
+export const getExamplesForUser = () => get_refresh(`${API_URL}/examples/get-examples-for-user`);
 
 // === Text Analysis ===
-export const analyzeText = (text) => axios.post(`${API_URL}/text/analyze`, { text });
+export const analyzeText = (text) => post_refresh(`${API_URL}/text/analyze`, { text });
 
 // === User Text CRUD ===
-export const createUserText = (userTextData) => axios.post(`${API_URL}/user_text/create`, userTextData);
-export const getUserText = (userTextId) => axios.get(`${API_URL}/user_text/get/${userTextId}`);
-export const getUserTextList = (limit = null, offset = null) => axios.get(`${API_URL}/user_text/all`, { params: { limit, offset } });
-export const updateUserText = (userTextData) => axios.post(`${API_URL}/user_text/update`, userTextData);
-export const deleteUserText = (userTextId) => axios.get(`${API_URL}/user_text/delete/${userTextId}`);
+export const createUserText = (userTextData) => post_refresh(`${API_URL}/user_text/create`, userTextData);
+export const getUserText = (userTextId) => get_refresh(`${API_URL}/user_text/get/${userTextId}`);
+export const getUserTextList = (limit = null, offset = null) => get_refresh(`${API_URL}/user_text/all`, { params: { limit, offset } });
+export const updateUserText = (userTextData) => post_refresh(`${API_URL}/user_text/update`, userTextData);
+export const deleteUserText = (userTextId) => get_refresh(`${API_URL}/user_text/delete/${userTextId}`);
 
 // === User Data CRUD ===
-export const getAllUsersAdmin = (limit = null, offset = null) => axios.get(`${API_URL}/user_admin/get_all_users/${encodeURIComponent(limit)}/${encodeURIComponent(offset)}`);
-export const deleteUserAdmin = (id) => axios.get(`${API_URL}/user_admin/delete/${id}`);
-export const getUserSummaryAdmin = (userId) => axios.get(`${API_URL}/user_data/summary/admin/${userId}`);
-export const getAllUserDataAdmin = (userId) => axios.get(`${API_URL}/user_data/all/admin/${userId}`);
-export const getUserSummaryUser = () => axios.get(`${API_URL}/user_data/summary/user`);
-export const getAllUserDataUser = () => axios.get(`${API_URL}/user_data/all/user`);
+export const getAllUsersAdmin = (limit = null, offset = null) => get_refresh(`${API_URL}/user_admin/get_all_users/${encodeURIComponent(limit)}/${encodeURIComponent(offset)}`);
+export const deleteUserAdmin = (id) => get_refresh(`${API_URL}/user_admin/delete/${id}`);
+export const getUserSummaryAdmin = (userId) => get_refresh(`${API_URL}/user_data/summary/admin/${userId}`);
+export const getAllUserDataAdmin = (userId) => get_refresh(`${API_URL}/user_data/all/admin/${userId}`);
+export const getUserSummaryUser = () => get_refresh(`${API_URL}/user_data/summary/user`);
+export const getAllUserDataUser = () => get_refresh(`${API_URL}/user_data/all/user`);
 
 // === Quiz Records ===
-//export const saveQuizRecord = (quizRecord) => axios.post(`${API_URL}/quiz/record`, quizRecord);
-//export const getQuizRecords = (filters = {}) => axios.post(`${API_URL}/quiz/records`, filters);
-//export const getQuizStatistics = (filters = {}) => axios.post(`${API_URL}/quiz/statistics`, filters);
+//export const saveQuizRecord = (quizRecord) => post_refresh(`${API_URL}/quiz/record`, quizRecord);
+//export const getQuizRecords = (filters = {}) => post_refresh(`${API_URL}/quiz/records`, filters);
+//export const getQuizStatistics = (filters = {}) => post_refresh(`${API_URL}/quiz/statistics`, filters);

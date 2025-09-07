@@ -4,8 +4,13 @@ from typing import List
 from models import UserData
 from user_auth.routes import check_user
 
-def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **kwargs):    
-    user: UserData = check_user(request, db)
+def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **kwargs):
+
+    try:
+        user: UserData = check_user(request, db)
+    except Exception as e:
+        user = None
+
     if user:
         user_roles = [ur for ur in user.roles]
         user_id = user.id
@@ -14,7 +19,7 @@ def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **
         user_id = None
 
     matched_roles = [ur for ur in user_roles if ur in allowed_roles]
-
+    
     if len(matched_roles) == 0 and '*' not in allowed_roles:
         return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
     
@@ -27,8 +32,12 @@ def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **
     finally:
         db.close()
 
-async def auth_service_async(request: Request, allowed_roles: List[str], db, func, *args, **kwargs):  
-    user: UserData = check_user(request, db)
+async def auth_service_async(request: Request, allowed_roles: List[str], db, func, *args, **kwargs): 
+    try: 
+        user: UserData = check_user(request, db)
+    except Exception as e:
+        user = None
+
     if user:
         user_roles = [ur for ur in user.roles]
         user_id = user.id

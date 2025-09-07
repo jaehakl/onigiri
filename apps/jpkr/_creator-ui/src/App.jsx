@@ -49,7 +49,7 @@ function App() {
   const getActiveKey = () => {
     const currentPath = location.pathname;
     const activeItem = menuItems.find(item => 
-      currentPath === item.path || currentPath.startsWith(item.path)
+      item.path !== '/' && (currentPath === item.path || currentPath.startsWith(item.path))
     );
     return activeItem ? activeItem.key : 'duplicated-words';
   };

@@ -46,11 +46,6 @@ function App() {
   
   const menuItemsUser = [
     {
-      key: 'recommend-examples',
-      label: '문장별 학습',
-      path: '/recommend-examples'
-    },
-    {
       key: 'words-search',
       label: '단어 검색',
       path: '/words-search'
@@ -59,9 +54,14 @@ function App() {
 
   const menuItemsPublic = [
     {
+      key: 'recommend-examples',
+      label: '문장별 학습',
+      path: '/'
+    },
+    {
       key: 'word-analysis',
       label: '텍스트 단어 찾기',
-      path: '/'
+      path: '/analysis'
     }
   ];
 
@@ -77,10 +77,13 @@ function App() {
 
   const getActiveKey = () => {
     const currentPath = location.pathname;
+    if (currentPath === '/') {
+      return 'recommend-examples';
+    }
     const activeItem = menuItems.find(item => 
-      currentPath === item.path || currentPath.startsWith(item.path)
+      item.path !== '/' && (currentPath === item.path || currentPath.startsWith(item.path))
     );
-    return activeItem ? activeItem.key : 'words-register';
+    return activeItem ? activeItem.key : 'recommend-examples';
   };
 
   const renderMenuButtons = () => (
@@ -186,8 +189,8 @@ function App() {
         </Sidebar>
         <Content className="content-area">
           <Routes>
-            <Route path="/" element={<WordAnalysis />} />
-            <Route path="/recommend-examples" element={<RecommendExamples />} />
+          <Route path="/" element={<RecommendExamples />} />
+            <Route path="/analysis" element={<WordAnalysis />} />
             <Route path="/words-search" element={<WordsSearch />} />              
             <Route path="/words-table" element={<WordsTable />} />
             <Route path="/examples-register" element={<ExamplesRegister />} />

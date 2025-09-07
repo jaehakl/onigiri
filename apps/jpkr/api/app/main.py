@@ -37,7 +37,7 @@ async def api_delete_words(request: Request, word_ids: List[int], db: Session = 
 async def api_get_words(request: Request, data: Dict[str, Any], db: Session = Depends(get_db)):
     limit = data.get("limit")
     offset = data.get("offset")
-    return auth_service(request, ["*"], db, get_all_words, limit, offset)
+    return auth_service(request, ["admin"], db, get_all_words, limit, offset)
 
 @app.get("/words/search/{search_term}")
 async def api_search_word(request: Request, search_term: str, db: Session = Depends(get_db)):
@@ -76,9 +76,6 @@ async def api_delete_examples(request: Request, example_ids: List[int], db: Sess
 async def api_filter_examples(request: Request, example_filter_data: ExampleFilterData, db: Session = Depends(get_db)):
     return auth_service(request, ["admin"], db, filter_examples_by_criteria, **example_filter_data.model_dump())
 
-@app.get("/examples/get-examples-for-user")
-async def api_get_examples_for_user(request: Request, db: Session = Depends(get_db)):
-    return auth_service(request, ["admin", "user"], db, get_examples_for_user)
 
 
 # User Text CRUD API endpoints
@@ -133,3 +130,7 @@ async def api_get_user_all_data_user(request: Request, db: Session = Depends(get
 @app.post("/text/analyze")
 async def api_analyze_text(request: Request, text_data: TextData, db: Session = Depends(get_db)):
     return auth_service(request, ["*"], db, analyze_text, text_data.text)
+
+@app.get("/examples/get-examples-for-user")
+async def api_get_examples_for_user(request: Request, db: Session = Depends(get_db)):
+    return auth_service(request, ["*"], db, get_examples_for_user)

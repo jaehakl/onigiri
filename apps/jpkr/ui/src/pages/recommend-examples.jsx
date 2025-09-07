@@ -35,25 +35,6 @@ const RecommendExamples = () => {
     </div>
   );
 
-  if (loading) {
-    return (
-      <div className="recommend-examples-loading-container">
-        <Loader size="lg" content="예문을 불러오는 중..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Message type="error" showIcon>
-        {error}
-        <Button onClick={loadExamples} style={{ marginLeft: 10 }}>
-          다시 시도
-        </Button>
-      </Message>
-    );
-  }
-
   return (
     <div className="recommend-examples-page">
       <Panel header={
@@ -72,15 +53,26 @@ const RecommendExamples = () => {
       } className="recommend-examples-page-header">
       </Panel>
 
-        {examples.length === 0 ? (
-          <Message type="info" showIcon>
-            추천할 예문이 없습니다.
-          </Message>
-        ) : (
-          <div className="recommend-examples-grid">
-            {examples.map(renderExampleCard)}
-          </div>
-        )}
+      {loading ? (
+        <div className="recommend-examples-loading-container">
+          <Loader size="lg" content="예문을 불러오는 중..." />
+        </div>
+      ) : error ? (
+        <Message type="error" showIcon>
+          {error}
+          <Button onClick={loadExamples} style={{ marginLeft: 10 }}>
+            다시 시도
+          </Button>
+        </Message>
+      ) : examples.length === 0 ? (
+        <Message type="info" showIcon>
+          추천할 예문이 없습니다.
+        </Message>
+      ) : (
+        <div className="recommend-examples-grid">
+          {examples.map(renderExampleCard)}
+        </div>
+      )}
     </div>
   );
 };
