@@ -7,7 +7,8 @@ function get_refresh(url) {
   return axios.get(url)
   .catch(err => {
     if (err.status === 401) {
-      return axios.get(`${API_URL}/auth/refresh`).then(axios.get(url));
+      return axios.get(`${API_URL}/auth/refresh`)
+      .then(res => axios.get(url));
     }
   })
 }
@@ -16,7 +17,8 @@ function post_refresh(url, data) {
   return axios.post(url, data)
   .catch(err => {
     if (err.status === 401) {
-      return axios.get(`${API_URL}/auth/refresh`).then(axios.post(url, data));
+      return axios.get(`${API_URL}/auth/refresh`)
+      .then(res => axios.post(url, data));
     }
   })
 }

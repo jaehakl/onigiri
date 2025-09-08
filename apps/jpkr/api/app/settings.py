@@ -18,7 +18,7 @@ class Settings(BaseModel):
 
     JWT_SECRET: str = os.getenv("JWT_SECRET", "")
     JWT_ALG: str = "HS256"
-    ACCESS_TTL_SEC: int = 3600
+    ACCESS_TTL_SEC: int = 1200
     REFRESH_TTL_SEC: int = 60*60*24*14
     COOKIE_DOMAIN: str = os.getenv("COOKIE_DOMAIN", "")
     SECURE_COOKIES: bool = True
