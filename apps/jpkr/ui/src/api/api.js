@@ -6,7 +6,7 @@ axios.defaults.withCredentials = true;
 function get_refresh(url) {
   return axios.get(url)
   .catch(err => {
-    if (err.status === 401) {
+    if (err.response?.status === 401) {
       return axios.get(`${API_URL}/auth/refresh`)
       .then(res => axios.get(url));
     }
@@ -16,7 +16,7 @@ function get_refresh(url) {
 function post_refresh(url, data) {
   return axios.post(url, data)
   .catch(err => {
-    if (err.status === 401) {
+    if (err.response?.status === 401) {
       return axios.get(`${API_URL}/auth/refresh`)
       .then(res => axios.post(url, data));
     }
@@ -37,7 +37,6 @@ export function startGoogleLogin() {
 export async function logout() {await post_refresh(`${API_URL}/auth/logout`);}
 
 // === Words CRUD ===
-export const createWordsBatch = (wordsData) => post_refresh(`${API_URL}/words/create/batch`, wordsData);
 export const updateWordsBatch = (wordsData) => post_refresh(`${API_URL}/words/update/batch`, wordsData);
 export const deleteWordsBatch = (wordIds) => post_refresh(`${API_URL}/words/delete/batch`, wordIds);
 export const getAllWords = (limit = null, offset = null) => axios.post(`${API_URL}/words/all`, { limit, offset });

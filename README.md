@@ -1,78 +1,155 @@
 
-# Onigiri - 일본 노래 가사 단어 학습기
+# Onigiri - 전자 일본어 학습기
 
 [https://www.onigiri.kr/](https://www.onigiri.kr/)
 
-**프로젝트 개요 및 목표**
-
-- **개요:** 사용자가 좋아하는 일본 노래 가사를 기반으로, 개인의 학습 목적과 수준에 맞춰 동적으로 생성되는 맞춤형 일본어 학습 경험을 제공하는 웹/앱 서비스.
-- **핵심 목표:** 사용자가 선택한 노래 한 곡을 완벽하게 이해하고 따라 부를 수 있게 함으로써, 학습에 대한 강력한 동기 부여와 최고의 성취감을 선사하는 것을 목표로 한다.
-
-<img width="1026" height="724" alt="image" src="https://github.com/user-attachments/assets/2a36b3f3-b0cd-47fa-b361-42e86c07a719" />
-
+# 개요
 **핵심 기능 (Core Features)**
-#### 가사 입력 및 해석
-- 가사를 클립보드를 통해 복사해 넣고, '학습하기' 버튼을 누른다. 데이터 로딩이 끝나면 입력창은 숨김 처리되고 가사가 렌더링되어 나타난다.
-- 입력한 일본어 가사에 추출된 단어를 강조표시하여 출력한다. 사용자의 이해도 Level 에 따라 색을 다르게 한다. 단어를 클릭하면 상호작용이 가능하다.
-- 단어 카드 목록이 아래에 표시된다.
+- 문장 학습 모드(feed_examples)
+	- 추천 알고리즘에 따라 사용자에게 적합한 예문을 6개씩 제공
+		- 형태소 분석 기반 단어 하이라이트, 삽화/음성, 한국어 뜻 제공
+		- 삽화를 누르면 음성 재생, 한국어 뜻은 버튼으로 토글
+- 텍스트 분석(Analysis_text)
+	- 스크립트/유튜브 URL 저장 후 불러오기
+	- 텍스트에서 자동으로 단어 추출 및 난이도/숙련도 표시
+		- 단어 클릭으로 상호작용(개인 숙련도 업데이트 → 추후 낮은 숙련 위주 표시)
+- 개인 단어/예문 관리 및 CRUD
+	- DB에 단어가 없거나 잘못된 경우, 직접 저장 가능(본인 데이터 우선 표시)
+- 학습 진행도 모니터링(사용자 요약/상세 데이터)
 
-#### 맞춤형 단어 목록
-- 형태소 분석을 통해 추출된 단어 목록 및 유저 정보를 받으면, 단어와 관련된 기본정보, 이미지url, 예문, 음성url, 사용자의 이해도 등을 맞춤형으로 제공
+# 시스템 아키텍처
+- 백엔드: FastAPI + SQLAlchemy, PostgreSQL(+pgvector), JWT 쿠키, Google OAuth
+- 프런트엔드: Vite + React(rsuite UI)
+- Creator: 로컬 전용 생성/관리 서버(임베딩/오디오/이미지/중복처리)
+- 배포: Nginx 리버스 프록시, systemd 서비스, Certbot SSL
 
-**단어 상세 정보 제공**
-- '교재'에 포함된 모든 단어는 다음 정보를 포함하는 상세 페이지를 가져야 한다.    
-    - **일본어 단어 표기:** 한자 및 히라가나/가타카나.
-    - **발음:** 히라가나/가타카나 표기 및 원어민 음성.
-    - **한국어 뜻:** 가장 핵심적인 의미.
-    - **상징 이미지:** 해당 단어의 의미와 뉘앙스를 시각적으로 표현한 고유의 AI 생성 이미지.
-    - **맞춤 예문 세트:**
-        - 사용자가 설정한 학습 목적(여행, 시험, 애니 등)에 부합하는 예문을 우선적으로 노출해야 한다.
-        - 모든 예문은 텍스트와 함께 원어민 음성을 제공해야 한다.
-            
-**퀴즈 시스템**
-- '교재'의 학습 과정에는 다양한 유형의 퀴즈가 포함되어야 한다.
-- **퀴즈 유형:**
-    - 단어 ↔ 뜻 맞히기 (객관식/단답형)
-    - 단어 ↔ 발음 맞히기 (객관식/단답형)
-    - 단어 ↔ 이미지 연결하기 (객관식)
-    - 예문 빈칸 채우기 (객관식/단답형)
-    - 예문 듣고 빈칸 채우기 (객관식)
-    - 단어 배열하여 문장 완성하기
-    - 예문 ↔ 뜻 번역하기 (자기 주도 채점 방식)
-- 퀴즈 진행 중 즉각적인 정답/오답 피드백 및 간략한 해설을 제공해야 한다.
-- **서술형 문제 채점:**
-    - **구현 방식:** 서버에서의 자동 채점을 구현하지 않는다.
-    - **프로세스:** 사용자가 서술형 답안을 제출하면, 서버는 DB에 저장된 모범 답안을 클라이언트로 전송한다. 클라이언트에서 사용자의 답과 모범 답안을 나란히 보여주고, 사용자 스스로 '맞음/틀림'을 선택하게 하는 '자기 주도 채점' 방식을 채택한다. 서버는 사용자의 최종 선택 결과(O/X)만 기록한다.
-- 퀴즈 진행 중 즉각적인 정답/오답 피드백 및 간략한 해설을 제공해야 한다.
-- 문제풀이가 모두 종료되면, 그 결과를 서버(초기단계에는 로컬스토리지)로 전송하여 기록한다.
-- **보상:** '교재'를 100% 완료했을 때, 명확한 축하 메시지와 함께 학습 전/후의 성장 리포트를 제공하고, 최종 보상으로 '이제 노래가 들리는 경험'을 하도록 유도해야 한다.
+# 레포 디렉터리 개요
+- `apps/jpkr/api/app`: 메인 백엔드(FastAPI)
+	- `main.py`: API 엔드포인트
+	- `initserver.py`: CORS/DB 확장/라우터 초기화
+	- `settings.py`: 환경변수 설정
+	- `db.py`: DB 엔진/세션/앱 도메인 모델(`Word`, `Example`, `UserWordSkill`, `UserText`...)
+	- `user_auth/*`: 사용자/역할/아이덴티티/세션, OAuth, JWT 발급/검증
+	- `service/*`: 비즈니스 로직(단어/예문/텍스트/추천/분석/S3 등)
+	- `methods/*`: 다양한 추천 알고리즘 구현
+- `apps/jpkr/ui`: 프런트엔드(React)
+- `apps/jpkr/api/app/_creator`: Creator 전용 백엔드(로컬 관리/생성)
+- `deployment/*`: Nginx/systemd/업데이트 스크립트 문서
+- `docs/*`: 추가 문서(로드맵/콘텐츠 등)
 
-**'나의 일본어 스탯' 대시보드**
-- 사용자의 모든 학습 활동을 기록하고 분석하여, 성장의 여정을 시각적으로 확인할 수 있는 개인 대시보드를 제공해야 한다.
-- **포함될 시각화 데이터:**
-    - **종합 능력치 차트:** 어휘력, 문법, 청해력, 독해력, 속도 등을 나타내는 오각형 레이더 차트.
-    - **분야별 숙련도:** JLPT 급수, 학습 목적(주제), 품사별 학습 진행도를 나타내는 프로그레스 바.
-    - **학습 습관 트래킹:** 일일 학습 여부를 기록하는 학습 캘린더(잔디) 및 연속 학습일 표시.
-    - **누적 성장 그래프:** 총 학습 단어 수의 변화를 보여주는 시계열 그래프.
+# 빠른 시작(로컬 개발)
+## 필수 요구사항
+- Python >= 3.11
+- Node.js >= 18, pnpm 또는 npm
+- PostgreSQL(권장, pgvector 확장 필요). SQLite로도 기동은 가능하나 벡터/추천 일부 기능 제한
 
-**사용자 경험 (User Experience) 목표**
-- **온보딩:** 신규 가입 시, 서비스의 핵심 가치를 빠르게 이해시키고 '학습 목적'을 설정하도록 자연스럽게 유도해야 한다.
-- **학습 흐름:** 사용자가 '가사 제출 → 교재 생성 → 단계별 학습(단어카드/퀴즈) → 스탯 확인 → 노래 다시 듣기'로 이어지는 명확하고 동기 부여되는 학습 경로를 경험하게 해야 한다.
-- **보상:** '교재'를 100% 완료했을 때, 명확한 축하 메시지와 함께 학습 전/후의 성장 리포트를 제공하고, 최종 보상으로 '이제 노래가 들리는 경험'을 하도록 유도해야 한다.
-- **디자인:** 직관적이고 시각적으로 매력적이며, 학습 과정이 게임처럼 느껴지도록 디자인되어야 한다.    
+## 환경변수(.env 예시)
+백엔드 `apps/jpkr/api/app/.env`
+```env
+ONIGIRI_DB_URL=postgresql+psycopg://user:pass@localhost:5432/onigiri
+APP_BASE_URL=http://localhost:5173
 
-**제공 콘텐츠 요구사항**
-- **단어:** JLPT N5~N1 및 상용한자를 포함하는 핵심 단어풀을 기반으로, 사용자 요청에 따라 지속적으로 확장되어야 한다.
-- **이미지:** 모든 핵심 단어에 대해, 단어의 의미를 상징적으로 나타내는 고품질 AI 생성 이미지가 제공되어야 한다.
-- **예문:** 모든 핵심 단어에 대해, 다양한 학습 목적(여행, 시험, 일상, 비즈니스 등)에 맞게 태깅된 복수의 예문이 제공되어야 한다.
-- **음성:** 모든 단어의 발음 및 모든 예문에는 원어민 수준의 자연스러운 음성이 제공되어야 한다.
+# OAuth
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 
-# Further Works
-단어, 예문, 이미지 추가
+# JWT
+JWT_SECRET=change_me
+COOKIE_DOMAIN=localhost
 
-- 퀴즈 개선(퀴즈에는 아는 단어는 제외)
-- 퀴즈를 통한 숙련도 계산 및 학습 진행도 시각화
-- 예문음성 업로드 및 활용
-- 예문 클릭하면 음성 재생
-- 임베딩 업로드 및 활용
-- 중복 단어 비교통합 관리자 모드
+# AWS S3 (옵션: 오디오/이미지 프리사인 URL)
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=ap-northeast-2
+S3_BUCKET=...
+S3_ENDPOINT_URL=
+```
+
+프런트엔드 `apps/jpkr/ui/.env`
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## 초기 설치
+1) 백엔드(Windows 예시)
+```bat
+cd apps\jpkr\api\app
+poetry install
+python -m unidic download
+poetry run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+2) 프런트엔드
+```bat
+cd apps\jpkr\ui
+pnpm i
+pnpm dev
+```
+
+3) 편의 스크립트(Windows)
+- 루트의 `run.bat` 실행 시, 백엔드/프런트 각각 새 창으로 기동
+- 프런트의 `apps/jpkr/ui/run.bat`는 브라우저를 열고 개발 서버 실행
+
+# 인증/권한
+- 로그인 흐름: `/auth/google/start` → Google → `/auth/google/callback`
+- 내부 JWT(access/refresh)를 쿠키에 저장. `/auth/me`로 사용자 정보 확인
+- 역할: `admin`, `user` (공개 엔드포인트는 `['*']` 허용)
+- 토큰 만료 시 클라이언트는 `/auth/refresh` 재시도로 자동 복구(프런트 API 래퍼 참고)
+
+# 주요 API 개요(발췌)
+- Words(관리자): 생성/수정/삭제/전체/검색/필터 `/words/*`
+- Examples(관리자): 생성/수정/삭제/필터 `/examples/*`
+- 개인 단어: `/words/create/personal`, `/words/personal/random/{limit}`
+- 사용자 텍스트: `/user_text/*` (create/get/all/update/delete)
+- 사용자 데이터: `/user_admin/*`, `/user_data/*`
+- 텍스트 분석: `/text/analyze` (형태소 분석 + 단어 매핑)
+- 학습용 예문 추천: `/examples/get-examples-for-user`
+
+# 추천 알고리즘 요약
+- 기본 무작위: `methods/recommend_examples_simple.py`
+- 점수 기반(SQL): `recommend_examples_fast.py`, `recommend_examples_fast_light.py`
+- Python MMR 다양화: `recommend_examples_advanced.py`, `recommend_examples.py`
+- 응답 전처리: `methods/words_from_examples_batch.py`가 예문 내 단어/숙련 정보 묶음
+
+# 텍스트 분석(형태소)
+- `utils/words_from_text.py`에서 Fugashi+Unidic 사용
+	- 최초 사용 전 사전 다운로드 필요: `python -m unidic download`
+- `service/analysis_text.py`가 DB의 `Word/Skill`과 매핑하여 라인/단어별 결과 제공
+
+# Creator 앱(로컬 전용)
+- 기능: 임베딩 생성(Sentence-Transformers), 예문 오디오(ESPnet TTS), 이미지(SDXL), 중복 단어 조회/병합, 유사도 조회(pgvector)
+- 라우트: `_creator_main.py` 참조(관리자 전용 엔드포인트)
+- 환경: CUDA/torch/flash_attn 등 호환 버전 필요(상세는 `_creator/README.md` 가이드)
+
+# 배포 개요
+- 문서: `deployment/deployment.md` 참고
+	- Nginx 리버스 프록시(`/api/` → 127.0.0.1:8000), 정적 파일(`/var/www/app/dist`) 서빙
+	- SSL: Certbot
+	- systemd 서비스 예시 포함(uvicorn)
+- 프런트 빌드 산출물: `apps/jpkr/ui` → `dist/` → `/var/www/app/dist/`로 동기화
+
+# 데이터베이스/확장
+- 권장: PostgreSQL + `pgvector`, `citext`, `pgcrypto`
+	- 앱 기동 시 `initserver`에서 `CREATE EXTENSION IF NOT EXISTS` 시도
+	- 권한 필요. 미설치 시 임베딩/유사도, 일부 인덱스 기능 제한
+- 개발 편의를 위한 SQLite 기본값이 있으나, 추천/벡터 기능은 제한됨
+
+# S3 연동(옵션)
+- `utils/aws_s3.py`로 업로드/프리사인/삭제 지원
+- 예문 오디오/이미지는 private 저장 후 presigned URL로 접근
+
+# 컨텐츠 추가 Workflow
+1. 메인 앱에서 관리자 계정으로 예문(태그/일본어/한국어/이미지 프롬프트) 입력
+2. Creator 앱에서 임베딩 없는 단어 조회 → 임베딩 생성
+3. Creator 앱에서 임베딩 없는 예문 조회 → 임베딩 생성
+4. Creator 앱에서 오디오 없는 예문 조회 → 오디오 생성
+5. Creator 앱에서 이미지 없는 예문 조회 → 이미지 생성
+
+# 주의 및 알려진 이슈(개발 메모)
+- PostgreSQL 확장 미설치 시 추천/유사도 기능이 제한될 수 있음
+- 프런트 `apps/jpkr/ui/src/api/api.js`의 401 처리 시 `err.response?.status` 사용 권장
+- 일부 CRUD 코드가 과거 스키마 명칭을 참조할 수 있으니(예: 단어 필드명) 실제 모델(`db.Word`)과 동기화 필요
+
+# 라이선스
+- MIT License

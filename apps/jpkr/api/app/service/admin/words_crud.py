@@ -11,39 +11,6 @@ def row_to_dict(obj) -> dict:
     # ORM 객체를 dict로 안전하게 변환
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
-def create_words_batch(words_data: List[WordData], db: Session, user_id: Optional[str] = None) -> Dict[str, dict]:
-    if not words_data:
-        return {}
-    # 유저별 유니크라면 (user_id, word) 키가 실질 키
-    word_keys = list({(user_id, wd.word) for wd in words_data if wd.word is not None})
-    stmt_exist = select(Word).where(
-        (Word.user_id == user_id) & (Word.word.in_([w for _, w in word_keys]))
-    )
-    existing_rows = db.execute(stmt_exist).scalars().all()
-    existing_map = {(w.user_id, w.word): w for w in existing_rows}
-    # 3) 새로 넣어야 할 목록 구성(ORM → dict)
-    rows_to_insert = []
-    for wd in words_data:
-        if wd.word is None:
-            continue
-        key = wd.word if user_id is None else (user_id, wd.word)
-        if key in existing_map:
-            continue
-        payload = {k: v for k, v in wd.model_dump().items() if v is not None}
-        if user_id is not None:
-            payload['user_id'] = user_id
-        rows_to_insert.append(payload)
-    result_map: Dict[str, dict] = {}
-    # 4) 중복은 유지(또는 업데이트), 신규만 일괄 insert
-    if rows_to_insert:
-        ins = pg_insert(Word).values(rows_to_insert)
-        db.execute(ins)
-    # 5) 결과 구성: 기존 + (옵션) 신규
-    for w in existing_rows:
-        result_map[w.word] = row_to_dict(w)
-    db.commit()
-    return result_map
-
 
 def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     result = {}        

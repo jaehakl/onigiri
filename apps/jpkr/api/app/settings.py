@@ -12,10 +12,6 @@ class Settings(BaseModel):
 
     app_base_url: str = os.getenv("APP_BASE_URL", "http://localhost:5173")
 
-    session_cookie_name: str = os.getenv("SESSION_COOKIE_NAME", "sid")
-    session_cookie_secure: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
-    session_max_age: int = int(os.getenv("SESSION_MAX_AGE_SECONDS", "1209600"))  # 14d
-
     JWT_SECRET: str = os.getenv("JWT_SECRET", "")
     JWT_ALG: str = "HS256"
     ACCESS_TTL_SEC: int = 1200

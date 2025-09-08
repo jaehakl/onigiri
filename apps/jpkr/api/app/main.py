@@ -9,7 +9,7 @@ from models import WordData, ExampleData, TextData, ExampleFilterData, WordFilte
 from user_auth.routes import check_user, get_db
 from user_auth.utils.auth_wrapper import auth_service, auth_service_async
 
-from service.admin.words_crud import create_words_batch, update_words_batch, delete_words_batch, get_all_words, search_words_by_word
+from service.admin.words_crud import update_words_batch, delete_words_batch, get_all_words, search_words_by_word
 from service.admin.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, filter_examples_by_criteria
 from service.admin.filter_words import filter_words_by_criteria
 from service.feed_examples import get_examples_for_user
@@ -21,10 +21,6 @@ from service.user_sevice import UserService
 app = server()
 
 # Words CRUD API endpoints
-@app.post("/words/create/batch")
-async def api_create_words_batch(request: Request, words_data: List[WordData], db: Session = Depends(get_db)):
-    return auth_service(request, ["admin"], db, create_words_batch, words_data)
-
 @app.post("/words/update/batch")
 async def api_update_words(request: Request, words_data: List[WordData], db: Session = Depends(get_db)):    
     return auth_service(request, ["admin"], db, update_words_batch, words_data)

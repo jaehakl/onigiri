@@ -29,8 +29,6 @@ def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **
         print("Error: ", e)
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
 
 async def auth_service_async(request: Request, allowed_roles: List[str], db, func, *args, **kwargs): 
     try: 
@@ -56,5 +54,3 @@ async def auth_service_async(request: Request, allowed_roles: List[str], db, fun
         print("Error: ", e)
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
