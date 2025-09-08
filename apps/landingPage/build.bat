@@ -1,0 +1,1 @@
+pnpm --filter onigiri-landing-page build
