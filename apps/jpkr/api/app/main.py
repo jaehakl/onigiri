@@ -10,8 +10,9 @@ from user_auth.routes import check_user, get_db
 from user_auth.utils.auth_wrapper import auth_service, auth_service_async
 
 from service.admin.words_crud import update_words_batch, delete_words_batch, get_all_words, search_words_by_word
-from service.admin.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch, filter_examples_by_criteria
+from service.admin.examples_crud import create_examples_batch, update_examples_batch, delete_examples_batch
 from service.admin.filter_words import filter_words_by_criteria
+from service.admin.filter_examples import filter_examples_by_criteria
 from service.feed_examples import get_examples_for_user
 from service.analysis_text import analyze_text
 from service.words_personal import create_words_personal, get_random_words_to_learn
@@ -109,18 +110,13 @@ async def api_delete_user(request: Request, id: str, db: Session = Depends(get_d
 async def api_get_user_summary_admin(request: Request, user_id: str, db: Session = Depends(get_db)):
     return auth_service(request, ["admin"], db, UserService.get_user_summary, user_id)
 
-@app.get("/user_data/all/admin/{user_id}")
-async def api_get_user_all_data_admin(request: Request, user_id: str, db: Session = Depends(get_db)):
-    return auth_service(request, ["admin"], db, UserService.get_user_with_all_data, user_id)
-
 @app.get("/user_data/summary/user")
 async def api_get_user_summary_user(request: Request, db: Session = Depends(get_db)):
     return auth_service(request, ["admin", "user"], db, UserService.get_user_summary, "me")
 
-@app.get("/user_data/all/user")
-async def api_get_user_all_data_user(request: Request, db: Session = Depends(get_db)):
-    return auth_service(request, ["admin", "user"], db, UserService.get_user_with_all_data, "me")
-
+@app.get("/user_data/word_skills/user")
+async def api_get_user_word_skills_user(request: Request, db: Session = Depends(get_db)):
+    return auth_service(request, ["admin", "user"], db, UserService.get_user_word_skills)
 
 # Text Analysis API endpoint
 @app.post("/text/analyze")

@@ -89,7 +89,7 @@ function AuthUserProfile() {
             <div className="profile-actions">
               <button 
                 className="action-button primary"
-                onClick={() => navigate(`/user-detail/me`)}
+                onClick={() => navigate(`/user-word-skills`)}
               >
                 ステータス
               </button>

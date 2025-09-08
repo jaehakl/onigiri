@@ -34,7 +34,6 @@ def words_from_examples_batch(examples: List[Example], db: Session = None, user_
     examples_result = {}
     for example in examples:
         document, words_dict = extract_words_from_text(example.jp_text)
-        example.words_dict = words_dict
 
         words_result = defaultdict(list)
         for i_line, line in enumerate(document):
@@ -79,8 +78,8 @@ def words_from_examples_batch(examples: List[Example], db: Session = None, user_
             "jp_text": example.jp_text,
             "kr_mean": example.kr_mean,
             "tags": example.tags,
-            "audio_url": presign_get_url(example.audio_object_key, expires=600) if example.audio_object_key is not None else None,
-            "image_url": presign_get_url(example.image_object_key, expires=600) if example.image_object_key is not None else None,
+            "audio_url": example.audio_url,
+            "image_url": example.image_url,
             "words": words_result,
         }
     return examples_result

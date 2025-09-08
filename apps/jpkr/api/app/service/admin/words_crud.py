@@ -1,6 +1,6 @@
 # words_crud.py
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, select, delete
+from sqlalchemy import and_, or_, select, delete, func, case
 from typing import List, Dict, Any, Optional, Sequence
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -15,7 +15,6 @@ def row_to_dict(obj) -> dict:
 def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     result = {}        
     for word_data in words_data:
-        print(word_data)
         word = db.query(Word).filter(Word.id == word_data.id).first()
         
         if word:
@@ -53,14 +52,45 @@ def search_words_by_word(search_term: str, db: Session=None, user_id:str = None)
     hangul_pattern = f"%{search_terms[0]}%"
     hiragana_pattern = f"%{search_terms[1]}%"
     
-    found_words = db.query(Word).filter(
+    # 필요한 필드만 선택하여 쿼리 최적화 (embedding 제외)
+    query = db.query(
+        Word.id,
+        Word.lemma_id,
+        Word.lemma,
+        Word.jp_pron,
+        Word.kr_pron,
+        Word.kr_mean,
+        Word.level,
+        Word.created_at,
+        Word.updated_at,
+        # embedding 존재 여부만 확인 (실제 값은 가져오지 않음)
+        case(
+            (Word.embedding.isnot(None), 1),
+            else_=0
+        ).label('has_embedding')
+    ).filter(
         or_(
             Word.lemma.like(hiragana_pattern),
             Word.jp_pron.like(hiragana_pattern),
             Word.kr_pron.like(hangul_pattern),
             Word.kr_mean.like(hangul_pattern),
         )
-    ).all()
+    )
+    
+    found_words = query.all()
+    
+    # 예문 수를 가져오기 위한 별도 쿼리
+    word_ids = [row.id for row in found_words]
+    example_counts = {}
+    if word_ids:
+        from db import WordExample
+        example_count_query = db.query(
+            WordExample.word_id,
+            func.count(WordExample.example_id).label('example_count')
+        ).filter(WordExample.word_id.in_(word_ids)).group_by(WordExample.word_id)
+        
+        for row in example_count_query.all():
+            example_counts[row.word_id] = row.example_count
     
     result = []
     for word in found_words:
@@ -72,7 +102,8 @@ def search_words_by_word(search_term: str, db: Session=None, user_id:str = None)
             "kr_pron": word.kr_pron,
             "kr_mean": word.kr_mean,
             "level": word.level,
-            "num_examples": len(word.word_examples),
+            "num_examples": example_counts.get(word.id, 0),
+            "has_embedding": word.has_embedding,
             "created_at": word.created_at,
             "updated_at": word.updated_at
         }
@@ -83,14 +114,42 @@ def search_words_by_word(search_term: str, db: Session=None, user_id:str = None)
 def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, db: Session=None, user_id:str = None) -> Dict[str, Any]:
     total_count = db.query(Word).count()    
 
-    # 페이지네이션된 단어 조회
-    query = db.query(Word)    
+    # 필요한 필드만 선택하여 쿼리 최적화 (embedding 제외)
+    query = db.query(
+        Word.id,
+        Word.lemma_id,
+        Word.lemma,
+        Word.jp_pron,
+        Word.kr_pron,
+        Word.kr_mean,
+        Word.level,
+        # embedding 존재 여부만 확인 (실제 값은 가져오지 않음)
+        case(
+            (Word.embedding.isnot(None), 1),
+            else_=0
+        ).label('has_embedding')
+    )
+    
     if offset:
         query = query.offset(offset)
     if limit:
         query = query.limit(limit)
     
     words = query.all()
+    
+    # 예문 수를 가져오기 위한 별도 쿼리
+    word_ids = [row.id for row in words]
+    example_counts = {}
+    if word_ids:
+        from db import WordExample
+        example_count_query = db.query(
+            WordExample.word_id,
+            func.count(WordExample.example_id).label('example_count')
+        ).filter(WordExample.word_id.in_(word_ids)).group_by(WordExample.word_id)
+        
+        for row in example_count_query.all():
+            example_counts[row.word_id] = row.example_count
+    
     result_words = []
     for word in words:
         result_words.append({
@@ -101,7 +160,8 @@ def get_all_words(limit: Optional[int] = None, offset: Optional[int] = None, db:
             "kr_pron": word.kr_pron,
             "kr_mean": word.kr_mean,
             "level": word.level,
-            "num_examples": len(word.word_examples)
+            "num_examples": example_counts.get(word.id, 0),
+            "has_embedding": word.has_embedding
         })
     
     return {

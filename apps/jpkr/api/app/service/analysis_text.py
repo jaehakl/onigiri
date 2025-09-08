@@ -1,7 +1,8 @@
 from typing import Dict, Any
 from random import shuffle
 from collections import defaultdict
-from db import SessionLocal, Word, WordExample
+from db import SessionLocal, Word, WordExample, UserWordSkill
+from user_auth.db import User
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, case
 from sqlalchemy.orm import Session
@@ -19,46 +20,56 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
         db = SessionLocal()
 
     document, words_dict = extract_words_from_text(text)
+    
+    # 필요한 필드만 선택하여 embedding 제외
     stmt = (
-        select(Word)
-        .options(selectinload(Word.word_examples)
-                    .options(selectinload(WordExample.example)),
-                 selectinload(Word.user_word_skills),
-                 selectinload(Word.user)
-            )
+        select(
+            Word.id,
+            Word.user_id,
+            Word.lemma_id,
+            Word.lemma,
+            Word.jp_pron,
+            Word.kr_pron,
+            Word.kr_mean,
+            Word.level,
+            User.display_name
+        )
+        .join(User, Word.user_id == User.id)
         .where(Word.lemma_id.in_(list(words_dict.keys())))
         .order_by(
             case((Word.user_id == user_id, 0), else_=1)  # 내 것이 먼저 오게
         )
     )
-    words = db.execute(stmt).scalars().all()
+    word_rows = db.execute(stmt).all()
+    
+    # UserWordSkill은 별도 쿼리로 가져오기
+    user_word_skills_stmt = (
+        select(UserWordSkill)
+        .where(UserWordSkill.word_id.in_([row.id for row in word_rows]))
+    )
+    user_word_skills = db.execute(user_word_skills_stmt).scalars().all()
+    
+    # word_id별로 user_word_skills 그룹화
+    skills_by_word_id = defaultdict(list)
+    for skill in user_word_skills:
+        skills_by_word_id[skill.word_id].append(row_to_dict(skill))
 
-    # 그 다음엔 "처음 본 키만 채우기"만 해도 같은 효과
-    examples_to_batch = []
+    # words_existing 딕셔너리 구성
     words_existing = {}
-    for w in words:
-        if w.lemma_id and w.lemma_id not in words_existing:
-            words_existing[w.lemma_id] = row_to_dict(w)
-            #words_existing[w.lemma_id]["example_ids"] = []
-            #words_existing[w.lemma_id]["examples"] = []
-            words_existing[w.lemma_id]["user_word_skills"] = []
-            words_existing[w.lemma_id]["user"] = row_to_dict(w.user)
-            for user_word_skill in w.user_word_skills:
-                words_existing[w.lemma_id]["user_word_skills"].append(row_to_dict(user_word_skill))
-            #shuffle(w.word_examples)
-            #for word_example in w.word_examples:
-            #    #숙련도 높은 단어는 백엔드에서 미리 필터링
-            #    if len(words_existing[w.lemma_id]["user_word_skills"]) > 0:
-            #        if words_existing[w.lemma_id]["user_word_skills"][0]["reading"] > 80:
-            #            break
-            #    #if len(words_existing[w.lemma_id]["example_ids"]) >= 1:
-            #    #    break                
-            #    #words_existing[w.lemma_id]["example_ids"].append(word_example.example_id)
-            #    #examples_to_batch.append(word_example.example)
-    #examples_with_words = words_from_examples_batch(examples_to_batch, db=db, user_id=user_id)
-    #for w, w_dict in words_existing.items():
-    #    for example_id in w_dict["example_ids"]:
-    #        w_dict["examples"].append(examples_with_words[example_id])
+    for row in word_rows:
+        if row.lemma_id and row.lemma_id not in words_existing:
+            words_existing[row.lemma_id] = {
+                "id": row.id,
+                "user_id": row.user_id,
+                "lemma_id": row.lemma_id,
+                "lemma": row.lemma,
+                "jp_pron": row.jp_pron,
+                "kr_pron": row.kr_pron,
+                "kr_mean": row.kr_mean,
+                "level": row.level,
+                "user_word_skills": skills_by_word_id.get(row.id, []),
+                "user": {"display_name": row.display_name}
+            }
 
     words_result = defaultdict(list)
     for i_line, line in enumerate(document):
@@ -78,8 +89,6 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                     "kr_pron": w["kr_pron"],
                     "kr_mean": w["kr_mean"],
                     "level": w["level"],
-                    #"examples": w["examples"],
-                    #"num_examples": len(w["examples"]),
                     "user_word_skills": w["user_word_skills"],
                     "num_user_word_skills": len(w["user_word_skills"]),
                 })
@@ -97,8 +106,6 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                         "kr_pron": w["pos1"],
                         "kr_mean": w["type"],
                         "level": None,
-                        #"examples": [],
-                        #"num_examples": 0,
                         "user_word_skills": [],
                         "num_user_word_skills": 0,
                     })

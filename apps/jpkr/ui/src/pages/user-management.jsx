@@ -51,10 +51,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleViewFullDetail = (userId) => {
-    navigate(`/user-detail/${userId}`);
-  };
-
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('정말로 이 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
       return;
@@ -150,12 +146,6 @@ const UserManagement = () => {
                     </td>
                     <td className="user-created">{formatDate(user.created_at)}</td>
                     <td className="user-actions">
-                      <button 
-                        className="view-full-button"
-                        onClick={() => handleViewFullDetail(user.id)}
-                      >
-                        전체보기
-                      </button>
                       <button 
                         className="delete-user-button"
                         onClick={() => handleDeleteUser(user.id)}

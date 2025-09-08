@@ -51,10 +51,10 @@ class User(TimestampMixin, Base):
     identities: Mapped[List["Identity"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     sessions: Mapped[List["Session"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     user_roles: Mapped[List["UserRole"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    words: Mapped[List["Word"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    examples: Mapped[List["Example"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    user_word_skills: Mapped[List["UserWordSkill"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    user_texts: Mapped[List["UserText"]] = relationship(back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    words: Mapped[List["Word"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    examples: Mapped[List["Example"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    user_word_skills: Mapped[List["UserWordSkill"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    user_texts: Mapped[List["UserText"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Identity(TimestampMixin, Base):

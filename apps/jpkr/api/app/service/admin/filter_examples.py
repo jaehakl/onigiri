@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, case
 from db import Example, WordExample
 
 def filter_examples_by_criteria(
@@ -15,8 +15,29 @@ def filter_examples_by_criteria(
     db: Session = None,
     user_id: Optional[str] = None,
 ):
-    # 기본 쿼리 시작
-    query = db.query(Example)
+    # 필요한 필드만 선택하여 쿼리 최적화 (대용량 필드들 제외)
+    query = db.query(
+        Example.id,
+        Example.tags,
+        Example.jp_text,
+        Example.kr_mean,
+        Example.en_prompt,
+        Example.created_at,
+        Example.updated_at,
+        # 대용량 필드들의 존재 여부만 확인 (실제 값은 가져오지 않음)
+        case(
+            (Example.embedding.isnot(None), 1),
+            else_=0
+        ).label('has_embedding'),
+        case(
+            (Example.audio_object_key.isnot(None), 1),
+            else_=0
+        ).label('has_audio'),
+        case(
+            (Example.image_object_key.isnot(None), 1),
+            else_=0
+        ).label('has_image')
+    )
 
     # 단어 수 필터링    
     if min_words is not None or max_words is not None:
@@ -63,7 +84,6 @@ def filter_examples_by_criteria(
         else:
             query = query.filter(Example.image_object_key.is_(None))
     
-    
     # 정렬 (생성일 기준 오름차순)
     query = query.order_by(Example.created_at.asc())
     total_count = query.count()
@@ -74,20 +94,33 @@ def filter_examples_by_criteria(
     if limit:
         query = query.limit(limit)
     
+    # 단어 수를 가져오기 위한 별도 쿼리 (필요한 경우에만)
+    example_ids = [row.id for row in query.all()]
+    word_counts = {}
+    if example_ids:
+        word_count_query = db.query(
+            WordExample.example_id,
+            func.count(WordExample.word_id).label('word_count')
+        ).filter(WordExample.example_id.in_(example_ids)).group_by(WordExample.example_id)
+        
+        for row in word_count_query.all():
+            word_counts[row.example_id] = row.word_count
+    
+    # 결과 재구성
     examples_rv = []
-    for example in query.all():
+    for row in query.all():
         examples_rv.append({
-            'id': example.id,
-            'tags': example.tags,
-            'jp_text': example.jp_text,
-            'kr_mean': example.kr_mean,
-            'en_prompt': example.en_prompt,
-            'has_embedding': 1 if example.embedding is not None else 0,
-            'has_audio': 1 if example.audio_object_key is not None else 0,
-            'has_image': 1 if example.image_object_key is not None else 0,
-            'created_at': example.created_at,
-            'updated_at': example.updated_at,
-            'num_words': len(example.word_examples),
+            'id': row.id,
+            'tags': row.tags,
+            'jp_text': row.jp_text,
+            'kr_mean': row.kr_mean,
+            'en_prompt': row.en_prompt,
+            'has_embedding': row.has_embedding,
+            'has_audio': row.has_audio,
+            'has_image': row.has_image,
+            'created_at': row.created_at,
+            'updated_at': row.updated_at,
+            'num_words': word_counts.get(row.id, 0),
         })
     
     return {

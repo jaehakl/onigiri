@@ -67,9 +67,8 @@ export const deleteUserText = (userTextId) => get_refresh(`${API_URL}/user_text/
 export const getAllUsersAdmin = (limit = null, offset = null) => get_refresh(`${API_URL}/user_admin/get_all_users/${encodeURIComponent(limit)}/${encodeURIComponent(offset)}`);
 export const deleteUserAdmin = (id) => get_refresh(`${API_URL}/user_admin/delete/${id}`);
 export const getUserSummaryAdmin = (userId) => get_refresh(`${API_URL}/user_data/summary/admin/${userId}`);
-export const getAllUserDataAdmin = (userId) => get_refresh(`${API_URL}/user_data/all/admin/${userId}`);
 export const getUserSummaryUser = () => get_refresh(`${API_URL}/user_data/summary/user`);
-export const getAllUserDataUser = () => get_refresh(`${API_URL}/user_data/all/user`);
+export const getUserWordSkillsUser = () => get_refresh(`${API_URL}/user_data/word_skills/user`);
 
 // === Quiz Records ===
 //export const saveQuizRecord = (quizRecord) => post_refresh(`${API_URL}/quiz/record`, quizRecord);

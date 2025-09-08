@@ -1,8 +1,8 @@
 from typing import Optional, Dict, Any, List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 from sqlalchemy import select, func
 from user_auth.db import User
-from db import Word, Example, UserText
+from db import Word, Example, UserText, UserWordSkill
 
 class UserService:
     """사용자와 연관된 모든 데이터를 가져오는 서비스"""
@@ -13,7 +13,6 @@ class UserService:
         사용자 목록을 가져옵니다.
         """
         try:
-            print(offset, limit)
             stmt = select(User)
             if offset is not None:
                 stmt = stmt.offset(offset)
@@ -21,7 +20,6 @@ class UserService:
                 stmt = stmt.limit(limit)
             
             users = db.execute(stmt).scalars().all()
-            print(users)
             
             return [
                 {
@@ -58,118 +56,6 @@ class UserService:
             db.rollback()
             print(f"Error deleting user: {str(e)}")
             return False
-
-
-    @staticmethod
-    def get_user_with_all_data(who: str, db: Session, user_id: str) -> Optional[Dict[str, Any]]:
-        """
-        사용자 ID를 받아서 해당 사용자와 연관된 모든 데이터를 가져옵니다.
-        
-        Args:
-            db: 데이터베이스 세션
-            user_id: 사용자 ID (UUID 문자열)
-            
-        Returns:
-            사용자와 연관된 모든 데이터를 포함한 딕셔너리 또는 None
-        """
-        if who == "me":
-            id_to_get = user_id
-        else:
-            id_to_get = who
-
-        try:
-            # User 테이블을 기준으로 모든 relationship 데이터를 한 번에 가져옴
-            # lazy="selectin" 설정으로 인해 JOIN 쿼리가 자동으로 실행됨
-            stmt = select(User).where(User.id == id_to_get)
-            user = db.execute(stmt).scalar_one_or_none()
-            
-            if not user:
-                return None
-            
-            # 사용자 데이터를 딕셔너리로 변환
-            user_data = {
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "email_verified_at": user.email_verified_at,
-                    "display_name": user.display_name,
-                    "picture_url": user.picture_url,
-                    "is_active": user.is_active,
-                    "created_at": user.created_at,
-                    "updated_at": user.updated_at
-                },
-                "user_roles": [
-                    {
-                        "role_id": user_role.role_id,
-                        "role_name": user_role.role.name if user_role.role else None
-                    }
-                    for user_role in user.user_roles
-                ],
-                "words": [
-                    {
-                        "id": word.id,
-                        "lemma_id": word.lemma_id,
-                        "lemma": word.lemma,
-                        "jp_pron": word.jp_pron,
-                        "kr_pron": word.kr_pron,
-                        "kr_mean": word.kr_mean,
-                        "level": word.level,
-                        "num_word_examples": len(word.word_examples),
-                        "has_embedding": 1 if word.embedding is not None else 0,
-                        "created_at": word.created_at,
-                        "updated_at": word.updated_at
-                    }
-                    for word in user.words
-                ],
-                "examples": [
-                    {
-                        "id": example.id,
-                        "num_word_examples": len(example.word_examples),
-                        "tags": example.tags,
-                        "jp_text": example.jp_text,
-                        "kr_mean": example.kr_mean,
-                        "en_prompt": example.en_prompt,
-                        "has_embedding": 1 if example.embedding is not None else 0,
-                        "has_audio": 1 if example.audio_object_key is not None else 0,
-                        "has_image": 1 if example.image_object_key is not None else 0,
-                        "created_at": example.created_at,
-                        "updated_at": example.updated_at
-                    }
-                    for example in user.examples
-                ],
-                "user_word_skills": [
-                    {
-                        "id": skill.id,
-                        "word_id": skill.word_id,
-                        "reading": skill.reading,
-                        "listening": skill.listening,
-                        "speaking": skill.speaking,
-                        "created_at": skill.created_at,
-                        "updated_at": skill.updated_at
-                    }
-                    for skill in user.user_word_skills
-                ],
-                "user_texts": [
-                    {
-                        "id": text.id,
-                        "title": text.title,
-                        "text": text.text,
-                        "tags": text.tags,
-                        "youtube_url": text.youtube_url,
-                        "audio_url": text.audio_url,
-                        "created_at": text.created_at,
-                        "updated_at": text.updated_at
-                    }
-                    for text in user.user_texts
-                ]
-            }
-            
-            return user_data
-            
-        except Exception as e:
-            # 로깅을 위해 예외 정보를 포함
-            print(f"Error fetching user data: {str(e)}")
-            return None
 
     def get_user_summary(who: str, db: Session, user_id: str) -> Optional[Dict[str, Any]]:
         id_to_get = user_id if who == "me" else who
@@ -224,4 +110,84 @@ class UserService:
                 "total_examples": row.total_examples,
                 "total_texts": row.total_texts,
             },
+        }
+
+
+    @staticmethod
+    def get_user_word_skills(db: Session, user_id: str) -> Optional[Dict[str, Any]]:
+        # 1) User 최소 컬럼만 로드 (relationship 로딩 방지)
+        user_stmt = (
+            select(User.id, User.email, User.display_name, User.is_active, User.created_at, User.updated_at)
+            .where(User.id == user_id)
+        )
+        user_row = db.execute(user_stmt).first()
+        if not user_row:
+            return None
+        # 2) 필요한 컬럼만 JOIN으로 조회 (임베딩 제외)
+        skills_stmt = (
+            select(
+                UserWordSkill.word_id,
+                UserWordSkill.reading,
+                UserWordSkill.listening,
+                UserWordSkill.speaking,
+                UserWordSkill.created_at,
+                UserWordSkill.updated_at,
+                Word.lemma_id,
+                Word.lemma,
+                Word.jp_pron,
+                Word.kr_pron,
+                Word.kr_mean,
+                Word.level,
+            )
+            .join(Word, Word.id == UserWordSkill.word_id)
+            .where(
+                UserWordSkill.user_id == user_row.id,
+                UserWordSkill.reading >= 80,
+                UserWordSkill.updated_at.isnot(None),
+            )
+            .order_by(UserWordSkill.updated_at)
+        )
+
+        learned_words: Dict[str, List[Dict[str, Any]]] = {"N5": [], "N4": [], "N3": [], "N2": [], "N1": []}
+        rows = db.execute(skills_stmt)
+        for (
+            word_id,
+            reading,
+            listening,
+            speaking,
+            skill_created_at,
+            skill_updated_at,
+            lemma_id,
+            lemma,
+            jp_pron,
+            kr_pron,
+            kr_mean,
+            level,
+        ) in rows:
+            if level not in learned_words:
+                continue
+            learned_words[level].append(
+                {
+                    "id": word_id,
+                    "lemma_id": lemma_id,
+                    "lemma": lemma,
+                    "jp_pron": jp_pron,
+                    "kr_pron": kr_pron,
+                    "kr_mean": kr_mean,
+                    "level": level,
+                    "reading": reading,
+                    "listening": listening,
+                    "speaking": speaking,
+                    "created_at": skill_created_at,
+                    "updated_at": skill_updated_at,
+                }
+            )
+        return {
+            "user_id": user_row.id,
+            "email": user_row.email,
+            "display_name": user_row.display_name,
+            "is_active": user_row.is_active,
+            "created_at": user_row.created_at,
+            "updated_at": user_row.updated_at,
+            "learned_words": learned_words,
         }

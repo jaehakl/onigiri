@@ -58,9 +58,9 @@ class Word(TimestampMixin, Base):
     kr_mean: Mapped[str] = mapped_column(Text, nullable=False)
     level: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
-    word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
-    user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan", lazy="selectin")
-    user: Mapped["User"] = relationship("User", back_populates="words", lazy="selectin")
+    word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="word", cascade="all, delete-orphan")
+    user_word_skills: Mapped[List["UserWordSkill"]] = relationship("UserWordSkill", back_populates="word", cascade="all, delete-orphan")
+    user: Mapped["User"] = relationship("User", back_populates="words")
     __table_args__ = (Index("idx_words_lemma_id", "lemma_id"),)
 
 class Example(TimestampMixin, Base):
@@ -74,8 +74,8 @@ class Example(TimestampMixin, Base):
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
     audio_object_key: Mapped[str] = mapped_column(Text, nullable=True)
     image_object_key: Mapped[str] = mapped_column(Text, nullable=True)
-    word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="example", cascade="all, delete-orphan", lazy="selectin")
-    user: Mapped["User"] = relationship("User", back_populates="examples", lazy="selectin")
+    word_examples: Mapped[List["WordExample"]] = relationship("WordExample", back_populates="example", cascade="all, delete-orphan")
+    user: Mapped["User"] = relationship("User", back_populates="examples")
     __table_args__ = (
         # -------- pgvector 인덱스: HNSW (권장, pgvector>=0.5)
         Index(
@@ -114,8 +114,8 @@ class UserWordSkill(TimestampMixin, Base):
     reading: Mapped[int] = mapped_column(Integer, default=0)
     listening: Mapped[int] = mapped_column(Integer, default=0)
     speaking: Mapped[int] = mapped_column(Integer, default=0)
-    word: Mapped["Word"] = relationship("Word", back_populates="user_word_skills", lazy="selectin")
-    user: Mapped["User"] = relationship("User", back_populates="user_word_skills", lazy="selectin")
+    word: Mapped["Word"] = relationship("Word", back_populates="user_word_skills")
+    user: Mapped["User"] = relationship("User", back_populates="user_word_skills")
     __table_args__ = (
         Index("idx_uws_user_word", "user_id", "word_id"),
         Index("idx_uws_user_updated", "user_id", "updated_at"),
@@ -132,4 +132,4 @@ class UserText(TimestampMixin, Base):
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=True)
     youtube_url: Mapped[str] = mapped_column(Text, nullable=True)
     audio_url: Mapped[str] = mapped_column(Text, nullable=True)
-    user: Mapped["User"] = relationship("User", back_populates="user_texts", lazy="selectin")
+    user: Mapped["User"] = relationship("User", back_populates="user_texts")

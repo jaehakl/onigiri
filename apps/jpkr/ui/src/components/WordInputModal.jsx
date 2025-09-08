@@ -89,7 +89,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
       return;
     }
 
-
+    console.log(wordForm);
     // FormData 생성
     const fd = new FormData();
     fd.append("data_json", JSON.stringify([wordForm]));

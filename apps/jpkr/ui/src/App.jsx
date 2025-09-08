@@ -9,7 +9,7 @@ import ExamplesTable from './pages/examples-table';
 import RecommendExamples from './pages/recommend-examples';
 import Quiz from './pages/quiz';
 import UserManagement from './pages/user-management';
-import UserDetail from './pages/user-detail';
+import UserWordSkills from './pages/user-word-skills';
 import AuthUserProfile from './components/AuthUserProfile';
 import { useUser } from './contexts/UserContext';
 import './App.css';
@@ -49,7 +49,7 @@ function App() {
       key: 'words-search',
       label: '단어 검색',
       path: '/words-search'
-    },
+    }
   ];
 
   const menuItemsPublic = [
@@ -196,8 +196,8 @@ function App() {
             <Route path="/examples-register" element={<ExamplesRegister />} />
             <Route path="/examples-table" element={<ExamplesTable />} />
             <Route path="/user-management" element={<UserManagement />} />
-            <Route path="/user-detail/:userId" element={<UserDetail />} />
             <Route path="/quiz" element={<Quiz />} />
+            <Route path="/user-word-skills" element={<UserWordSkills />} />
           </Routes>
         </Content>
       </Container>
