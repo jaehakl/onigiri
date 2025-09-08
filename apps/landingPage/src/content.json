@@ -137,13 +137,13 @@
     }
     ],
     "personas_short_benefits": [
-    { "persona": "대학생/JLPT 수험생", "benefit": "기출 어휘와 문법, 레벨별 맞춤 학습으로 점수가 올라요." },
-    { "persona": "취준생/직장인", "benefit": "실무 이메일, 기사를 바로 학습 자료로 활용해 업무 효율 UP!" },
+    { "persona": "일본 관광객", "benefit": "여행에 꼭 필요한 표현만 1분 카드로 빠르게 익혀요." },
     { "persona": "워홀/유학 준비생", "benefit": "현지에서 바로 쓰는 생존 일본어, 상황별 회화 카드로 준비 끝." },
+    { "persona": "JLPT 준비생", "benefit": "기출 어휘와 문법, 레벨별 맞춤 학습으로 점수가 올라요." },
+    { "persona": "직장인", "benefit": "실무 이메일, 기사를 바로 학습 자료로 활용해 업무 효율 UP!" },
     { "persona": "애니/드라마 팬", "benefit": "자막 없이도 명대사가 들리기 시작해요." },
     { "persona": "J-POP 팬", "benefit": "노래를 따라 부르며 자연스럽게 발음과 뉘앙스를 익혀요." },
-    { "persona": "게이머", "benefit": "게임 속 세계관과 스토리를 원문 그대로 즐길 수 있어요." },
-    { "persona": "여행자", "benefit": "여행에 꼭 필요한 표현만 1분 카드로 빠르게 익혀요." }
+    { "persona": "게이머", "benefit": "게임 속 세계관과 스토리를 원문 그대로 즐길 수 있어요." }
     ],
     "social_proof": {
     "section_title": "Onigiri와 함께 달라진 일상",
