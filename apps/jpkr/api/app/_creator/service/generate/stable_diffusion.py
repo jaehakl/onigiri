@@ -23,7 +23,7 @@ def generate_image(ckpt_path: str, prompt: str, seed: int=None):
 
     img = generate_image.pipe(
         prompt,
-        negative_prompt="lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name",
+        negative_prompt="nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name",
         num_inference_steps=30,         # SDXL은 28~40 스텝부터 무난
         guidance_scale=5.5,             # 4.5~7.5 구간에서 취향 조절
         height=768, width=1024,        # 기본 1024^2
@@ -35,14 +35,3 @@ def generate_image(ckpt_path: str, prompt: str, seed: int=None):
     img.save(buf, format="JPEG", quality=85)
     buf.seek(0)
     return buf
-
-
-
-if __name__ == "__main__":
-    #STABLE_DIFFUSION_CKPT="E:\media\ComfyUI\models\checkpoints\JANKUV4NSFWTrainedNoobaiEPS_v40.safetensors"
-    STABLE_DIFFUSION_CKPT="E:\media\diffusion\waiNSFWIllustrious_v150.safetensors"
-    #STABLE_DIFFUSION_CKPT="E:\media\diffusion\JANKUV5NSFWTrainedNoobai_v50.safetensors"
-    #STABLE_DIFFUSION_CKPT="E:\media\diffusion\prefectIllustriousXL_v3.safetensors"
-    #STABLE_DIFFUSION_CKPT="E:\media\diffusion\\realDream_sdxlPony20.safetensors"
-    prompt = "A tense meeting room with a falling stock market graph on a large screen, concerned Japanese executives in suits looking worried, dramatic corporate atmosphere, photorealistic, sharp focus."
-    generate_image(STABLE_DIFFUSION_CKPT, prompt)
