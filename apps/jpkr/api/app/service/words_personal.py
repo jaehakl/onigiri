@@ -111,8 +111,12 @@ async def create_words_personal(
                 UserWordSkill.word_id == new_word_id
             ).first()
             if existing_skill:
-                existing_skill.reading += 1
-                updated_skills.append(word)
+                if existing_skill.reading < 80:
+                    existing_skill.reading += 1
+                    updated_skills.append(word)
+                else:
+                    existing_skill.reading = 0
+                    updated_skills.append(word)
             else:
                 new_skill = UserWordSkill(
                     user_id=user_id,

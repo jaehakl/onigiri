@@ -164,7 +164,50 @@
   border: 1px solid #f5c6cb;
 }
 
+/* 예문 섹션 스타일 */
+.word-analysis-examples-section {
+  margin-top: 30px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.word-analysis-examples-title {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 12px;
+}
+
+.word-analysis-examples-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: flex-start;
+}
+
+.word-analysis-example-card-wrapper {
+  flex: 0 0 auto;
+  min-width: calc(33% - 16px);
+  flex-basis: calc(33% - 16px);
+  transition: transform 0.2s ease;
+}
+
+.word-analysis-example-card-wrapper:hover {
+  transform: translateY(-2px);
+}
+
 /* 예문 섹션 반응형 디자인 */
+@media (max-width: 1200px) {
+  .word-analysis-example-card-wrapper {
+    min-width: calc(50% - 16px);
+    flex-basis: calc(50% - 16px);
+  }
+}
+
 @media (max-width: 768px) {
   .morphological-analysis-container {
     padding: 16px;
@@ -177,6 +220,25 @@
   .input-header {
     flex-direction: column;
     align-items: stretch;
+  }
+  
+  .word-analysis-examples-section {
+    margin-top: 20px;
+    padding: 16px;
+  }
+  
+  .word-analysis-examples-title {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+  
+  .word-analysis-examples-grid {
+    gap: 16px;
+  }
+  
+  .word-analysis-example-card-wrapper {
+    flex-basis: 100%;
+    min-width: 300px;
   }
   
   .analyze-btn {
@@ -237,6 +299,23 @@
     flex-wrap: wrap;
     margin-bottom: 16px;
   }
-
-
+  
+  .word-analysis-examples-section {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+  }
+  
+  .word-analysis-examples-title {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .word-analysis-examples-grid {
+    gap: 12px;
+  }
+  
+  .word-analysis-example-card-wrapper {
+    min-width: 280px;
+  }
 }

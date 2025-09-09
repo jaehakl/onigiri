@@ -12,20 +12,6 @@ def pkce_challenge(verifier: str) -> str:
 def hash_token(token: str) -> bytes:
     return hashlib.sha256(token.encode("utf-8")).digest()
 
-def set_session_cookie(resp: Response, token: str):
-    resp.set_cookie(
-        key=settings.session_cookie_name,
-        value=token,
-        max_age=settings.session_max_age,
-        httponly=True,
-        secure=settings.session_cookie_secure,
-        samesite="lax",
-        path="/",
-    )
-
-def clear_session_cookie(resp: Response):
-    resp.delete_cookie(key=settings.session_cookie_name, path="/")
-
 # return_to를 콜백까지 전달하기 위한 임시 쿠키 (HttpOnly 아님)
 def set_return_to_cookie(resp: Response, url: str | None):
     if not url:
@@ -35,7 +21,7 @@ def set_return_to_cookie(resp: Response, url: str | None):
         value=url,
         max_age=600,
         httponly=False,    # 콜백에서 서버가 읽을 것이므로 굳이 JS 접근 필요 없음
-        secure=settings.session_cookie_secure,
+        secure=False,
         samesite="lax",
         path="/",
     )

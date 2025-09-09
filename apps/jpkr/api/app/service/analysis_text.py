@@ -1,12 +1,13 @@
 from typing import Dict, Any
 from random import shuffle
 from collections import defaultdict
-from db import SessionLocal, Word, WordExample, UserWordSkill
+from db import SessionLocal, Word, WordExample, UserWordSkill, Example
 from user_auth.db import User
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select, case
+from sqlalchemy import select, case, func
 from sqlalchemy.orm import Session
 from utils.aws_s3 import presign_get_url
+from models import ExampleData
 
 from utils.words_from_text import extract_words_from_text
 from methods.words_from_examples_batch import words_from_examples_batch
@@ -51,8 +52,63 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
     
     # word_id별로 user_word_skills 그룹화
     skills_by_word_id = defaultdict(list)
+    word_ids_not_mastered = []
     for skill in user_word_skills:
         skills_by_word_id[skill.word_id].append(row_to_dict(skill))
+        if skill.reading < 80:
+            word_ids_not_mastered.append(skill.word_id)
+
+    # 숙련도 낮은 WordExample 쿼리 (Word 별 최대 3개 까지만)
+    if word_ids_not_mastered:
+        # 각 word_id별로 최대 3개씩만 가져오기 위한 서브쿼리 (무작위로)
+        subquery = (
+            select(
+                WordExample.word_id,
+                WordExample.example_id,
+                func.row_number().over(
+                    partition_by=WordExample.word_id,
+                    order_by=func.random()
+                ).label('row_num')
+            )
+            .where(WordExample.word_id.in_(word_ids_not_mastered))
+        ).subquery()
+        
+        # WordExample에서 word별 3개 무작위 제한을 적용한 서브쿼리와 Example을 조인하여 한 번에 조회
+        examples_stmt = (
+            select(
+                Example.id,
+                Example.jp_text,
+                Example.kr_mean,
+                Example.tags,
+                Example.audio_object_key,
+                Example.image_object_key,
+            )
+            .select_from(Example)
+            .join(subquery, Example.id == subquery.c.example_id)
+            .where(subquery.c.row_num <= 1)
+        )
+        examples = db.execute(examples_stmt).all()
+    else:
+        examples = []
+
+
+    examples_data = []
+    seen_example_ids = set()
+    for row in examples:
+        if row.id in seen_example_ids:
+            continue
+        seen_example_ids.add(row.id)
+        examples_data.append(
+            ExampleData(
+                id=row.id,
+                jp_text=row.jp_text,
+                kr_mean=row.kr_mean,
+                audio_url=presign_get_url(row.audio_object_key, expires=600) if row.audio_object_key is not None else None,
+                image_url=presign_get_url(row.image_object_key, expires=600) if row.image_object_key is not None else None,
+                tags=row.tags,
+            )
+        )
+    examples_result = words_from_examples_batch(examples_data, db, user_id)
 
     # words_existing 딕셔너리 구성
     words_existing = {}
@@ -109,4 +165,4 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
                         "user_word_skills": [],
                         "num_user_word_skills": 0,
                     })
-    return words_result
+    return {"words": words_result, "examples": examples_result}

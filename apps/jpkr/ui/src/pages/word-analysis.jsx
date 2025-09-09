@@ -6,7 +6,7 @@ import WordsHighlighter from '../components/WordsHighlighter';
 import SaveTextModal from '../components/SaveTextModal';
 import LoadTextModal from '../components/LoadTextModal';
 import YouTubeEmbed from '../components/YouTubeEmbed';
-import WordExamples from '../components/WordExamples';
+import ExampleCard from '../components/ExampleCard';
 import { to_hiragana } from '../service/hangul-to-hiragana';
 import { sample_text } from '../service/sample-text';
 
@@ -16,6 +16,7 @@ const WordAnalysis = () => {
   const [analyzedText, setAnalyzedText] = useState('');
   const [words, setWords] = useState({});
   const [words_set, setWordsSet] = useState({});
+  const [examples, setExamples] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [message, setMessage] = useState('');
   
@@ -37,7 +38,9 @@ const WordAnalysis = () => {
     for (let i_line in words) {
       for (let i_word in words[i_line]) {
         if (words[i_line][i_word].word_id) {
-          words_set[words[i_line][i_word].word_id] = words[i_line][i_word];
+          if (words[i_line][i_word].user_word_skills.some(skill => skill.reading < 80)) {
+            words_set[words[i_line][i_word].word_id] = words[i_line][i_word];
+          }
         }
       }
     }
@@ -54,6 +57,7 @@ const WordAnalysis = () => {
   const analyzeMorphology = async (text) => {
     try {
       const response = await analyzeText(text);
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error('API 호출 오류:', error);
@@ -71,10 +75,12 @@ const WordAnalysis = () => {
     setIsAnalyzing(true);
     setMessage('');
     setWords({});
+    setExamples({});
 
     try {
       const result = await analyzeMorphology(inputText);
-      setWords(result);      
+      setWords(result.words);      
+      setExamples(result.examples);
       setMessage('단어 분석이 완료되었습니다.');
     } catch (error) {
       console.error('단어 분석 오류:', error);
@@ -88,6 +94,7 @@ const WordAnalysis = () => {
   const handleClear = () => {
     setInputText('');
     setWords({});
+    setExamples({});
     setMessage('');
     setCurrentTextInfo({
       id: '',
@@ -132,6 +139,25 @@ const WordAnalysis = () => {
         sourceText: inputText 
       } 
     });
+  };
+
+  const handleCopy = () => {
+    const headers = ['단어(기본형)', '레벨', '발음(히라가나)', '발음(한글)', '뜻(한국어)'];
+    const tsvData = Object.keys(words_set).map(word_id => 
+      [
+        words_set[word_id].lemma || '',
+        words_set[word_id].level || '',
+        words_set[word_id].jp_pron || '',
+        words_set[word_id].kr_pron || '',
+        words_set[word_id].kr_mean || '',
+      ].join('\t'))     
+      const fullTsv = [headers.join('\t'), ...tsvData].join('\n');
+      navigator.clipboard.writeText(fullTsv).then(() => {
+        alert('TSV 형식으로 클립보드에 복사되었습니다!');
+      }).catch(err => {
+        console.error('클립보드 복사 실패:', err);
+        alert('클립보드 복사에 실패했습니다.');
+      });
   };
 
   return (
@@ -205,13 +231,6 @@ const WordAnalysis = () => {
               {isAnalyzing ? '분석 중...' : '단어 분석'}
             </button>
             <button
-              onClick={handleStudy}
-              disabled={Object.keys(words_set).length === 0}
-              className="study-btn"
-            >
-              단어 공부하기
-            </button>
-            <button
               onClick={() => setIsSaveModalOpen(true)}
               disabled={!inputText.trim()}
               className="save-btn"
@@ -239,15 +258,37 @@ const WordAnalysis = () => {
             {message}
           </div>
         )}
-      </div>
+      </div>      
       {words && Object.keys(words).length > 0 && (
         <WordsHighlighter words={words} />
       )}
-      
-        
-      {/* 단어별 예문 섹션 
-      <WordExamples wordsSet={words_set} />
-      */}
+              <button
+              onClick={handleStudy}
+              disabled={Object.keys(words_set).length === 0}
+              className="study-btn"
+            >
+              단어 공부하기
+            </button>&nbsp;
+            <button
+              onClick={handleCopy}
+              disabled={Object.keys(words_set).length === 0}
+              className="study-btn"
+            >
+              단어 복사
+            </button>&nbsp;
+      {/* 단어별 예문 섹션 */}
+      {examples && Object.keys(examples).length > 0 && (
+        <div className="word-analysis-examples-section">
+          <h3 className="word-analysis-examples-title">관련 예문</h3>
+          <div className="word-analysis-examples-grid">
+            {Object.values(examples).map((example) => (
+              <div key={example.id} className="word-analysis-example-card-wrapper">
+                <ExampleCard example={example} isMain={false} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {/* 모달들 */}
       <SaveTextModal
         isOpen={isSaveModalOpen}
