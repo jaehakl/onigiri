@@ -9,6 +9,7 @@ git pull
 echo "[2/4] Frontend build"
 cd $APP_DIR/apps/jpkr/ui
 pnpm i
+rm -r dist
 pnpm run build
 sudo rsync -a dist/ /var/www/app/dist/
 
