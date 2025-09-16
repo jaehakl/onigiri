@@ -21,17 +21,17 @@ function App() {
   const menuItems = [
     {
       key: 'filter-words',
-      label: '단어 목록',
+      label: '단어',
       path: '/'
     },
     {
       key: 'filter-examples',
-      label: '예문 목록',
+      label: '예문',
       path: '/filter-examples'
     },
     {
       key: 'duplicated-words',
-      label: '중복 단어 찾기',
+      label: '중복 단어',
       path: '/duplicated-words'
     }
   ];
