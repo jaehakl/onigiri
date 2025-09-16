@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Content, Sidebar, Button, Form, Input } from 'rsuite';
 import { useLocation, matchPath, useNavigate, Routes, Route } from 'react-router-dom';
-import AuthUserProfile from './components/AuthUserProfile';
 
 // Admin Pages
 import DuplicatedWords from './pages/admin/duplicated-words'; 
@@ -114,7 +113,6 @@ function App() {
             </button>
           </div>
           <div className="sidebar-content">
-            <AuthUserProfile />
             {renderMenuButtons()}
           </div>
         </div>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 export const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 axios.defaults.withCredentials = true;
-console.log("API_URL: ", API_URL);
+
 
 // === Test API ===
 export const getSimilarWords = (wordId) => axios.get(`${API_URL}/test/get-similar-words/${wordId}`);
