@@ -17,8 +17,9 @@ pip install espnet_model_zoo
 ```
 ### flash-attn
 https://github.com/kingbri1/flash-attention/releases
+여기서 버전 맞는 걸 찾아서,
 ##### Windows
-여기서 버전 맞는 걸 찾아서 아래 경로에 입력하여 다운받기 (아래는 예시)
+아래 경로에 입력하여 다운받기 (아래는 예시)
 ```
 curl -L https://github.com/kingbri1/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu124torch2.6.0cxx11abiFALSE-cp311-cp311-win_amd64.whl -o flash_attn.whl
 pip install "flash_attn.whl"
