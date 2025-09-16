@@ -230,23 +230,25 @@ def to_hangul(kana):
         i += 1
     return hangul
 
-with open("JLPTwords.txt", "r", encoding="utf-8") as file:
-    tsv = ""
-    for line in file:
-        japanese = line.split(",")[0].split("N")[0]
-        kana =japanese.split("[")[0]
-        writing = kana
-        if len(japanese.split("[")) > 1:
-            writing = japanese.split("[")[1].split("]")[0]
-        hangul = to_hangul(kana.strip())
-        korean = line.split(",")[1].strip("\n")
-        grade = "N"+line.split(",")[0].split("N")[1]
-        tsv += writing + "\t" + kana + "\t" + hangul + "\t" +  korean + "\t" + grade + "\n"
+if __name__ == "__main__":
 
-    print(tsv)
-    #print(tsv)
-    with open("JLPTwords_tsv.txt", "w", encoding="utf-8") as file:
-        file.write(tsv)
+    with open("JLPTwords.txt", "r", encoding="utf-8") as file:
+        tsv = ""
+        for line in file:
+            japanese = line.split(",")[0].split("N")[0]
+            kana =japanese.split("[")[0]
+            writing = kana
+            if len(japanese.split("[")) > 1:
+                writing = japanese.split("[")[1].split("]")[0]
+            hangul = to_hangul(kana.strip())
+            korean = line.split(",")[1].strip("\n")
+            grade = "N"+line.split(",")[0].split("N")[1]
+            tsv += writing + "\t" + kana + "\t" + hangul + "\t" +  korean + "\t" + grade + "\n"
+
+        print(tsv)
+        #print(tsv)
+        with open("JLPTwords_tsv.txt", "w", encoding="utf-8") as file:
+            file.write(tsv)
 
 
 
