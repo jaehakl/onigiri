@@ -5,11 +5,12 @@ Python 버전 == 3.11
 [python3.11 경로]/python.exe venv .venv
 ```
 ### pytorch 설치
-- 버전은 고정 (espnet 호환성 문제)
+- Torch 버전은 가급적 낮게, (espnet 호환성 문제) CUDA 버전은 하드웨어와 일치시킬 것(flash-attn 호환성)
 ```
-pip install torch==2.6.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 ### ESPnet 다운로드
+- pyproject.toml 이 있는 디렉토리
 ```
 git clone https://github.com/espnet/espnet
 cd espnet
@@ -17,6 +18,7 @@ pip install -e .
 pip install espnet_model_zoo
 ```
 ### flash-attn
+- pyproject.toml 이 있는 디렉토리
 https://github.com/kingbri1/flash-attention/releases
 여기서 버전 맞는 걸 찾아서,
 ##### Windows
