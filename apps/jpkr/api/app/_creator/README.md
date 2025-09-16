@@ -5,9 +5,9 @@ Python 버전 == 3.11
 [python3.11 경로]/python.exe venv .venv
 ```
 ### pytorch 설치
-- 반드시 nvidia driver cuda 버전을 맞출 것
+- 버전은 고정 (espnet 호환성 문제)
 ```
-pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+pip install torch==2.6.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 ```
 ### ESPnet 다운로드
 ```
