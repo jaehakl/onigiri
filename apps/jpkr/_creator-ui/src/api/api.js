@@ -1,24 +1,7 @@
 import axios from 'axios';
 export const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 axios.defaults.withCredentials = true;
-
-// === OAuth ===
-export async function fetchMe() {
-    return axios.get(`${API_URL}/auth/me`)
-    .then(res => res.data)
-    .catch(err => {
-        return null;
-    });
-
-}  
-export function startGoogleLogin() {
-  const returnTo = window.location.href;
-  // 백엔드로 바로 리다이렉트(백엔드가 구글로 다시 리다이렉트)
-  window.location.href = `${API_URL}/auth/google/start?return_to=${encodeURIComponent(returnTo)}`;
-}
-export async function logout() {
-  await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
-}
+console.log("API_URL: ", API_URL);
 
 // === Test API ===
 export const getSimilarWords = (wordId) => axios.get(`${API_URL}/test/get-similar-words/${wordId}`);
