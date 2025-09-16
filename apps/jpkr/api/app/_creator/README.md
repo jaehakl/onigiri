@@ -8,7 +8,6 @@ Python 버전 == 3.11
 pip install torch==2.6.0 torchvision --index-url https://download.pytorch.org/whl/cu124
 ```
 ### ESPnet 다운로드
-(pyproject.toml 있는 폴더에서)
 ```
 git clone https://github.com/espnet/espnet
 cd espnet
