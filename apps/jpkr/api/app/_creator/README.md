@@ -1,6 +1,6 @@
 # JPKR-Creator 설치 전 사전작업
 Python 버전 == 3.11 
-Poetry 사용하지 않고 직접 venv 사용
+(Poetry 사용하지 않고 직접 venv 사용)
 ```
 [python3.11 경로]/python.exe venv .venv
 ```
