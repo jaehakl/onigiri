@@ -1,7 +1,8 @@
 # JPKR-Creator 설치 전 사전작업
 Python 버전 == 3.11 
+Poetry 사용하지 않고 직접 venv 사용
 ```
-[python3.11 경로]/python.exe venv .venv (Poetry 사용하지 않고 직접 venv 사용)
+[python3.11 경로]/python.exe venv .venv
 ```
 ### pytorch 설치 버전 고정
 ```
@@ -16,9 +17,10 @@ pip install espnet_model_zoo
 ```
 ### flash-attn
 https://github.com/kingbri1/flash-attention/releases
-여기서 버전 맞는 걸 다운받은 후,
+여기서 버전 맞는 걸 찾아서 아래 경로에 입력하여 다운받기 (아래는 예시)
 ```
-pip install "[.whl 파일 경로]"
+curl -L https://github.com/kingbri1/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu124torch2.6.0cxx11abiFALSE-cp311-cp311-win_amd64.whl -o flash_attn.whl
+pip install "flash_attn.whl"
 ```
 ### requirments.txt 로 설치
 ```
