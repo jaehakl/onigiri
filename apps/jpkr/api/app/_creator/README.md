@@ -26,7 +26,15 @@ curl -L https://github.com/kingbri1/flash-attention/releases/download/v2.8.3/fla
 pip install "flash_attn.whl"
 ```
 ##### Linux
-pip install flash_attn==2.8.3
+
+# 빌드 준비물
+pip install update
+pip install -U pip setuptools wheel packaging ninja
+
+# 소스 설치 (내 PyTorch/컴파일러로 빌드)
+git clone https://github.com/Dao-AILab/flash-attention.git
+cd flash-attention
+pip install . --no-build-isolation
 
 ### requirments.txt 로 설치
 ```
