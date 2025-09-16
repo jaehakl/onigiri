@@ -26,7 +26,7 @@ curl -L https://github.com/kingbri1/flash-attention/releases/download/v2.8.3/fla
 pip install "flash_attn.whl"
 ```
 ##### Linux
-
+```
 # 빌드 준비물
 pip install update
 pip install -U pip setuptools wheel packaging ninja
@@ -35,7 +35,7 @@ pip install -U pip setuptools wheel packaging ninja
 git clone https://github.com/Dao-AILab/flash-attention.git
 cd flash-attention
 pip install . --no-build-isolation
-
+```
 ### requirments.txt 로 설치
 ```
 pip install -r requirements.txt (혹시 torch, espnet, flash-attn 관련된 것들이 있으면 미리 삭제할 것)
