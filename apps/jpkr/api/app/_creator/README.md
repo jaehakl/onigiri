@@ -6,7 +6,7 @@ Python 버전 == 3.11
 ```
 ### pytorch 설치 버전 고정
 ```
-pip install torch==2.6.0 torchvision --index-url https://download.pytorch.org/whl/cu124
+pip install torch==2.6.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 ```
 ### ESPnet 다운로드
 ```
