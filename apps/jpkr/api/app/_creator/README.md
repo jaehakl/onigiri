@@ -4,9 +4,10 @@ Python 버전 == 3.11
 ```
 [python3.11 경로]/python.exe venv .venv
 ```
-### pytorch 설치 버전 고정
+### pytorch 설치
+- 반드시 nvidia driver cuda 버전을 맞출 것
 ```
-pip install torch==2.6.0 torchvision --index-url https://download.pytorch.org/whl/cu124
+pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 ### ESPnet 다운로드
 ```
@@ -25,8 +26,16 @@ curl -L https://github.com/kingbri1/flash-attention/releases/download/v2.8.3/fla
 pip install "flash_attn.whl"
 ```
 ##### Linux
-pip install flash_attn==2.8.3
+```
+# 빌드 준비물
+pip install update
+pip install -U pip setuptools wheel packaging ninja
 
+# 소스 설치 (내 PyTorch/컴파일러로 빌드)
+git clone https://github.com/Dao-AILab/flash-attention.git
+cd flash-attention
+pip install . --no-build-isolation
+```
 ### requirments.txt 로 설치
 ```
 pip install -r requirements.txt (혹시 torch, espnet, flash-attn 관련된 것들이 있으면 미리 삭제할 것)
