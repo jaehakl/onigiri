@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import EditableTable from '../../components/EditableTable';
 import ExampleDetailModal from '../../components/ExampleDetailModal';
 import FilterInput from '../../components/FilterInput';
-import { filterExamples, updateExamplesBatch, deleteExamplesBatch, genExampleEmbeddings, genExampleAudio, genExampleImage, genExampleWords } from '../api/api';
+import { filterExamples, updateExamplesBatch, deleteExamplesBatch, genExampleEmbeddings, genExampleAudio, genExampleImage, genExampleWords } from '../../api/api';
 import './FilterExamples.css';
 
  // 필터 설정
