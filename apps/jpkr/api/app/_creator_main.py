@@ -63,7 +63,7 @@ async def api_gen_example_audio(request: Request, example_ids: List[int], db: Se
 
 @app.post("/admin/examples/gen-image")
 async def api_gen_example_image(request: Request, example_ids: List[int], db: Session = Depends(get_db)):
-    return auth_service(request, ["admin"], db, gen_example_image, example_ids)
+    return await auth_service_async(request, ["admin"], db, gen_example_image, example_ids)
 
 @app.post("/admin/examples/gen-words")
 async def api_gen_example_words(request: Request, example_ids: List[int], db: Session = Depends(get_db)):
@@ -105,6 +105,18 @@ def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **
     user_id = settings.ADMIN_USER_ID
     try:
         return func(*args, **kwargs, db=db, user_id=user_id)
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+
+async def auth_service_async(request: Request, allowed_roles: List[str], db, func, *args, **kwargs):    
+    user_id = settings.ADMIN_USER_ID
+    try:
+        return await func(*args, **kwargs, db=db, user_id=user_id)
     except Exception as e:
         print("Error: ", e)
         db.rollback()
