@@ -10,8 +10,8 @@ asttokens==3.0.0
 asyncpg==0.30.0
 attrs==25.3.0
 audioread==3.0.1
-boto3==1.40.22
-botocore==1.40.22
+boto3==1.40.25
+botocore==1.40.25
 cachetools==5.5.2
 certifi==2025.8.3
 cffi==1.17.1
@@ -28,15 +28,18 @@ Distance==0.1.3
 dotenv==0.9.9
 editdistance==0.8.1
 einops==0.8.1
+-e git+https://github.com/espnet/espnet@d329330db6640e95d6a1ba4784453f3ea016ddcc#egg=espnet
 espnet-model-zoo==0.1.7
 espnet-tts-frontend==0.0.3
 executing==2.2.1
 fast_bss_eval==0.1.3
 fastapi==0.115.14
 filelock==3.19.1
+flash_attn @ file:///C:/Users/JLee/Desktop/onigiri/apps/jpkr/api/app/_creator/flash_attn-2.8.3%2Bcu124torch2.6.0cxx11abiFALSE-cp311-cp311-win_amd64.whl#sha256=be7f734de9184c24049d1c8a12a4980a05e64c1d4636d64a916bae5dc44ba042
 frozenlist==1.7.0
 fsspec==2025.9.0
 fugashi==1.5.1
+g2p_en @ git+https://github.com/espnet/g2p.git@053dfa94811efc6370bbdb0ff9777be4a5cb0b84
 google-auth==2.40.3
 google-auth-oauthlib==1.2.2
 greenlet==3.2.4
@@ -57,7 +60,7 @@ jmespath==1.0.1
 joblib==1.5.2
 kaldiio==2.18.1
 librosa==0.9.2
-lightning==2.5.4
+lightning==2.5.5
 lightning-utilities==0.15.2
 llvmlite==0.43.0
 MarkupSafe==3.0.2
@@ -104,7 +107,7 @@ pyreadline3==3.5.4
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-multipart==0.0.20
-pytorch-lightning==2.5.4
+pytorch-lightning==2.5.5
 pytz==2025.2
 pyworld==0.3.5
 PyYAML==6.0.2
@@ -117,7 +120,7 @@ s3transfer==0.13.1
 safetensors==0.6.2
 scikit-learn==1.7.1
 scipy==1.15.3
-sentence-transformers==2.7.0
+sentence-transformers==5.1.0
 sentencepiece==0.2.0
 six==1.17.0
 sniffio==1.3.1
