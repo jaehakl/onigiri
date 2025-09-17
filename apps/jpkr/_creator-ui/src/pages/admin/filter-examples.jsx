@@ -47,7 +47,7 @@ const FILTER_CONFIG = {
 };
 
 const FilterExamples = () => {
-  
+  const [filterDataCache, setFilterDataCache] = useState(null);
   const [examples, setExamples] = useState([]);
   const [loading, setLoading] = useState({
     filtering: false,
@@ -96,7 +96,7 @@ const FilterExamples = () => {
         limit: filterData.limit,
         offset: filterData.offset || 0
       };
-
+      setFilterDataCache(cleanFilterData);
       const response = await filterExamples(cleanFilterData);
       setExamples(response.data.examples || []);
       setTotalCount(response.data.total_count || 0);
@@ -114,6 +114,7 @@ const FilterExamples = () => {
     setExamples([]);
     setTotalCount(0);
     setError(null);
+    setFilterDataCache(null);
   };
 
   // 예문 수정 핸들러
@@ -159,8 +160,7 @@ const FilterExamples = () => {
       setLoading(prev => ({ ...prev, filtering: true }));
       await deleteExamplesBatch(exampleIds);
       alert(`${exampleIds.length}개의 예문이 성공적으로 삭제되었습니다.`);
-      // 삭제 후 현재 필터 조건으로 다시 검색
-      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
+      handleFilter(filterDataCache);
     } catch (err) {
       setError('예문 삭제 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -201,8 +201,7 @@ const FilterExamples = () => {
       setError(null);
       await genExampleEmbeddings(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 임베딩이 성공적으로 생성되었습니다.`);
-      // 임베딩 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
+      handleFilter(filterDataCache);
     } catch (err) {
       setError('임베딩 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -229,8 +228,7 @@ const FilterExamples = () => {
       setError(null);
       await genExampleAudio(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 오디오가 성공적으로 생성되었습니다.`);
-      // 오디오 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
+      handleFilter(filterDataCache);
     } catch (err) {
       setError('오디오 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -238,33 +236,31 @@ const FilterExamples = () => {
     }
   };
 
-  // 이미지 생성 핸들러
-  const handleGenerateImage = async () => {
+  
+  // 이미지 재생성 핸들러
+  const handleGenerateImage = async (exampleIds) => {
     if (!examples || examples.length === 0) {
-      alert('이미지를 생성할 예문이 없습니다.');
+      alert('이미지를 재생성할 예문이 없습니다.');
       return;
     }
-
-    const exampleIds = examples.map(example => example.id);
-    const confirmMessage = `현재 표시된 ${exampleIds.length}개의 예문에 대해 이미지를 생성하시겠습니까?\n이 작업은 시간이 오래 걸릴 수 있습니다.`;
+    const confirmMessage = `현재 선택된 ${exampleIds.length}개의 예문에 대해 이미지를 생성하시겠습니까?\n이 작업은 시간이 오래 걸릴 수 있습니다.`;
     
     if (!confirm(confirmMessage)) {
       return;
     }
-
     try {
       setLoading(prev => ({ ...prev, image: true }));
       setError(null);
       await genExampleImage(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 이미지가 성공적으로 생성되었습니다.`);
-      // 이미지 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
+      handleFilter(filterDataCache);
     } catch (err) {
       setError('이미지 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(prev => ({ ...prev, image: false }));
     }
   };
+
 
   // Words 생성 핸들러
   const handleGenerateWords = async () => {
@@ -285,8 +281,7 @@ const FilterExamples = () => {
       setError(null);
       await genExampleWords(exampleIds);
       alert(`${exampleIds.length}개의 예문에 대한 Words가 성공적으로 생성되었습니다.`);
-      // Words 생성 후 현재 필터 조건으로 다시 검색하여 상태 업데이트
-      // TODO: 현재 필터 데이터를 다시 가져와서 검색해야 함
+      handleFilter(filterDataCache);
     } catch (err) {
       setError('Words 생성 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
     } finally {
@@ -344,13 +339,6 @@ const FilterExamples = () => {
               {loading.audio ? '오디오 생성 중...' : `현재 ${examples.length}개 예문 오디오 생성`}
             </button>
             <button 
-              onClick={handleGenerateImage} 
-              disabled={loading.image || loading.filtering || loading.embedding || loading.audio || loading.words} 
-              className="generate-image-btn"
-            >
-              {loading.image ? '이미지 생성 중...' : `현재 ${examples.length}개 예문 이미지 생성`}
-            </button>
-            <button 
               onClick={handleGenerateWords} 
               disabled={loading.words || loading.filtering || loading.embedding || loading.audio || loading.image} 
               className="generate-words-btn"
@@ -361,11 +349,14 @@ const FilterExamples = () => {
           
           <EditableTable
             columns={columns}
-            data={examples}
+            imageUrlColumnKey="image_url"
+            data={examples}            
             onDataChange={setExamples}
             onUpdate={handleUpdateExamples}
             onDelete={handleDeleteExamples}
+            onAction={handleGenerateImage}
             onCellClick={handleCellClick}
+            actionText="이미지 생성"
             showAddRow={false}
             showPasteButton={false}
             showCopyButton={true}

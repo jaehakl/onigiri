@@ -46,6 +46,7 @@ import './ExamplesTable.css';
 };
 
 const ExamplesTable = () => {
+  const [filterDataCache, setFilterDataCache] = useState(null);
   const [examples, setExamples] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -81,12 +82,13 @@ const ExamplesTable = () => {
         limit: filterData.limit,
         offset: filterData.offset || 0
       };
-
+      setFilterDataCache(cleanFilterData);
       const response = await filterExamples(cleanFilterData);
       setExamples(response.data.examples || []);
       setTotalCount(response.data.total_count || 0);
     } catch (err) {
       setError('필터링 중 오류가 발생했습니다: ' + (err.response?.data?.detail || err.message));
+      setFilterDataCache(null);
       setExamples([]);
       setTotalCount(0);
     } finally {
@@ -119,6 +121,7 @@ const ExamplesTable = () => {
     try {
       await updateExamplesBatch(processedExamples);
       alert('예문들이 성공적으로 수정되었습니다.');
+      handleFilter(filterDataCache);
     } catch (err) {
       console.error('일괄 수정 실패:', err);
       alert('수정에 실패했습니다.');
@@ -140,6 +143,7 @@ const ExamplesTable = () => {
     try {
       await deleteExamplesBatch(exampleIds);
       alert('선택된 예문들이 성공적으로 삭제되었습니다.');
+      handleFilter(filterDataCache);
     } catch (err) {
       console.error('일괄 삭제 실패:', err);
       alert('삭제에 실패했습니다.');
@@ -169,6 +173,7 @@ const ExamplesTable = () => {
         <EditableTable
           columns={columns}
           data={examples}
+          imageUrlColumnKey="image_url"
           onDataChange={handleDataChange}
           onUpdate={handleBatchUpdate}
           onDelete={handleBatchDelete}

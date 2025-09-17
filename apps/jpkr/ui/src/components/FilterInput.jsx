@@ -283,7 +283,7 @@ const FilterInput = ({
       <div className="filter-section">
         <h3>페이지당 항목 수</h3>
         <div className="limit-buttons">
-          {[20, 100, 1000].map(limitOption => (
+          {[5, 20, 50, 500].map(limitOption => (
             <button
               key={limitOption}
               onClick={() => handleLimitChange(limitOption)}

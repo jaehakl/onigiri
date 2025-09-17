@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './EditableTable.css';
 
 const EditableTable = ({ 
-  columns, 
-  data, 
+  columns,
+  imageUrlColumnKey,
+  data,
   onDataChange,
   addRowText = "행 추가",
   deleteRowText = "삭제",
@@ -21,6 +22,10 @@ const EditableTable = ({
   const [selectedRows, setSelectedRows] = useState([]);
   const [editedRows, setEditedRows] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  useEffect(() => {
+    setSelectedRows([]);
+  }, [data]);
 
   // 정렬된 데이터 계산
   const getSortedData = () => {
@@ -315,6 +320,7 @@ const EditableTable = ({
                 {col.label} {getSortIcon(col.key)}
               </th>
             ))}
+            {imageUrlColumnKey && <th>이미지</th>}
             {showDeleteButton && <th>작업</th>}
           </tr>
         </thead>
@@ -352,6 +358,11 @@ const EditableTable = ({
                   )}
                 </td>
               ))}
+              {imageUrlColumnKey && (
+                <td>
+                  <img src={row[imageUrlColumnKey]} alt="image" height={150} />
+                </td>
+              )}
               {showDeleteButton && (
               <td>
                 <button

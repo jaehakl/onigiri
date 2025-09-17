@@ -2,6 +2,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 from db import Example, WordExample
+from utils.aws_s3 import presign_get_url
 
 def filter_examples_by_criteria(
     min_words: Optional[int] = None,
@@ -24,6 +25,7 @@ def filter_examples_by_criteria(
         Example.en_prompt,
         Example.created_at,
         Example.updated_at,
+        Example.image_object_key,
         # 대용량 필드들의 존재 여부만 확인 (실제 값은 가져오지 않음)
         case(
             (Example.embedding.isnot(None), 1),
@@ -84,8 +86,8 @@ def filter_examples_by_criteria(
         else:
             query = query.filter(Example.image_object_key.is_(None))
     
-    # 정렬 (생성일 기준 오름차순)
-    query = query.order_by(Example.created_at.asc())
+    # 정렬 (ID 기준 내림차순)
+    query = query.order_by(Example.id.desc())
     total_count = query.count()
     
     # 페이징
@@ -118,6 +120,7 @@ def filter_examples_by_criteria(
             'has_embedding': row.has_embedding,
             'has_audio': row.has_audio,
             'has_image': row.has_image,
+            'image_url': presign_get_url(row.image_object_key, expires=600) if row.image_object_key is not None else None,
             'created_at': row.created_at,
             'updated_at': row.updated_at,
             'num_words': word_counts.get(row.id, 0),
