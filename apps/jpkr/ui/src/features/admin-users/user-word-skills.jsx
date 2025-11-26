@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getUserWordSkillsUser, createWordsPersonal, deleteWordsBatch } from '../api/api';
+import { getUserWordSkillsUser, createWordsPersonal, deleteWordsBatch } from '../../api/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import './UserWordSkills.css';
-import WordInputModal from '../components/WordInputModal';
+import WordInputModal from '../../components/WordInputModal';
 
 const LEVELS_ORDER = ['N5', 'N4', 'N3', 'N2', 'N1'];
 

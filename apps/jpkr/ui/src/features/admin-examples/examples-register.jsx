@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import EditableTable from '../components/EditableTable';
-import { createExamplesBatch } from '../api/api';
+import EditableTable from '../../components/EditableTable';
+import { createExamplesBatch } from '../../api/api';
 import './ExamplesRegister.css';
 
 const ExamplesRegister = () => {

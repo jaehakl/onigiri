@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Card, Loader, Message, Panel, Grid, Row, Col } from 'rsuite';
 import { Icon } from '@rsuite/icons';
 import { Reload } from '@rsuite/icons';
-import { getExamplesForUser } from '../api/api';
-import ExampleCard from '../components/ExampleCard';
+import { getExamplesForUser } from '../../api/api';
+import ExampleCard from '../../components/ExampleCard';
 import './RecommendExamples.css';
 
 const RecommendExamples = () => {

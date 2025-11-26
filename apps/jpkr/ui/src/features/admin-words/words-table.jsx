@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import EditableTable from '../components/EditableTable';
-import FilterInput from '../components/FilterInput';
-import { filterWords, updateWordsBatch, deleteWordsBatch } from '../api/api';
+import EditableTable from '../../components/EditableTable';
+import FilterInput from '../../components/FilterInput';
+import { filterWords, updateWordsBatch, deleteWordsBatch } from '../../api/api';
 import './WordsTable.css';
 
 

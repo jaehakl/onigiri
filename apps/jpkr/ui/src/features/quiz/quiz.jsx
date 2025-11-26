@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { saveQuizRecordToLocal, getQuizRecordsFromLocal, getQuizStatisticsFromLocal, clearQuizRecords, exportQuizRecords, importQuizRecords } from '../api/quizRecords';
-import { getRandomWordsToLearn } from '../api/api';
-import { to_hiragana } from '../service/hangul-to-hiragana';
+import { saveQuizRecordToLocal, getQuizRecordsFromLocal, getQuizStatisticsFromLocal, clearQuizRecords, exportQuizRecords, importQuizRecords } from '../../api/quizRecords';
+import { getRandomWordsToLearn } from '../../api/api';
+import { to_hiragana } from '../../service/hangul-to-hiragana';
 import './Quiz.css';
 
 

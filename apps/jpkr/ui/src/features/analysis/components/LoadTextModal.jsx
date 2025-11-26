@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUserTextList, deleteUserText } from '../api/api';
+import { getUserTextList, deleteUserText } from '../../../api/api';
 import './LoadTextModal.css';
 
 const LoadTextModal = ({ isOpen, onClose, onLoadText }) => {

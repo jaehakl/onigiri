@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analyzeText, createUserText, getUserText, updateUserText } from '../api/api';
+import { analyzeText, createUserText, getUserText, updateUserText } from '../../api/api';
 import './WordAnalysis.css';
-import WordsHighlighter from '../components/WordsHighlighter';
-import SaveTextModal from '../components/SaveTextModal';
-import LoadTextModal from '../components/LoadTextModal';
-import YouTubeEmbed from '../components/YouTubeEmbed';
-import ExampleCard from '../components/ExampleCard';
-import { to_hiragana } from '../service/hangul-to-hiragana';
-import { sample_text } from '../service/sample-text';
+import WordsHighlighter from '../../components/WordsHighlighter';
+import SaveTextModal from './components/SaveTextModal';
+import LoadTextModal from './components/LoadTextModal';
+import YouTubeEmbed from './components/YouTubeEmbed';
+import ExampleCard from '../../components/ExampleCard';
+import { to_hiragana } from '../../service/hangul-to-hiragana';
+import { sample_text } from '../../service/sample-text';
 
 const WordAnalysis = () => {
   const navigate = useNavigate();

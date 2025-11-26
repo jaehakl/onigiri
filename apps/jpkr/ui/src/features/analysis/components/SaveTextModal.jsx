@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './SaveTextModal.css';
-import { createUserText, updateUserText } from '../api/api';
+import { createUserText, updateUserText } from '../../../api/api';
 
 const SaveTextModal = ({ isOpen, onClose, defaultTextData, onSave, text }) => {
   const [id, setId] = useState(null);

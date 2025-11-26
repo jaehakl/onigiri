@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllUsersAdmin, deleteUserAdmin } from '../api/api';
+import { getAllUsersAdmin, deleteUserAdmin } from '../../api/api';
 import './UserManagement.css';
 
 const UserManagement = () => {

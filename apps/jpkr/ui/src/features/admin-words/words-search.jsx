@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { searchWordsByWord } from '../api/api';
-import { to_hiragana } from '../service/hangul-to-hiragana';
+import { searchWordsByWord } from '../../api/api';
+import { to_hiragana } from '../../service/hangul-to-hiragana';
 import './WordsSearch.css';
 
 const WordsSearch = () => {
