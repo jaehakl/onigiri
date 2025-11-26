@@ -7,7 +7,9 @@ from methods.recommend_examples_simple import recommend_examples_simple
 from methods.words_from_examples_batch import words_from_examples_batch
 
 def get_examples_for_user(db: Session = None, tags: List[str] = None, user_id: str = None) -> List[Example]:
-    examples = recommend_examples_worst_reading(limit_examples=6, tags=tags, db=db, user_id=user_id)
-    #examples = recommend_examples_simple(limit_examples=6, db=db, user_id=user_id)
+    if user_id is not None:
+        examples = recommend_examples_worst_reading(limit_examples=6, tags=tags, db=db, user_id=user_id)
+    else:
+        examples = recommend_examples_simple(limit_examples=6, tags=tags, db=db)
     examples_result = list(words_from_examples_batch(examples, db=db, user_id=user_id).values())
     return examples_result
