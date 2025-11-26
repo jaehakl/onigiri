@@ -85,49 +85,27 @@ async def create_words_personal(
             new_word_id = row.id
 
         word_id_map[word] = new_word_id
-        # skill 자동처리 (예: level == 'N/A' → 읽기 100)
-        if payload.get('reading_mastered') == True:
-            existing_skill = db.query(UserWordSkill).filter(
-                UserWordSkill.user_id == user_id,
-                UserWordSkill.word_id == new_word_id
-            ).first()
-            if existing_skill:
-                setattr(existing_skill, 'reading', 100)
-                updated_skills.append(word)
-            else:
-                new_skill = UserWordSkill(
-                    user_id=user_id,
-                    word_id=new_word_id,
-                    reading=100,
-                    listening=payload.get('listening', 0),
-                    speaking=payload.get('speaking', 0),
-                )
-                db.add(new_skill)
-                db.flush()
-                created_skills.append(word)
+
+        existing_skill = db.query(UserWordSkill).filter(
+            UserWordSkill.user_id == user_id,
+            UserWordSkill.word_id == new_word_id
+        ).first()
+        if existing_skill:
+            existing_skill.reading = payload.get('reading', 0)
+            existing_skill.listening = payload.get('listening', 0)
+            existing_skill.speaking = payload.get('speaking', 0)
+            updated_skills.append(word)
         else:
-            existing_skill = db.query(UserWordSkill).filter(
-                UserWordSkill.user_id == user_id,
-                UserWordSkill.word_id == new_word_id
-            ).first()
-            if existing_skill:
-                if existing_skill.reading < 80:
-                    existing_skill.reading += 1
-                    updated_skills.append(word)
-                else:
-                    existing_skill.reading = 0
-                    updated_skills.append(word)
-            else:
-                new_skill = UserWordSkill(
-                    user_id=user_id,
-                    word_id=new_word_id,
-                    reading=payload.get('reading', 1),
-                    listening=payload.get('listening', 0),
-                    speaking=payload.get('speaking', 0),
-                )
-                db.add(new_skill)
-                db.flush()
-                created_skills.append(word)
+            new_skill = UserWordSkill(
+                user_id=user_id,
+                word_id=new_word_id,
+                reading=payload.get('reading', 0),
+                listening=payload.get('listening', 0),
+                speaking=payload.get('speaking', 0),
+            )
+            db.add(new_skill)
+            db.flush()
+            created_skills.append(word)
 
 
     db.commit()
