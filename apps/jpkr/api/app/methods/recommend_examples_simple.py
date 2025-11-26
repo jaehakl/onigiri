@@ -3,7 +3,7 @@ from sqlalchemy import func, select, and_
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from db import Example, WordExample, Word, UserWordSkill
-from models import ExampleData
+from models import ExampleOut
 from utils.aws_s3 import presign_get_url
 
 def recommend_examples_simple(limit_examples: int = 30, db: Session = None, user_id: str = None) -> List[Example]:
@@ -19,7 +19,7 @@ def recommend_examples_simple(limit_examples: int = 30, db: Session = None, user
     examples_result = []
     for row in examples:
         examples_result.append(
-            ExampleData(
+            ExampleOut(
                 id=row.id,
                 jp_text=row.jp_text,
                 kr_mean=row.kr_mean,

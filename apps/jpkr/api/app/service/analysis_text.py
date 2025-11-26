@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select, case, func
 from sqlalchemy.orm import Session
 from utils.aws_s3 import presign_get_url
-from models import ExampleData
+from models import ExampleOut
 
 from utils.words_from_text import extract_words_from_text
 from methods.words_from_examples_batch import words_from_examples_batch
@@ -99,7 +99,7 @@ def analyze_text(text: str, db: Session=None, user_id:str = None) -> Dict[str, A
             continue
         seen_example_ids.add(row.id)
         examples_data.append(
-            ExampleData(
+            ExampleOut(
                 id=row.id,
                 jp_text=row.jp_text,
                 kr_mean=row.kr_mean,
