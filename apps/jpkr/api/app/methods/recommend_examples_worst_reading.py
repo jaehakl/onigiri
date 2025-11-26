@@ -68,7 +68,7 @@ def recommend_examples_worst_reading(
     for row in word_scores:
         score = row.reading_score or 0
         #weight = max(1, 101 - min(100, score))  # score 0 -> 101, score 100 -> 1
-        weight = 2525 - (50 - min(100, score)) ** 2
+        weight = max(1, 2500 - (50 - score) ** 2)
         weights.append(weight)
         words.append(row.word_id)
 
