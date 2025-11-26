@@ -3,11 +3,11 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from db import Example, WordExample, Word
-from models import ExampleData
+from models import ExampleCreate, ExampleUpdate
 from utils.words_from_text import extract_words_from_text
 from utils.aws_s3 import delete_object
 
-def create_examples_batch(examples_data: List[ExampleData], db: Session=None, user_id:str = None):
+def create_examples_batch(examples_data: List[ExampleCreate], db: Session=None, user_id:str = None):
     words_dict_global = {}
     for example_data in examples_data:
         document, words_dict = extract_words_from_text(example_data.jp_text)
@@ -63,7 +63,7 @@ def create_examples_batch(examples_data: List[ExampleData], db: Session=None, us
     db.commit()
     return
 
-def update_examples_batch(examples_data: List[ExampleData], db: Session=None, user_id:str = None):
+def update_examples_batch(examples_data: List[ExampleUpdate], db: Session=None, user_id:str = None):
     for example_data in examples_data:
         example = db.query(Example).filter(Example.id == example_data.id).first()            
         if example:

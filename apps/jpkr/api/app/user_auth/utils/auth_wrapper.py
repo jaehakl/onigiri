@@ -1,56 +1,52 @@
-from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
-from typing import List
+from typing import Callable, List, Optional
+
+from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
+
 from models import UserData
-from user_auth.routes import check_user
+from user_auth.routes import check_user, get_db
 
-def auth_service(request: Request, allowed_roles: List[str], db, func, *args, **kwargs):
 
+def get_user_optional(
+    request: Request, db: Session = Depends(get_db)
+) -> Optional[UserData]:
+    """
+    Returns the current user if authenticated; otherwise None.
+    Raises for non-auth related errors to avoid hiding real failures.
+    """
     try:
-        user: UserData = check_user(request, db)
-    except Exception as e:
-        user = None
+        return check_user(request, db)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
 
-    if user:
-        user_roles = [ur for ur in user.roles]
-        user_id = user.id
-    else:
-        user_roles = []
-        user_id = None
 
-    matched_roles = [ur for ur in user_roles if ur in allowed_roles]
-    
-    if len(matched_roles) == 0 and '*' not in allowed_roles:
-        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
-    
-    try:
-        return func(*args, **kwargs, db=db, user_id=user_id)
-    except Exception as e:
-        print("Error: ", e)
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+def require_roles(allowed_roles: List[str]) -> Callable:
+    """
+    Dependency factory enforcing role-based access.
+    - If '*' is in allowed_roles, authentication is optional (returns user or None).
+    - Otherwise, the user must be authenticated and have one of the allowed roles.
+    """
+    allow_anonymous = "*" in allowed_roles
 
-async def auth_service_async(request: Request, allowed_roles: List[str], db, func, *args, **kwargs): 
-    try: 
-        user: UserData = check_user(request, db)
-    except Exception as e:
-        user = None
+    async def dependency(
+        user: Optional[UserData] = Depends(
+            get_user_optional if allow_anonymous else check_user
+        ),
+    ) -> Optional[UserData]:
+        if allow_anonymous:
+            return user
 
-    if user:
-        user_roles = [ur for ur in user.roles]
-        user_id = user.id
-    else:
-        user_roles = []
-        user_id = None
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
+            )
 
-    matched_roles = [ur for ur in user_roles if ur in allowed_roles]
+        if not any(role in allowed_roles for role in user.roles):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
+            )
+        return user
 
-    if len(matched_roles) == 0 and '*' not in allowed_roles:
-        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
-    
-    try:
-        return await func(*args, **kwargs, db=db, user_id=user_id)
-    except Exception as e:
-        print("Error: ", e)
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+    return dependency

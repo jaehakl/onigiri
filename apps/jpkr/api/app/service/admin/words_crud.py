@@ -4,7 +4,7 @@ from sqlalchemy import and_, or_, select, delete, func, case
 from typing import List, Dict, Any, Optional, Sequence
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from models import WordData
+from models import WordUpdate
 from db import Word
 
 def row_to_dict(obj) -> dict:
@@ -12,7 +12,7 @@ def row_to_dict(obj) -> dict:
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
 
-def update_words_batch(words_data: List[Dict[str, Any]], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
+def update_words_batch(words_data: List[WordUpdate], db: Session=None, user_id:str = None) -> Dict[int, Dict[str, Any]]:
     result = {}        
     for word_data in words_data:
         word = db.query(Word).filter(Word.id == word_data.id).first()
