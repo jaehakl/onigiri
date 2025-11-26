@@ -2,18 +2,10 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from db import Example
-from methods.recommend_examples_fast import select_examples_fast
-from methods.recommend_examples_fast_light import select_examples_fast_light
-from methods.recommend_examples import recommend_examples
 from methods.recommend_examples_simple import recommend_examples_simple
-from methods.recommend_examples_advanced import select_examples_for_user_randomized
 from methods.words_from_examples_batch import words_from_examples_batch
 
 def get_examples_for_user(db: Session = None, user_id: str = None) -> List[Example]:
-    #examples = recommend_examples(db=db, user_id=user_id)
-    #examples = select_examples_for_user_randomized(words_k=30, examples_per_word=3, db=db, user_id=user_id)
-    #examples = select_examples_fast(words_k=70, examples_per_word=5, db=db, user_id=user_id)
-    #examples = select_examples_fast_light(words_k=30, examples_per_word=3, db=db, user_id=user_id)
     examples = recommend_examples_simple(limit_examples=6, db=db, user_id=user_id)
     examples_result = list(words_from_examples_batch(examples, db=db, user_id=user_id).values())
     return examples_result
