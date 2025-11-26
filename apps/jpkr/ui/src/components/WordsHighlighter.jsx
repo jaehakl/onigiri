@@ -86,11 +86,22 @@ const WordsHighlighter = ({words}) => {
     const elements = [];
     for (let i_line in words) {
       for (let i_word in words[i_line]) {
-        if (words[i_line][i_word].word_id && !words[i_line][i_word].user_word_skills.some(skill => skill.reading > 80)) {
+        let level = 'N1'
+        if (words[i_line][i_word].user_word_skills.some(skill => skill.reading >= 80)) {
+          level = 'N5';
+        } else if (words[i_line][i_word].user_word_skills.some(skill => skill.reading >= 60)) {
+          level = 'N4';
+        } else if (words[i_line][i_word].user_word_skills.some(skill => skill.reading >= 40)) {
+          level = 'N3';
+        } else if (words[i_line][i_word].user_word_skills.some(skill => skill.reading >= 20)) {
+          level = 'N2';
+        }
+
+        if (words[i_line][i_word].word_id && !words[i_line][i_word].user_word_skills.some(skill => skill.reading > 99)) {
         elements.push(
           <span
             key={`morpheme-${i_line}-${i_word}`}
-            className={`morpheme morpheme-${words[i_line][i_word].level}`}
+            className={`morpheme morpheme-${level}`}
             onMouseEnter={(e) => handleMouseEnter(words[i_line][i_word], e)}
             onMouseMove={(e) => handleMouseMove(words[i_line][i_word], e)}
             onMouseLeave={handleMouseLeave}

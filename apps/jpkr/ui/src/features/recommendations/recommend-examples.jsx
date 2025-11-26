@@ -5,23 +5,11 @@ import { getExamplesForUser } from '../../api/api';
 import ExampleCard from '../../components/ExampleCard';
 import './RecommendExamples.css';
 
-const TAG_OPTIONS = [
-  '건강',
-  '취미',
-  '여행',
-  '음식',
-  '비즈니스',
-  '감정',
-  '학교',
-  '가족',
-  '쇼핑',
-  '기타',
-];
-
 const RecommendExamples = () => {
   const [examples, setExamples] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [tagInput, setTagInput] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
 
   const loadExamples = async () => {
@@ -43,10 +31,17 @@ const RecommendExamples = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTags]);
 
-  const toggleTag = (tag) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+  const handleAddTag = () => {
+    const trimmed = tagInput.trim();
+    if (!trimmed) return;
+    if (!selectedTags.includes(trimmed)) {
+      setSelectedTags([...selectedTags, trimmed]);
+    }
+    setTagInput('');
+  };
+
+  const handleRemoveTag = (tag) => {
+    setSelectedTags(selectedTags.filter((t) => t !== tag));
   };
 
   const renderExampleCard = (example) => (
@@ -76,23 +71,47 @@ const RecommendExamples = () => {
       />
 
       <div className="recommend-examples-tags">
+        <div className="recommend-examples-tag-input-row">
+          <input
+            type="text"
+            placeholder="태그를 입력하고 Enter 또는 추가 버튼을 눌러보세요"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddTag();
+              }
+            }}
+            className="recommend-examples-tag-input"
+          />
+          <Button size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>
+            태그 추가
+          </Button>
+          {selectedTags.length > 0 && (
+            <span className="recommend-examples-tag-hint">
+              현재 선택: {selectedTags.join(', ')}
+            </span>
+          )}
+        </div>
         <div className="recommend-examples-tag-list">
-          {TAG_OPTIONS.map((tag) => {
-            const active = selectedTags.includes(tag);
-            return (
+          {selectedTags.map((tag) => (
+            <span key={tag} className="recommend-examples-tag-pill active">
+              {tag}
               <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                className={`recommend-examples-tag-pill ${active ? 'active' : ''}`}
-                aria-pressed={active}
+                onClick={() => handleRemoveTag(tag)}
+                className="tag-remove-btn"
+                aria-label={`${tag} 제거`}
               >
-                {tag}
+                ×
               </button>
-            );
-          })}
-          <span className="recommend-examples-tag-hint">
-            원하는 태그를 선택/해제하면 자동으로 추천이 갱신됩니다.
-          </span>
+            </span>
+          ))}
+          {selectedTags.length === 0 && (
+            <span className="recommend-examples-tag-placeholder">
+              선택된 태그가 없습니다. 태그를 추가해 보세요.
+            </span>
+          )}
         </div>
       </div>
 

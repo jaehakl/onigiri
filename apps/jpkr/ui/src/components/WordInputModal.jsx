@@ -206,23 +206,6 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
             </div>
           </div>
           <div className="word-input-modal-form-row">
-
-            <div className="word-input-modal-form-group">
-              <label>난이도:</label>
-              <select
-                name="level"
-                value={wordForm.level}
-                onChange={handleFormChange}                  
-              >
-                <option value="N5">(N5) 초급</option>
-                <option value="N4">(N4) 초중급</option>
-                <option value="N3">(N3) 중급</option>
-                <option value="N2">(N2) 중고급</option>
-                <option value="N1">(N1) 고급</option>
-              </select>
-            </div>
-            </div>
-          <div className="word-input-modal-form-row">
             <div className="word-input-modal-form-group">
               <label>Reading</label>
               <input
@@ -268,8 +251,7 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
                 삭제
               </button>
             )}
-            <input type="checkbox" name="reading_mastered" checked={wordForm.reading_mastered} onChange={handleFormChange} />
-            <label>Master</label>
+
             {!(user && user.roles.includes('user')) && (
               <h5>로그인 후 저장 가능합니다.</h5>
             )}

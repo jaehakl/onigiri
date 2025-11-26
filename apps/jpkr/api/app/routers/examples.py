@@ -65,6 +65,7 @@ async def api_get_examples_for_user(
     db: Session = Depends(get_db),
     user=Depends(require_roles(["*"])),
 ):
+    print(payload.tags)
     return get_examples_for_user(
         tags=payload.tags, db=db, user_id=user.id if user else None
     )
