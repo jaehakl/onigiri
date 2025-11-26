@@ -51,7 +51,7 @@ export const readExamplesBatch = (exampleIds) => post_refresh(`${API_URL}/exampl
 export const updateExamplesBatch = (examplesData) => post_refresh(`${API_URL}/examples/update/batch`, examplesData);
 export const deleteExamplesBatch = (exampleIds) => post_refresh(`${API_URL}/examples/delete/batch`, exampleIds);
 export const filterExamples = (exampleFilterData) => post_refresh(`${API_URL}/examples/filter`, exampleFilterData);
-export const getExamplesForUser = () => get_refresh(`${API_URL}/examples/get-examples-for-user`);
+export const getExamplesForUser = (tags = []) => post_refresh(`${API_URL}/examples/get-examples-for-user`, { tags });
 
 // === Text Analysis ===
 export const analyzeText = (text) => post_refresh(`${API_URL}/text/analyze`, { text });

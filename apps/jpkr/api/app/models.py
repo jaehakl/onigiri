@@ -21,8 +21,8 @@ class WordBase(BaseModel):
     lemma: str = Field(..., min_length=1)
     jp_pron: str = Field(..., min_length=1)
     kr_pron: str = Field(..., min_length=1)
-    kr_mean: str = Field(..., min_length=1)
-    level: LevelEnum
+    kr_mean: str = Field(..., min_length=1)    
+    level: LevelEnum    
 
 
 class WordUpdate(WordBase):

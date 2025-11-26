@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from models import ExampleCreate, ExampleUpdate, ExampleFilterData
 from service.admin.examples_crud import (
@@ -13,8 +14,11 @@ from service.admin.filter_examples import filter_examples_by_criteria
 from service.feed_examples import get_examples_for_user
 from user_auth.routes import get_db
 from user_auth.utils.auth_wrapper import require_roles
-
 router = APIRouter(prefix="/examples", tags=["examples"])
+
+
+class ExamplesForUserRequest(BaseModel):
+    tags: Optional[List[str]] = None
 
 
 @router.post("/create/batch")
@@ -55,9 +59,12 @@ async def api_filter_examples(
     )
 
 
-@router.get("/get-examples-for-user")
+@router.post("/get-examples-for-user")
 async def api_get_examples_for_user(
+    payload: ExamplesForUserRequest,
     db: Session = Depends(get_db),
     user=Depends(require_roles(["*"])),
 ):
-    return get_examples_for_user(db=db, user_id=user.id if user else None)
+    return get_examples_for_user(
+        tags=payload.tags, db=db, user_id=user.id if user else None
+    )

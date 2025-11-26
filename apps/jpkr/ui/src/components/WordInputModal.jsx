@@ -14,6 +14,9 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
     level: 'N1',
     tags: '',
     reading_mastered: false,
+    reading: 0,
+    listening: 0,
+    speaking: 0,
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileTags, setFileTags] = useState([]);
@@ -29,12 +32,20 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
         kr_mean: word.kr_mean || '',
         level: word.level || 'N1',
         reading_mastered: false,
+        reading: 0,
+        listening: 0,
+        speaking: 0,
       };
-      word.user_word_skills.forEach(skill => {
-        if (skill.reading > 80) {
-          formData.reading_mastered = true;
-        }
-      });
+      if (word.user_word_skills) {
+        word.user_word_skills.forEach(skill => {
+          if (skill.reading > 80) {
+            formData.reading_mastered = true;
+          }
+          formData.reading = skill.reading || 0;
+          formData.listening = skill.listening || 0;
+          formData.speaking = skill.speaking || 0;
+        });
+      }
       setWordForm(formData);
     }
   }, [word]);
@@ -53,6 +64,13 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
       setWordForm(prev => ({
         ...prev,
         [name]: !prev.reading_mastered
+      }));
+    } else if (['reading', 'listening', 'speaking'].includes(name)) {
+      const parsed = parseInt(value || '0', 10);
+      const numeric = Math.max(0, Math.min(100, Number.isNaN(parsed) ? 0 : parsed));
+      setWordForm(prev => ({
+        ...prev,
+        [name]: numeric
       }));
     } else {
       setWordForm(prev => ({
@@ -89,10 +107,14 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
       return;
     }
 
-    console.log(wordForm);
+    const payload = {
+      ...wordForm,
+      reading_mastered: wordForm.reading_mastered || wordForm.reading >= 80,
+    };
+
     // FormData 생성
     const fd = new FormData();
-    fd.append("data_json", JSON.stringify([wordForm]));
+    fd.append("data_json", JSON.stringify([payload]));
     
     // 파일 메타데이터 추가
     const fileMetaData = selectedFiles.map((file, index) => ({
@@ -130,6 +152,9 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
       level: 'N1',
       tags: '',
       reading_mastered: false,
+      reading: 0,
+      listening: 0,
+      speaking: 0,
     });
     setSelectedFiles([]);
     setFileTags([]);
@@ -197,6 +222,44 @@ const WordInputModal = ({ word, isOpen, onClose, onSubmit, onDelete }) => {
               </select>
             </div>
             </div>
+          <div className="word-input-modal-form-row">
+            <div className="word-input-modal-form-group">
+              <label>Reading</label>
+              <input
+                type="number"
+                name="reading"
+                min="0"
+                max="100"
+                value={wordForm.reading}
+                onChange={handleFormChange}
+                placeholder="0~100"
+              />
+            </div>
+            <div className="word-input-modal-form-group">
+              <label>Listening</label>
+              <input
+                type="number"
+                name="listening"
+                min="0"
+                max="100"
+                value={wordForm.listening}
+                onChange={handleFormChange}
+                placeholder="0~100"
+              />
+            </div>
+            <div className="word-input-modal-form-group">
+              <label>Speaking</label>
+              <input
+                type="number"
+                name="speaking"
+                min="0"
+                max="100"
+                value={wordForm.speaking}
+                onChange={handleFormChange}
+                placeholder="0~100"
+              />
+            </div>
+          </div>
         </div>
         <div className="word-input-modal-footer">
           <div className="word-input-modal-footer-left">

@@ -99,8 +99,8 @@ async def create_words_personal(
                     user_id=user_id,
                     word_id=new_word_id,
                     reading=100,
-                    listening=0,
-                    speaking=0,
+                    listening=payload.get('listening', 0),
+                    speaking=payload.get('speaking', 0),
                 )
                 db.add(new_skill)
                 db.flush()
@@ -121,9 +121,9 @@ async def create_words_personal(
                 new_skill = UserWordSkill(
                     user_id=user_id,
                     word_id=new_word_id,
-                    reading=1,
-                    listening=0,
-                    speaking=0,
+                    reading=payload.get('reading', 1),
+                    listening=payload.get('listening', 0),
+                    speaking=payload.get('speaking', 0),
                 )
                 db.add(new_skill)
                 db.flush()
