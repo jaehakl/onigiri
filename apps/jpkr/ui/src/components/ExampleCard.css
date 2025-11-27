@@ -123,14 +123,12 @@
 /* 예문 이미지 */
 .example-card-image {
     width: 100%;
-    height: 200px;
+    max-height: 320px;
     margin-bottom: 12px;
     border-radius: 8px;
     overflow: hidden;
     background: #fafafa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -164,9 +162,10 @@
 
 .example-card-image img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
     border-radius: 6px;
+    display: block;
 }
 
 @keyframes pulse {
@@ -305,7 +304,7 @@
     }
     
     .example-card-image {
-        height: 50vw;
+        max-height: none;
     }
 }
 
@@ -321,10 +320,6 @@
     .example-card-stat {
         padding: 6px 10px;
         min-width: 60px;
-    }
-    
-    .example-card-image {
-        height: 50vw;
     }
 }
 

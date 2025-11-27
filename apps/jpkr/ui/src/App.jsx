@@ -7,6 +7,7 @@ import WordAnalysis from './features/analysis/word-analysis';
 import ExamplesRegister from './features/admin-examples/examples-register';
 import ExamplesTable from './features/admin-examples/examples-table';
 import RecommendExamples from './features/recommendations/recommend-examples';
+import AutoStreamExamples from './features/recommendations/auto-stream-examples';
 import Quiz from './features/quiz/quiz';
 import UserManagement from './features/admin-users/user-management';
 import UserWordSkills from './features/admin-users/user-word-skills';
@@ -57,6 +58,11 @@ function App() {
       key: 'recommend-examples',
       label: '문장별 학습',
       path: '/'
+    },
+    {
+      key: 'audio-stream',
+      label: '문장 스트리밍',
+      path: '/audio-stream'
     },
     {
       key: 'word-analysis',
@@ -189,7 +195,8 @@ function App() {
         </Sidebar>
         <Content className="content-area">
           <Routes>
-          <Route path="/" element={<RecommendExamples />} />
+            <Route path="/" element={<RecommendExamples />} />
+            <Route path="/audio-stream" element={<AutoStreamExamples />} />
             <Route path="/analysis" element={<WordAnalysis />} />
             <Route path="/words-search" element={<WordsSearch />} />              
             <Route path="/words-table" element={<WordsTable />} />
@@ -206,8 +213,4 @@ function App() {
 }
 
 export default App;
-
-
-
-
 
