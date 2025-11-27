@@ -20,7 +20,7 @@ async def gen_example_image(
     negative_prompt_list = []
     seed_list = []
     for i, example in enumerate(examples):
-        positive_prompt_list.append(example.en_prompt)
+        positive_prompt_list.append("masterpiece, best quality, " + example.en_prompt)
         negative_prompt_list.append("nsfw, blurry, low quality, bad anatomy, disfigured, deformed, bad hands, missing fingers, "
                                     "extra fingers, worst quality, jpeg artifacts, signature, watermark, text, bad eyes, grotesque, "
                                     "sketchy, logo, rough, incomplete, disgusting, distorted, deformed face, poorly drawn, bad quality")
